@@ -96,6 +96,7 @@ var insertNewCommentFormIfDontExist = function(comment, callback) {
   } else {
     // Reset form to make sure it is all clear
     newCommentForm.get(0).reset();
+    newCommentForm.find('.suggestion').hide();
 
     // Detach current "submit" handler to be able to call the updated callback
     newCommentForm.off("submit");
@@ -110,12 +111,30 @@ var insertNewCommentFormIfDontExist = function(comment, callback) {
   return newCommentForm;
 };
 
-var showNewCommentForm = function() {
+var placeFocusOnCommentField = function() {
+  // Adjust focus on the form
+  getNewCommentContainer().find(".comment-content").focus();
+
+  // fix for iOS: when opening #newComment, we need to force focus on padOuter
+  // contentWindow, otherwise keyboard will be displayed but text input made by
+  // the user won't be added to textarea
+  var outerIframe = $('iframe[name="ace_outer"]').get(0);
+  if (outerIframe && outerIframe.contentWindow) {
+    outerIframe.contentWindow.focus();
+  }
+}
+
+var showNewCommentFormAt = function(top) {
+  adjustNewCommentFormPositionTo(top);
+
   getNewCommentContainer().addClass("active");
   // we need to set a timeout otherwise the animation to show #newComment won't be visible
   window.setTimeout(function() {
-    getPadOuter().find('.suggestion').hide(); // Hides suggestion in case of a cancel
     getNewCommentContainer().find('#newComment').removeClass("hidden").addClass("visible");
+    // we need to give some time for the animation of #newComment to finish
+    window.setTimeout(function() {
+      placeFocusOnCommentField();
+    }, 500);
   }, 0);
 }
 
@@ -131,8 +150,18 @@ var hideNewCommentForm = function() {
   }, 500);
 }
 
+var adjustNewCommentFormPositionTo = function(top) {
+  // Desktop and Android platform don't need to change #newComments position in order
+  // to align the form to the selected text
+  if (browser.ios) {
+    getNewCommentContainer().css('top', top);
+  }
+}
+
 exports.localizeNewCommentForm = localizeNewCommentForm;
-exports.insertNewCommentFormIfDontExist = insertNewCommentFormIfDontExist;
-exports.showNewCommentForm = showNewCommentForm;
-exports.hideNewCommentForm = hideNewCommentForm;
 exports.insertContainers = insertContainers;
+exports.insertNewCommentFormIfDontExist = insertNewCommentFormIfDontExist;
+exports.placeFocusOnCommentField = placeFocusOnCommentField;
+exports.showNewCommentFormAt = showNewCommentFormAt;
+exports.hideNewCommentForm = hideNewCommentForm;
+exports.adjustNewCommentFormPositionTo = adjustNewCommentFormPositionTo;

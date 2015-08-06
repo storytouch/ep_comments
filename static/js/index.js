@@ -589,11 +589,26 @@ ep_comments.prototype.editorResized = function() {
 
   // We try increasing timeouts, to make sure user gets the response as fast as we can
   setTimeout(function() {
-    if (!self.allCommentsOnCorrectYPosition()) self.adjustCommentPositions();
+    if (!self.allCommentsOnCorrectYPosition()) {
+      self.adjustCommentPositions();
+
+      var y = self.getYofFirstSelectedLine();
+      newComment.adjustNewCommentFormPositionTo(y);
+    }
     setTimeout(function() {
-      if (!self.allCommentsOnCorrectYPosition()) self.adjustCommentPositions();
+      if (!self.allCommentsOnCorrectYPosition()) {
+        self.adjustCommentPositions();
+
+        var y = self.getYofFirstSelectedLine();
+        newComment.adjustNewCommentFormPositionTo(y);
+      }
       setTimeout(function() {
-        if (!self.allCommentsOnCorrectYPosition()) self.adjustCommentPositions();
+        if (!self.allCommentsOnCorrectYPosition()) {
+          self.adjustCommentPositions();
+
+          var y = self.getYofFirstSelectedLine();
+          newComment.adjustNewCommentFormPositionTo(y);
+        }
       }, 1000);
     }, 500);
   }, 250);
@@ -756,24 +771,18 @@ ep_comments.prototype.displayNewCommentForm = function() {
   var padOuter = $('iframe[name="ace_outer"]').contents();
   padOuter.find(".comment-suggest-from").val(selectedText);
 
-  // Display form
-  newComment.showNewCommentForm();
-
   // Set the top of the form to be the same Y as the target Rep
   var y = self.getYofFirstSelectedLine();
   padOuter.find('#outerdocbody').scrollTop(y); // Works in Chrome
   padOuter.find('#outerdocbody').parent().scrollTop(y); // Works in Firefox
 
-  // Adjust focus on the form
-  padOuter.find('.comment-content').focus();
+  // Display form
+  newComment.showNewCommentFormAt(y);
 
-  // fix for iOS: when opening #newComment, we need to force focus on padOuter
-  // contentWindow, otherwise keyboard will be displayed but text input made by
-  // the user won't be added to textarea
-  var outerIframe = $('iframe[name="ace_outer"]').get(0);
-  if (outerIframe && outerIframe.contentWindow) {
-    outerIframe.contentWindow.focus();
-  }
+  // Adjust focus on the form
+  // This is done both here and on newComment.showNewCommentFormAt() because different
+  // scenarios need different timing on adjusting the focus to the textarea (especially for iOS)
+  newComment.placeFocusOnCommentField();
 }
 
 // Indicates if user selected some text on editor
