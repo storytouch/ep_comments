@@ -39,17 +39,15 @@ exports.getLineHTMLForExport = function (hook, context) {
   rewriteLine(context);
 }
 
+
 function rewriteLine(context){
   var lineContent = context.lineContent;
-  lineContent = replaceTags(lineContent);
-    // TODO: when "asyncLineHTMLForExport" hook is available on Etherpad, return "lineContent" instead of re-setting it
-  context.lineContent = lineContent;
-  // return lineContent;
-}
+  lineContent = replaceDataByClass(lineContent);
+  // TODO: when "asyncLineHTMLForExport" hook is available on Etherpad, return "lineContent" instead of re-setting it
+   context.lineContent = lineContent;
+   // return lineContent;
+ }
 
-
-function replaceTags(text) {
-  var textWithoutOpenTags = text.replace(/<comment:(c-[0-9a-zA-Z]+)/gi, "<span class='comment $1'");
-  var textWithoutOpenAndCloseTags = textWithoutOpenTags.replace(/<\/comment:(c-[0-9a-zA-Z]+)/gi, "</span");
-  return textWithoutOpenAndCloseTags;
-}
+function replaceDataByClass(text) {
+  return text.replace(/data-comment=["|'](c-[0-9a-zA-Z]+)["|']/gi, "class='comment $1'");
+ }

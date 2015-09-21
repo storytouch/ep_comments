@@ -25,7 +25,6 @@
         "handleMessageSecurity": "ep_comments_page/index",
         "exportHtmlAdditionalTags": "ep_comments_page/exportHTML",
         "getLineHTMLForExport": "ep_comments_page/exportHTML"
-
       }
     }
   ]
