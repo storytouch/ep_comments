@@ -164,22 +164,8 @@ ep_comments.prototype.init = function(){
     var $commentBox = $(this).parent().parent();
 
     // hide the comment author name and the comment text
-    $commentBox.find('.comment-author-name, .comment-text').addClass('hidden');
-
-    // get text from comment
-    var commentTextValue = $commentBox.find('.comment-text').text();
-
-    // add a form to edit the field
-    var data = {};
-    data.text = commentTextValue;
-    var content = $("#editCommentTemplate").tmpl(data);
-
-    // localize comment reply
-    commentL10n.localize(content);
-
-    // insert form
-    $commentBox.find(".comment-text").after(content);
-
+    $commentBox.children('.comment-author-name, .comment-text').addClass('hidden');
+    self.addCommentEditFormIfDontExist($commentBox);
   });
 
   // submit the edition on the text and update the comment text
@@ -193,8 +179,8 @@ ep_comments.prototype.init = function(){
     data.commentText = commentText;
 
     self.socket.emit('commentTextUpdated', data, function (){
-      $commentBox.find('.comment-edit-form').remove();
-      $commentBox.find('.comment-author-name, .comment-text').removeClass('hidden');
+      $commentBox.children('.comment-edit-form').remove();
+      $commentBox.children('.comment-author-name, .comment-text').removeClass('hidden');
       self.updateCommentBoxText(commentId, commentText);
     });
   });
@@ -204,8 +190,8 @@ ep_comments.prototype.init = function(){
     e.preventDefault();
     e.stopPropagation();
     var $commentBox = $(this).parent().parent().parent();
-    $commentBox.find('.comment-edit-form').remove();
-    $commentBox.find('.comment-author-name, .comment-text').removeClass('hidden');
+    $commentBox.children('.comment-edit-form').remove();
+    $commentBox.children('.comment-author-name, .comment-text').removeClass('hidden');
   });
 
   // Listen for include suggested change toggle
@@ -383,6 +369,25 @@ ep_comments.prototype.init = function(){
     });
   }
 };
+
+ep_comments.prototype.addCommentEditFormIfDontExist = function ($commentBox) {
+  var hasEditForm = $commentBox.children(".comment-edit-form").length;
+  if (!hasEditForm) {
+    // get text from comment
+    var commentTextValue = $commentBox.find('.comment-text').text();
+
+    // add a form to edit the field
+    var data = {};
+    data.text = commentTextValue;
+    var content = $("#editCommentTemplate").tmpl(data);
+
+    // localize comment reply
+    commentL10n.localize(content);
+
+    // insert form
+    $commentBox.children(".comment-text").after(content);
+  }
+}
 
 // Insert comments container on element use for linenumbers
 ep_comments.prototype.findContainers = function(){
@@ -1041,7 +1046,7 @@ ep_comments.prototype.commentRepliesListen = function(){
 
 ep_comments.prototype.updateCommentBoxText = function (commentId, commentText) {
   var $comment = this.container.find("#"+commentId);
-  $comment.find('.comment-text').text(commentText)
+  $comment.children('.comment-text').text(commentText)
 }
 
 ep_comments.prototype.showChangeAsAccepted = function(commentId){
