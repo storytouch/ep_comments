@@ -6,6 +6,7 @@
 
 var _, $, jQuery;
 
+var shared = require('./shared');
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var _ = require('ep_etherpad-lite/static/js/underscore');
 var padcookie = require('ep_etherpad-lite/static/js/pad_cookie').padcookie;
@@ -16,8 +17,11 @@ var newComment = require('ep_comments_page/static/js/newComment');
 var preCommentMark = require('ep_comments_page/static/js/preCommentMark');
 var commentL10n = require('ep_comments_page/static/js/commentL10n');
 var events = require('ep_comments_page/static/js/copyPasteEvents');
-var getCommentIdOnSelection = events.getCommentIdOnSelection;
+var getCommentIdOnFirstPositionSelected = events.getCommentIdOnFirstPositionSelected;
+var hasCommentOnSelection = events.hasCommentOnSelection;
 var browser = require('ep_etherpad-lite/static/js/browser');
+
+var randomString = require('ep_etherpad-lite/static/js/pad_utils').randomString;
 
 var cssFiles = ['ep_comments_page/static/css/comment.css', 'ep_comments_page/static/css/commentIcon.css'];
 
@@ -44,6 +48,9 @@ function ep_comments(context){
   this.padId      = clientVars.padId;
   this.comments   = [];
   this.commentReplies = {};
+  this.mapFakeComments = [];
+  this.mapOriginalCommentsId = [];
+  this.shouldCollectComment = false;
   this.init();
   this.preCommentMarker = preCommentMark.init(this.ace);
 
@@ -90,8 +97,12 @@ ep_comments.prototype.init = function(){
     // console.log('pushComment', comment);
     window.setTimeout(function() {
       self.collectComments();
+
       var count_comments=0;
       for(var key in self.comments)  {count_comments++;}
+      var padOuter = $('iframe[name="ace_outer"]').contents();
+      this.padOuter = padOuter;
+      this.padInner = padOuter.find('iframe[name="ace_inner"]');
       var padComment  = this.padInner.contents().find('.comment');
       if( count_comments > padComment.length ) {
          window.setTimeout(function() {
@@ -375,13 +386,13 @@ ep_comments.prototype.init = function(){
   // Override  copy, cut, paste events on Google chrome.
   // When an user copies a comment and selects only the span, or part of it, Google chrome
   // does not copy the classes only the styles, for example:
-  // <comment><span>text to be copied</span></comment>
+  // <comment class='comment'><span>text to be copied</span></comment>
   // As the comment classes are not only used for styling we have to add these classes when it pastes the content
   // The same does not occur when the user selects more than the span, for example:
-  // text<comment><span>to be copied</span></comment>
-  if(browser.chrome){
+  // text<comment class='comment'><span>to be copied</span></comment>
+  if(browser.chrome || browser.firefox){
     self.padInner.contents().on("copy", function(e) {
-      events.addTextOnClipboard(e, self.ace, self.padInner, false);
+      events.addTextOnClipboard(e, self.ace, self.padInner, false, self.comments, self.commentReplies);
     });
 
     self.padInner.contents().on("cut", function(e) {
@@ -389,7 +400,7 @@ ep_comments.prototype.init = function(){
     });
 
     self.padInner.contents().on("paste", function(e) {
-      events.addCommentClasses(e);
+      events.saveCommentsAndReplies(e);
     });
   }
 };
@@ -433,7 +444,6 @@ ep_comments.prototype.collectComments = function(callback){
     var cls             = $this.attr('class');
     var classCommentId  = /(?:^| )(c-[A-Za-z0-9]*)/.exec(cls);
     var commentId       = (classCommentId) ? classCommentId[1] : null;
-
     if(!commentId){
       // console.log("returning due to no comment id, probably due to a deleted comment");
       return;
@@ -464,7 +474,6 @@ ep_comments.prototype.collectComments = function(callback){
             container.css('top', containerTop - (commentTop - markerTop));
           });
         }
-
         // localize comment element
         commentL10n.localize(commentElm);
       }
@@ -534,6 +543,7 @@ ep_comments.prototype.collectComments = function(callback){
   self.addListenersToCloseOpenedComment();
 
   self.setYofComments();
+  if(callback) callback();
 };
 
 ep_comments.prototype.addListenersToCloseOpenedComment = function() {
@@ -577,7 +587,6 @@ ep_comments.prototype.collectCommentReplies = function(callback){
   var padComment  = this.padInner.contents().find('.comment');
   $.each(this.commentReplies, function(replyId, reply){
     var commentId = reply.commentId;
-
     // tell comment icon that this comment has 1+ replies
     commentIcons.commentHasReply(commentId);
 
@@ -651,7 +660,7 @@ ep_comments.prototype.setYofComments = function(){
   // for each comment in the pad
   var padOuter = $('iframe[name="ace_outer"]').contents();
   var padInner = padOuter.find('iframe[name="ace_inner"]');
-  var inlineComments = padInner.contents().find(".comment");
+  var inlineComments = this.getFirstOcurrenceOfCommentIds();
   var commentsToBeShown = [];
 
   // hide each outer comment...
@@ -678,6 +687,26 @@ ep_comments.prototype.setYofComments = function(){
     commentEle.show();
   });
 };
+
+ep_comments.prototype.getFirstOcurrenceOfCommentIds = function(){
+  var padOuter = $('iframe[name="ace_outer"]').contents();
+  var padInner = padOuter.find('iframe[name="ace_inner"]').contents();
+  var commentsId = this.getUniqueCommentsId(padInner);
+  var firstOcurrenceOfCommentIds = _.map(commentsId, function(commentId){
+   return padInner.find("." + commentId).first().get(0);
+  });
+  return firstOcurrenceOfCommentIds;
+ }
+
+ep_comments.prototype.getUniqueCommentsId = function(padInner){
+  var inlineComments = padInner.find(".comment");
+  var commentsId = _.map(inlineComments, function(inlineComment){
+   var commentId = /(?:^| )(c-[A-Za-z0-9]*)/.exec(inlineComment.className);
+   // avoid when it has a '.comment' that it has a fakeComment class 'fakecomment-123' yet.
+   if(commentId) return commentId[1];
+  });
+  return _.uniq(commentsId);
+}
 
 // Make the adjustments after editor is resized (due to a window resize or
 // enabling/disabling Page View)
@@ -764,8 +793,17 @@ ep_comments.prototype.setComment = function(commentId, comment){
   var comments = this.comments;
   comment.date = prettyDate(comment.timestamp);
   comment.formattedDate = new Date(comment.timestamp).toISOString();
+
   if (comments[commentId] == null) comments[commentId] = {};
   comments[commentId].data = comment;
+
+};
+
+ep_comments.prototype.setCommentReply = function(commentReply){
+  var commentReplies = this.commentReplies;
+  var replyId = commentReply[0];
+  if(commentReplies[replyId] == null) commentReplies[replyId] = {}
+  commentReplies[replyId] = commentReply[1];
 };
 
 // Get all comments
@@ -928,7 +966,7 @@ ep_comments.prototype.getFirstElementSelected = function(){
 
 // Indicates if user selected some text on editor
 ep_comments.prototype.checkNoTextSelected = function(rep) {
-  var noTextSelected = (rep.selStart[0] == rep.selEnd[0] && rep.selStart[1] == rep.selEnd[1]);
+  var noTextSelected = ((rep.selStart[0] == rep.selEnd[0]) && (rep.selStart[1] == rep.selEnd[1]));
 
   return noTextSelected;
 }
@@ -1034,7 +1072,6 @@ ep_comments.prototype.cleanLine = function(line, lineText){
 // Save comment
 ep_comments.prototype.saveComment = function(data, rep) {
   var self = this;
-
   self.socket.emit('addComment', data, function (commentId, comment){
     comment.commentId = commentId;
 
@@ -1048,6 +1085,61 @@ ep_comments.prototype.saveComment = function(data, rep) {
     self.collectComments();
   });
 }
+
+ep_comments.prototype.saveCommentWithoutSelection = function (data) {
+  var fakeCommentId = data.comment.commentId;
+  var newCommentId = shared.generateCommentId();
+  this.mapFakeComments[fakeCommentId] = newCommentId;
+  var originalCommentId = data.comment.originalCommentId;
+  this.mapOriginalCommentsId[originalCommentId] = newCommentId;
+  data.comment.commentId = newCommentId;
+
+  // we don't need to wait for a commentId to save because the comment is already saved
+  this.socket.emit('addComment', data, function (){});
+
+  var commentId = data.comment.commentId;
+  var comment = data.comment;
+  this.setComment(commentId, comment);
+  this.shouldCollectComment = true;
+}
+
+ ep_comments.prototype.getMapfakeComments = function(){
+   return this.mapFakeComments;
+ }
+
+ // commentReplyData = {c-reply-123:{commentReplyData1}, c-reply-234:{commentReplyData1}, ...}
+ ep_comments.prototype.saveCommentReplies = function(padId, commentReplyData){
+   var self = this;
+   var data = self.buildCommentReplies(commentReplyData);
+   self.socket.emit('bulkAddCommentReplies', padId, data, function (replies){
+    _.each(replies,function(reply){
+      self.setCommentReply(reply);
+      // the comment reply is collected together with the comment
+    });
+   });
+ }
+
+ ep_comments.prototype.buildCommentReplies = function(repliesData){
+  var self = this;
+  var replies = _.map(repliesData, function(replyData){
+    return self.buildCommentReply(replyData);
+  });
+  return replies;
+ }
+
+ // take a replyData and add more fields necessary. E.g. 'padId'
+ ep_comments.prototype.buildCommentReply = function(replyData){
+   var data = this.getCommentData();
+   data.commentId = replyData.commentId;
+   data.text = replyData.text;
+   data.changeTo = replyData.changeTo
+   data.changeFrom = replyData.changeFrom;
+   data.replyId = replyData.replyId;
+   data.name = replyData.name;
+   data.timestamp = parseInt(replyData.timestamp);
+
+   return data;
+ }
 
 // Listen for comment replies
 ep_comments.prototype.commentRepliesListen = function(){
@@ -1158,12 +1250,16 @@ var hooks = {
 
     // var padOuter = $('iframe[name="ace_outer"]').contents();
     // padOuter.find('#sidediv').removeClass("sidedivhidden"); // TEMPORARY to do removing authorship colors can add sidedivhidden class to sidesiv!
-    if(!context.callstack.docTextChanged) return;
-
-    // only adjust comments if plugin was already initialized,
-    // otherwise there's nothing to adjust anyway
-    if (pad.plugins && pad.plugins.ep_comments_page) {
-      pad.plugins.ep_comments_page.setYofComments();
+    if(eventType == "setup" || eventType == "setBaseText" || eventType == "importText") return;
+    if(context.callstack.docTextChanged) pad.plugins.ep_comments_page.setYofComments();
+    var commentWasPasted = pad.plugins.ep_comments_page.shouldCollectComment;
+    var domClean = context.callstack.domClean;
+    // we have to wait the DOM update from a fakeComment 'fakecomment-123' to a comment class 'c-123'
+    if(commentWasPasted && domClean){
+      pad.plugins.ep_comments_page.collectComments(function(){
+        pad.plugins.ep_comments_page.collectCommentReplies();
+        pad.plugins.ep_comments_page.shouldCollectComment = false;
+      });
     }
   },
 
@@ -1283,6 +1379,7 @@ function getRepFromSelector(selector, container){
 exports.aceInitialized = function(hook, context){
   var editorInfo = context.editorInfo;
   editorInfo.ace_getRepFromSelector = _(getRepFromSelector).bind(context);
-  editorInfo.ace_getCommentIdOnSelection = _(getCommentIdOnSelection).bind(context);
+  editorInfo.ace_getCommentIdOnFirstPositionSelected = _(getCommentIdOnFirstPositionSelected).bind(context);
+  editorInfo.ace_hasCommentOnSelection = _(hasCommentOnSelection).bind(context);
 }
 
