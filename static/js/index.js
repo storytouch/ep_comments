@@ -205,6 +205,10 @@ ep_comments.prototype.init = function(){
         $commentBox.children('.comment-edit-form').remove();
         $commentBox.children('.comment-author-name, .comment-text').removeClass('hidden');
         self.updateCommentBoxText(commentId, commentText);
+
+        // although the comment or reply was saved on the data base successfully, it needs
+        // to update the comment or comment reply variable with the new text saved
+        self.setCommentOrReplyNewText(commentId, commentText);
       }
     });
   });
@@ -816,6 +820,15 @@ ep_comments.prototype.setCommentReply = function(commentReply){
   var replyId = commentReply[0];
   if(commentReplies[replyId] == null) commentReplies[replyId] = {}
   commentReplies[replyId] = commentReply[1];
+};
+
+// set the text of the comment or comment reply
+ep_comments.prototype.setCommentOrReplyNewText = function(commentOrReplyId, text){
+  if(this.comments[commentOrReplyId]){
+    this.comments[commentOrReplyId].data.text = text;
+  }else if(this.commentReplies[commentOrReplyId]){
+    this.commentReplies[commentOrReplyId].text = text;
+  }
 };
 
 // Get all comments
