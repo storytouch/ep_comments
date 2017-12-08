@@ -27,9 +27,12 @@ var addTextAndDataOfAllHelpersToClipboard = function(e) {
     // override the default copy behavior
     clipboardData.setData('text/html', $copiedHtml.html());
     e.preventDefault();
+    defaultCopyWasPrevented = true;
   }
 
-  return atLeastOneItemChangedClipboard;
+  // if the default copy was not prevented we have to return 'undefined'
+  // if we return 'false', we would prevent the default the copy behavior
+  return atLeastOneItemChangedClipboard ? atLeastOneItemChangedClipboard : undefined;
 }
 
 var saveItemsAndSubItemsOfAllHelpers = function(e) {
