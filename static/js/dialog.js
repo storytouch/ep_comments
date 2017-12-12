@@ -226,9 +226,6 @@ dialog.prototype.isOpen = function() {
 dialog.prototype.close = function() {
   this.$content.dialog('close');
 
-  // force focus to be lost, so virtual keyboard is hidden on mobile devices
-  utils.getPadOuter().find(':focus').blur();
-
   // de-select text when dialog is closed
   if (this.shouldMarkText) {
     this.textMarker.unmarkSelectedText();
