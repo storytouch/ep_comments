@@ -467,82 +467,87 @@ exports.aceKeyEvent           = hooks.aceKeyEvent;
 */
 // Alas we follow the Etherpad convention of using tuples here.
 function getRepFromSelector(selector) {
-  var attributeManager = this.documentAttributeManager;
-
-  var repArr = [];
+  var editorInfo = this.editorInfo;
 
   // first find the element
-  var elements = utils.getPadInner().find(selector);
-  // One might expect this to be a rep for the entire document
-  // However what we actually need to do is find each selection that includes
-  // this comment and remove it.  This is because content can be pasted
-  // Mid comment which would mean a remove selection could have unexpected consequences
+  var $elements = utils.getPadInner().find(selector);
 
-  $.each(elements, function(index, span){
-    // create a rep array container we can push to..
-    var rep = [[],[]];
-
-    // span not be the div so we have to go to parents until we find a div
-    var parentDiv = $(span).closest("div");
-    // line Number is obviously relative to entire document
-    // So find out how many elements before in this parent?
-    var lineNumber = $(parentDiv).prevAll("div").length;
-    // We can set beginning of rep Y (lineNumber)
-    rep[0][0] = lineNumber;
-
-    // We can also update the end rep Y
-    rep[1][0] = lineNumber;
-
-    // Given the comment span, how many characters are before it?
-
-    // All we need to know is the number of characters before .foo
-    /*
-
-    <div id="boo">
-      hello
-      <span class='nope'>
-        world
-      </span>
-      are you
-      <span class='foo'>
-        here?
-      </span>
-    </div>
-
-    */
-    // In the example before the correct number would be 21
-    // I guess we could do prevAll each length?
-    // If there are no spans before we get 0, simples!
-    // Note that this only works if spans are being used, which imho
-    // Is the correct container however if block elements are registered
-    // It's plausable that attributes are not maintained :(
-    var leftOffset = 0;
-
-    // If the line has a lineAttribute then leftOffset should be +1
-    // Get each line Attribute on this line..
-    var hasLineAttribute = false;
-    var attrArr = attributeManager.getAttributesOnLine(lineNumber);
-    $.each(attrArr, function(attrK, value){
-      if(value[0] === "lmkr") hasLineAttribute = true;
-    });
-    if(hasLineAttribute) leftOffset++;
-
-    $(span).prevAll("span").each(function(){
-      var spanOffset = $(this).text().length;
-      leftOffset += spanOffset;
-    });
-    rep[0][1] = leftOffset;
-
-    // All we need to know is span text length and it's left offset in chars
-    var spanLength = $(span).text().length;
-
-    rep[1][1] = rep[0][1] + $(span).text().length; // Easy!
-    repArr.push(rep);
+  var repArr = [];
+  // cannot use $.map here, jQuery flattens the result and
+  // getRepFromDOMElement returns an array of arrays
+  $.each($elements, function(index, span){
+    repArr.push(editorInfo.ace_getRepFromDOMElement(span));
   });
   return repArr;
 }
-// Once ace is initialized, we set ace_doInsertHeading and bind it to the context
+
+function getRepFromDOMElement(span) {
+  var attributeManager = this.documentAttributeManager;
+
+  // create a rep array container we can push to..
+  var rep = [[],[]];
+
+  // span not be the div so we have to go to parents until we find a div
+  var parentDiv = $(span).closest("div");
+  // line Number is obviously relative to entire document
+  // So find out how many elements before in this parent?
+  var lineNumber = $(parentDiv).prevAll("div").length;
+  // We can set beginning of rep Y (lineNumber)
+  rep[0][0] = lineNumber;
+
+  // We can also update the end rep Y
+  rep[1][0] = lineNumber;
+
+  // Given the comment span, how many characters are before it?
+
+  // All we need to know is the number of characters before .foo
+  /*
+
+  <div id="boo">
+    hello
+    <span class='nope'>
+      world
+    </span>
+    are you
+    <span class='foo'>
+      here?
+    </span>
+  </div>
+
+  */
+  // In the example before the correct number would be 21
+  // I guess we could do prevAll each length?
+  // If there are no spans before we get 0, simples!
+  // Note that this only works if spans are being used, which imho
+  // Is the correct container however if block elements are registered
+  // It's plausable that attributes are not maintained :(
+  var leftOffset = 0;
+
+  // If the line has a lineAttribute then leftOffset should be +1
+  // Get each line Attribute on this line..
+  var hasLineAttribute = false;
+  var attrArr = attributeManager.getAttributesOnLine(lineNumber);
+  $.each(attrArr, function(attrK, value){
+    if(value[0] === "lmkr") hasLineAttribute = true;
+  });
+  if(hasLineAttribute) leftOffset++;
+
+  $(span).prevAll("span").each(function(){
+    var spanOffset = $(this).text().length;
+    leftOffset += spanOffset;
+  });
+  rep[0][1] = leftOffset;
+
+  // All we need to know is span text length and it's left offset in chars
+  var spanLength = $(span).text().length;
+
+  rep[1][1] = rep[0][1] + $(span).text().length; // Easy!
+
+  return rep;
+}
+
 exports.aceInitialized = function(hook, context){
   var editorInfo = context.editorInfo;
   editorInfo.ace_getRepFromSelector = _(getRepFromSelector).bind(context);
+  editorInfo.ace_getRepFromDOMElement = _(getRepFromDOMElement).bind(context);
 }
