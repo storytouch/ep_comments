@@ -17,6 +17,10 @@ var preTextMarker = require('./preTextMarker');
                                              the dialog
      - onSubmit: function to be called when user submits the form on $content (if any)
      - customClose: function to be called when user closes the dialog
+     - doNotAnimate: flag to animate or not dialog opening & closing. Default: false
+     - openWithinViewport: flag to allow dialog to be opened always inside the viewport. If
+                           this flag is true, no scroll is made after opening dialog.
+                           Default: false
 */
 var dialog = function(config) {
   this.textMarker = preTextMarker.createForTarget(config.targetType, config.ace);
@@ -25,6 +29,8 @@ var dialog = function(config) {
   this.$referenceComponentForDialogPosition = config.$referenceComponentForDialogPosition;
   this.ace = config.ace;
   this.shouldMarkText = !config.targetAlreadyMarked;
+  this.openWithinViewport = config.openWithinViewport;
+  this.scrollAfterOpeningDialog = !config.openWithinViewport;
 
   this._buildWidget(config);
 
@@ -43,20 +49,22 @@ dialog.prototype._buildWidget = function(config) {
   var defaultDialogOpts = {
     autoOpen: false,
     resizable: false,
-    show: {
-      effect: "drop",
-      duration: 500
-    },
-    hide: {
-      effect: "drop",
-      duration: 500
-    },
     close: closeDialog,
     classes: {
       'ui-dialog': 'ui-dialog--' + config.targetType,
     },
   };
-  var opts = Object.assign({}, defaultDialogOpts, (config.dialogOpts || {}));
+
+  var animationConfigs = {
+    effect: 'drop',
+    duration: 500,
+  };
+  var defaultAnimationOpts = config.doNotAnimate ? {} : {
+    show: animationConfigs,
+    hide: animationConfigs,
+  };
+
+  var opts = Object.assign({}, defaultDialogOpts, defaultAnimationOpts, (config.dialogOpts || {}));
   this.$content.dialog(opts);
 
   this.widget = this.$content.dialog('widget');
@@ -111,7 +119,10 @@ dialog.prototype.open = function(aceContext, callbackOnSubmit) {
   this._localizeDialogContent();
   this._resetForm();
   this._openDialog();
-  this._smoothlyScrollEditorToMakeDialogFullyVisible();
+
+  if (this.scrollAfterOpeningDialog) {
+    this._smoothlyScrollEditorToMakeDialogFullyVisible();
+  }
 }
 
 dialog.prototype._resetForm = function() {
@@ -129,27 +140,30 @@ dialog.prototype._openDialog = function() {
   }
 }
 dialog.prototype._openDialogAtSamePositionOf = function($reference) {
-  this.$content.dialog('option', 'position', {
+  this._openDialogWithConfigs({
     my: 'left top',
     at: 'left top',
     of: $reference,
-    // make sure dialog positioning takes into account the amount of scroll editor has
-    within: utils.getPadOuter(),
-  }).dialog('open');
+  });
 }
 dialog.prototype._openDialogBelowSelectedText = function() {
   var $shadow = this._createShadowOnPadOuterOfSelectedText();
 
   // place dialog, using $shadow as reference
-  this.$content.dialog('option', 'position', {
+  this._openDialogWithConfigs({
     my: 'left top',
     at: 'left bottom+3',
     of: $shadow,
-    // make sure dialog positioning takes into account the amount of scroll editor has
-    within: utils.getPadOuter(),
-  }).dialog('open');
+  });
 
   $shadow.remove();
+}
+dialog.prototype._openDialogWithConfigs = function(customConfigs) {
+  // make sure dialog positioning takes into account the amount of scroll editor has
+  var withinConfig  = this.openWithinViewport ? utils.getOuterWindow() : utils.getPadOuter();
+  var configs = Object.assign({}, { within: withinConfig }, customConfigs);
+
+  this.$content.dialog('option', 'position', configs).dialog('open');
 }
 
 // create an element on the exact same position of the selected text.
@@ -203,17 +217,16 @@ dialog.prototype._focusOnContainer = function() {
   // fix for iOS: when opening the dialog, we need to force focus on padOuter
   // contentWindow, otherwise keyboard will be displayed but text input made by
   // the user won't be added to $content
-  var outerIframe = $('iframe[name="ace_outer"]').get(0);
-  if (outerIframe && outerIframe.contentWindow) {
-    outerIframe.contentWindow.focus();
+  var outerWindow = utils.getOuterWindow();
+  if (outerWindow) {
+    outerWindow.focus();
   }
 }
 
 dialog.prototype._smoothlyScrollEditorToMakeDialogFullyVisible = function() {
   var self = this;
 
-  var outerIframe = $('iframe[name="ace_outer"]').get(0);
-  outerIframe.contentWindow.scrollIntoView(self.$content.get(0), function() {
+  utils.getOuterWindow().scrollIntoView(self.$content.get(0), function() {
     // Allow user to start typing an input right away
     self._focusOnContainer();
   });

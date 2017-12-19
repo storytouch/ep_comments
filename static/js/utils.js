@@ -17,6 +17,11 @@ exports.getPadInner = function() {
   return padInner;
 }
 
+exports.getOuterWindow = function() {
+  var outerIframe = $('iframe[name="ace_outer"]').get(0);
+  return outerIframe && outerIframe.contentWindow;
+}
+
 // Some browsers trigger resize several times while resizing the window, so
 // we need to make sure resize is done to avoid calling the callback multiple
 // times.
