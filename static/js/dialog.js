@@ -17,6 +17,7 @@ var preTextMarker = require('./preTextMarker');
                                              the dialog
      - onSubmit: function to be called when user submits the form on $content (if any)
      - customClose: function to be called when user closes the dialog
+     - doNotAnimate: flag to animate or not dialog opening & closing. Default: false
 */
 var dialog = function(config) {
   this.textMarker = preTextMarker.createForTarget(config.targetType, config.ace);
@@ -43,20 +44,22 @@ dialog.prototype._buildWidget = function(config) {
   var defaultDialogOpts = {
     autoOpen: false,
     resizable: false,
-    show: {
-      effect: "drop",
-      duration: 500
-    },
-    hide: {
-      effect: "drop",
-      duration: 500
-    },
     close: closeDialog,
     classes: {
       'ui-dialog': 'ui-dialog--' + config.targetType,
     },
   };
-  var opts = Object.assign({}, defaultDialogOpts, (config.dialogOpts || {}));
+
+  var animationConfigs = {
+    effect: 'drop',
+    duration: 500,
+  };
+  var defaultAnimationOpts = config.doNotAnimate ? {} : {
+    show: animationConfigs,
+    hide: animationConfigs,
+  };
+
+  var opts = Object.assign({}, defaultDialogOpts, defaultAnimationOpts, (config.dialogOpts || {}));
   this.$content.dialog(opts);
 
   this.widget = this.$content.dialog('widget');
