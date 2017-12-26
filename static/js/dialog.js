@@ -3,18 +3,30 @@ var utils = require('./utils');
 var commentL10n = require('./commentL10n');
 var preTextMarker = require('./preTextMarker');
 
+var DO_NOTHING = function(){};
+
 /*
    Possible values for `config`:
      - ace: [mandatory] reference to the `ace` object
      - $content: [mandatory] jQuery reference to the root element to be displayed on the dialog
      - dialogTitleL10nKey: [mandatory] l10n key on locales/*.json to use as dialog title
      - targetType: used to mark selected text when opening & closing the dialog
-     - targetAlreadyMarked: flag to avoid text to be marked/unmarked when dialog is
-                            opened/closed. Useful when 2 dialogs handle the same targetType
      - dialogOpts: options to overwrite default options used by this component. Can be any of
                    those described on https://api.jqueryui.com/dialog
-     - $referenceComponentForDialogPosition: element to be used as reference when positioning
-                                             the dialog
+     - targetAlreadyMarked: flag to avoid text to be marked/unmarked when dialog is
+                            opened/closed. Useful when 2 dialogs handle the same targetType, or
+                            when the reference to position the dialog is provided by
+                            getElementOnPadOuterForDialogPosition or
+                            getElementOnPadInnerForDialogPosition (see below)
+     - getElementOnPadOuterForDialogPosition: returns the element to be used as reference on
+                                              padOuter when positioning the dialog. If provided,
+                                              positions the dialog at the same position of the
+                                              returned value. Otherwise positions the dialog below
+                                              the element returned by
+                                              getElementOnPadInnerForDialogPosition().
+     - getElementOnPadInnerForDialogPosition: returns the element to be used as reference on
+                                              padInner when positioning the dialog.
+                                              Default: use the selected text
      - onSubmit: function to be called when user submits the form on $content (if any)
      - customClose: function to be called when user closes the dialog
      - doNotAnimate: flag to animate or not dialog opening & closing. Default: false
@@ -25,12 +37,14 @@ var preTextMarker = require('./preTextMarker');
 var dialog = function(config) {
   this.textMarker = preTextMarker.createForTarget(config.targetType, config.ace);
   this.$content = config.$content;
-  this.onSubmit = config.onSubmit;
-  this.$referenceComponentForDialogPosition = config.$referenceComponentForDialogPosition;
+  this.onSubmit = config.onSubmit || DO_NOTHING;
   this.ace = config.ace;
   this.shouldMarkText = !config.targetAlreadyMarked;
   this.openWithinViewport = config.openWithinViewport;
   this.scrollAfterOpeningDialog = !config.openWithinViewport;
+  this._getElementOnPadOuterForDialogPosition = config.getElementOnPadOuterForDialogPosition || this._createShadowOnPadOuterOfElementOnPadInner;
+  this._getElementOnPadInnerForDialogPosition = config.getElementOnPadInnerForDialogPosition || this._getSelectedText;
+  this.placeDialogBelowReference = !config.getElementOnPadOuterForDialogPosition;
 
   this._buildWidget(config);
 
@@ -133,30 +147,26 @@ dialog.prototype._resetForm = function() {
 }
 
 dialog.prototype._openDialog = function() {
-  if (this.$referenceComponentForDialogPosition) {
-    this._openDialogAtSamePositionOf(this.$referenceComponentForDialogPosition);
-  } else {
-    this._openDialogBelowSelectedText();
-  }
+  var $referenceOnPadOuter = this._getElementOnPadOuterForDialogPosition();
+  var configs = this.placeDialogBelowReference ?
+                this._configsToOpenDialogBelow($referenceOnPadOuter) :
+                this._configsToOpenDialogAtSamePositionOf($referenceOnPadOuter);
+  this._openDialogWithConfigs(configs);
+  this._cleanupReferenceElementOnPadOuter();
 }
-dialog.prototype._openDialogAtSamePositionOf = function($reference) {
-  this._openDialogWithConfigs({
+dialog.prototype._configsToOpenDialogAtSamePositionOf = function($reference) {
+  return {
     my: 'left top',
     at: 'left top',
     of: $reference,
-  });
+  }
 }
-dialog.prototype._openDialogBelowSelectedText = function() {
-  var $shadow = this._createShadowOnPadOuterOfSelectedText();
-
-  // place dialog, using $shadow as reference
-  this._openDialogWithConfigs({
+dialog.prototype._configsToOpenDialogBelow = function($reference) {
+  return {
     my: 'left top',
     at: 'left bottom+3',
-    of: $shadow,
-  });
-
-  $shadow.remove();
+    of: $reference,
+  }
 }
 dialog.prototype._openDialogWithConfigs = function(customConfigs) {
   // make sure dialog positioning takes into account the amount of scroll editor has
@@ -166,28 +176,28 @@ dialog.prototype._openDialogWithConfigs = function(customConfigs) {
   this.$content.dialog('option', 'position', configs).dialog('open');
 }
 
-// create an element on the exact same position of the selected text.
-// Use it as reference to display dialog later
-dialog.prototype._createShadowOnPadOuterOfSelectedText = function() {
-  var $selectedText = this._getSelectedText();
+// create an element on the exact same position of the element provided by
+// getElementOnPadInnerForDialogPosition(). Use it as reference to display dialog later
+dialog.prototype._createShadowOnPadOuterOfElementOnPadInner = function() {
+  var $referenceText = this._getElementOnPadInnerForDialogPosition();
 
-  // there might have multiple <span>'s on selected text (ex: if text has bold in the middle of it)
-  var beginningOfSelectedText = $selectedText.first().get(0).getBoundingClientRect();
-  var endingOfSelectedText    = $selectedText.last().get(0).getBoundingClientRect();
+  // there might have multiple <span>'s on reference text (ex: if text has bold in the middle of it)
+  var beginningOfReferenceText = $referenceText.first().get(0).getBoundingClientRect();
+  var endingOfReferenceText    = $referenceText.last().get(0).getBoundingClientRect();
 
-  var topOfSelectedText    = beginningOfSelectedText.top;
-  var bottomOfSelectedText = endingOfSelectedText.bottom;
-  var leftOfSelectedText   = Math.min(beginningOfSelectedText.left, endingOfSelectedText.left);
-  var rightOfSelectedText  = Math.max(beginningOfSelectedText.right, endingOfSelectedText.right);
+  var topOfReferenceText    = beginningOfReferenceText.top;
+  var bottomOfReferenceText = endingOfReferenceText.bottom;
+  var leftOfReferenceText   = Math.min(beginningOfReferenceText.left, endingOfReferenceText.left);
+  var rightOfReferenceText  = Math.max(beginningOfReferenceText.right, endingOfReferenceText.right);
 
   // get "shadow" position
   var editor = utils.getPadOuter().find('iframe[name="ace_inner"]').offset();
   var $shadow = $('<span id="shadow"></span>');
   $shadow.css({
-    top: editor.top + topOfSelectedText,
-    left: editor.left + leftOfSelectedText,
-    width: rightOfSelectedText - leftOfSelectedText,
-    height: bottomOfSelectedText - topOfSelectedText,
+    top: editor.top + topOfReferenceText,
+    left: editor.left + leftOfReferenceText,
+    width: rightOfReferenceText - leftOfReferenceText,
+    height: bottomOfReferenceText - topOfReferenceText,
     position: 'absolute',
   });
 
@@ -195,6 +205,11 @@ dialog.prototype._createShadowOnPadOuterOfSelectedText = function() {
   $shadow.appendTo($container);
 
   return $shadow;
+}
+
+dialog.prototype._cleanupReferenceElementOnPadOuter = function() {
+  // if a shadow element was created, remove it. Otherwise ignore
+  utils.getPadOuter().find('#shadow').remove();
 }
 
 dialog.prototype._getSelectedText = function() {
