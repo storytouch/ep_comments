@@ -69,6 +69,11 @@ preTextMarker.prototype.addMark = function(editorInfo, callstack) {
 }
 
 preTextMarker.prototype.removeMarks = function(editorInfo, rep, callstack) {
+  // make sure rep is up to date, otherwise originalSel* values will have outdated
+  // positions and the selection will be restored to an outdated position at the
+  // end of this function
+  editorInfo.ace_fastIncorp();
+
   var eventType        = callstack.editEvent.eventType;
   var originalSelStart = rep.selStart;
   var originalSelEnd   = rep.selEnd;
