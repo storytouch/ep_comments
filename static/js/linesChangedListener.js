@@ -47,7 +47,11 @@ linesChangedListener.prototype.mutationsAffectedATargetLine = function(mutations
     .compact()
     .unique()
     // check if any of the changed lines matches the provided selector
-    .any(function(lineNode) { return lineNode.querySelector(selector) })
+    .any(function(lineNode) {
+      if (_.isElement(lineNode)) { // avoid run on non-DOM elements (e.g. line break)
+        return lineNode.querySelector(selector)
+      }
+    })
     .value();
 }
 
