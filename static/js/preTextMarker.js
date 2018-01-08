@@ -1,15 +1,21 @@
 var _ = require('ep_etherpad-lite/static/js/underscore');
 
-exports.BASE_CLASS = 'pre-selected-';
+var BASE_CLASS = 'pre-selected-';
+var MARK_TEXT_EVENT = 'markText';
+var UNMARK_TEXT_EVENT = 'unmarkText';
+
+exports.BASE_CLASS = BASE_CLASS;
+exports.MARK_TEXT_EVENT = MARK_TEXT_EVENT;
+exports.UNMARK_TEXT_EVENT = UNMARK_TEXT_EVENT;
 
 var doNothing = function() {}
 
 var preTextMarker = function(targetType, ace) {
   this.ace = ace;
   this.targetType = targetType;
-  this.markClass = exports.BASE_CLASS + targetType;
-  this.markTextEvent = 'markText-' + targetType;
-  this.unmarkTextEvent = 'unmarkText-' + targetType;
+  this.markClass = BASE_CLASS + targetType;
+  this.markTextEvent = MARK_TEXT_EVENT + '-' + targetType;
+  this.unmarkTextEvent = UNMARK_TEXT_EVENT + '-' + targetType;
 
   // remove any existing marks, as there is no item being added on plugin initialization
   // (we need the timeout to let the plugin be fully initialized before starting to remove
@@ -42,8 +48,10 @@ preTextMarker.prototype.processAceEditEvent = function(context) {
 
   if(eventType === this.unmarkTextEvent) {
     this.handleUnmarkText(editorInfo, rep, callstack);
+    this.avoidEditorToBeScrolled(callstack, UNMARK_TEXT_EVENT);
   } else if(eventType === this.markTextEvent) {
     this.handleMarkText(editorInfo, rep, callstack);
+    this.avoidEditorToBeScrolled(callstack, MARK_TEXT_EVENT);
   }
 }
 
@@ -56,6 +64,14 @@ preTextMarker.prototype.handleMarkText = function(editorInfo, rep, callstack) {
 
 preTextMarker.prototype.handleUnmarkText = function(editorInfo, rep, callstack) {
   this.removeMarks(editorInfo, rep, callstack);
+}
+
+preTextMarker.prototype.avoidEditorToBeScrolled = function(callstack, nonScrollableEventName) {
+  // each instance of preTextMarker needs an specific eventType suffix, but any of them
+  // should be scrollable. As Etherpad does not allow dynamic event names to be set as
+  // non-scrollable, we need to change current callstack event name to a non-dynamic one to
+  // be able to block editor scroll
+  callstack.type = nonScrollableEventName;
 }
 
 preTextMarker.prototype.addMark = function(editorInfo, callstack) {
