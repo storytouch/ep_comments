@@ -26,6 +26,7 @@
   border: 1px solid #19BBDA; /* color A */
 }
 
+.ui-dialog input::placeholder,
 .ui-dialog textarea::placeholder {
   font-style: italic;
 }
