@@ -551,3 +551,7 @@ exports.aceInitialized = function(hook, context){
   editorInfo.ace_getRepFromSelector = _(getRepFromSelector).bind(context);
   editorInfo.ace_getRepFromDOMElement = _(getRepFromDOMElement).bind(context);
 }
+
+exports.aceRegisterNonScrollableEditEvents = function(){
+  return [preTextMarker.MARK_TEXT_EVENT, preTextMarker.UNMARK_TEXT_EVENT];
+}
