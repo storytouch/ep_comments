@@ -2,6 +2,8 @@ var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 
 var utils = require('ep_comments_page/static/js/utils');
 var api = require('ep_comments_page/static/js/api');
+var sceneMarkVisibility = require('ep_script_scene_marks/static/js/sceneMarkVisibility');
+var smUtils = require('ep_script_scene_marks/static/js/utils');
 var linesChangedListener = require('./linesChangedListener');
 
 var getOrCreateIconsContainerAt = function(top) {
@@ -64,7 +66,7 @@ var addListenersToUpdateIconStyle = function() {
   linesChangedListener.onLineChanged('.comment-reply', updateCommentIconsStyle);
 }
 
-var addListenersToCommentIcons = function() {
+var addListenersToCommentIcons = function(ace) {
   utils.getPadOuter().find('#commentIcons').on("mouseover", ".comment-icon.inactive", function(e){
     var commentId = targetCommentIdOf(e);
     highlightTargetTextOf(commentId);
@@ -86,10 +88,55 @@ var addListenersToCommentIcons = function() {
     // activate/show only target comment
     toggleActiveCommentIcon($(this));
     var commentId = targetCommentIdOf(e);
+
+    // if a comment is on a scene mark hidden, show the scene mark first
+    ace.callWithAce(function(ace){
+      ace.ace_showSMHiddenIfCommentIsOnIt(commentId);
+    });
+
     highlightTargetTextOf(commentId);
     placeCaretAtBeginningOfTextOf(commentId);
     api.triggerCommentActivation(commentId);
   });
+}
+
+exports.showSMHiddenIfCommentIsOnIt = function(commentId) {
+  var commentIsOnSceneMarkHidden = isCommentOnSceneMarkHidden(commentId);
+
+  if (commentIsOnSceneMarkHidden) {
+    var rep = this.rep;
+    var editorInfo = this.editorInfo;
+    var attributeManager = this.documentAttributeManager;
+    var firstLineWhereCommentIsApplied = getFirstLineWhereCommentIsApplied(commentId, rep);
+    sceneMarkVisibility.showSceneMarksAroundLine(firstLineWhereCommentIsApplied, editorInfo, attributeManager);
+  }
+}
+
+var isCommentOnSceneMarkHidden = function(commentId) {
+  var $linesWhereCommentIsApplied = utils.getPadInner().find('div').has('.' + commentId);
+  var commmentIsAppliedOnlyOnSceneMark = _.every($linesWhereCommentIsApplied, function(line){
+    return smUtils.checkIfHasSceneMark($(line));
+  });
+  return commmentIsAppliedOnlyOnSceneMark && linesAreHidden($linesWhereCommentIsApplied);
+}
+
+var linesAreHidden = function($lines) {
+  return _.every($lines, function(line){
+    var isLineVisible = line.getBoundingClientRect().height;
+    return !isLineVisible;
+  });
+}
+
+var getFirstLineWhereCommentIsApplied = function(commentId, rep) {
+  var $line = utils.getPadInner().find('div').has('.' + commentId).first();
+  return getLineNumberFromDOMLine($line, rep);
+}
+
+var getLineNumberFromDOMLine = function($line, rep) {
+  var lineId = $line.attr("id");
+  var lineNumber = rep.lines.indexOfKey(lineId);
+
+  return lineNumber;
 }
 
 // Listen to clicks on the page to be able to close comment when clicking
@@ -163,11 +210,11 @@ var triggerCommentActivation = function(commentId) {
 /* ***** Public methods: ***** */
 
 // Create container to hold comment icons
-var insertContainer = function() {
+var insertContainer = function(ace) {
   utils.getPadOuter().find("#sidediv").after('<div id="commentIcons"></div>');
 
   addListenersToUpdateIconStyle();
-  addListenersToCommentIcons();
+  addListenersToCommentIcons(ace);
   addListenersToDeactivateComment();
   loadHelperLibs();
 

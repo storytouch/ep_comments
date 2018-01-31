@@ -22,12 +22,12 @@ ep_comments_page_test_helper.utils = {
     }, this.padId);
   },
 
-  createPad: function(test, done) {
+  createPad: function(test, done, scriptContent, lastLineText) {
     var self = this;
     this.padId = undefined;
 
     self._loadPad(test, function() {
-      self._createOrResetPadText(done);
+      self._createOrResetPadText(done, scriptContent, lastLineText);
     });
   },
 
@@ -38,14 +38,15 @@ ep_comments_page_test_helper.utils = {
     }, 1000);
   },
 
-  _createOrResetPadText: function(done) {
+  _createOrResetPadText: function(done, scriptContent, lastLineText) {
     var self = this;
+    var smUtils = ep_script_scene_marks_test_helper.utils;
     self._cleanPad(function() {
-      self.getLine(0).html('something<br>anything');
-      helper.waitFor(function() {
-        var secondLineText = self.getLine(1).text();
-        return secondLineText === 'anything';
-      }, 2000).done(done);
+      if (!scriptContent) {
+        lastLineText = 'anything';
+        scriptContent = smUtils.general('something') + smUtils.general(lastLineText);
+      }
+      smUtils.createScriptWith(scriptContent, lastLineText, done);
     });
   },
 
@@ -92,19 +93,23 @@ ep_comments_page_test_helper.utils = {
     $commentIcon.click();
   },
 
-  addCommentAndReplyToLine: function(line, textOfComment, textOfReply, done) {
+  addCommentToLine: function(line, textOfComment, done) {
+    this.addCommentToLines([line, line], textOfComment, done);
+  },
+
+  addCommentAndReplyToLine: function(lines, textOfComment, textOfReply, done) {
     var self = this;
-    this.addCommentToLine(line, textOfComment, function() {
-      self.addCommentReplyToLine(line, textOfReply, done);
+    this.addCommentToLine(lines, textOfComment, function() {
+      self.addCommentReplyToLine(lines, textOfReply, done);
     });
   },
 
-  addCommentToLine: function(line, textOfComment, done) {
+  addCommentToLines: function(lines, textOfComment, done) {
     var self = this;
     var outer$ = helper.padOuter$;
     var chrome$ = helper.padChrome$;
 
-    self.pressShortcutToAddCommentToLine(line, function() {
+    self.pressShortcutToAddCommentToLines(lines, function() {
       // wait for form to be displayed
       var $commentForm = outer$('#newComment');
       helper.waitFor(function() {
@@ -117,7 +122,7 @@ ep_comments_page_test_helper.utils = {
         $submittButton.click();
 
         // wait until comment is created and comment id is set
-        self.waitForCommentToBeCreatedOnLine(line, done);
+        self.waitForCommentToBeCreatedOnLines(lines, done);
       });
     });
   },
@@ -215,11 +220,18 @@ ep_comments_page_test_helper.utils = {
   },
 
   waitForCommentToBeCreatedOnLine: function(line, done) {
+    this.waitForCommentToBeCreatedOnLines([line, line], done);
+  },
+
+  waitForCommentToBeCreatedOnLines: function(lines, done) {
     var self = this;
     var apiUtils = ep_comments_page_test_helper.apiUtils;
 
+    // when it has multiple lines selected check if the comment was created in the last line
+    var commentLine = lines[1];
+
     helper.waitFor(function() {
-      var idOfCreatedComment = self.getCommentIdOfLine(line);
+      var idOfCreatedComment = self.getCommentIdOfLine(commentLine);
       var commentIdsSentOnAPI = (apiUtils.getLastDataSent() || []).map(function(commentData) {
         return commentData.commentId;
       });
@@ -313,7 +325,11 @@ ep_comments_page_test_helper.utils = {
 
   C_KEY_CODE: 67, // shortcut is Cmd + Ctrl + C
   // based on similar method of smUtils
-  pressShortcutToAddCommentToLine(line, done) {
+  pressShortcutToAddCommentToLine: function(line, done) {
+    this.pressShortcutToAddCommentToLines([line, line], done);
+  },
+
+  pressShortcutToAddCommentToLines(lines, done) {
     var self = this;
     var smUtils = ep_script_scene_marks_test_helper.utils;
 
@@ -321,12 +337,18 @@ ep_comments_page_test_helper.utils = {
     var os = bowser.mac ? 'mac' : 'windows';
     var modifierKeys = smUtils.shortcuts.KEYS_MODIFIER_ADD_SCENE_MARK[os];
 
-    var $line = this.getLine(line);
-    $line.sendkeys('{selectall}'); // needs to select content to add comment to
+    this._selectOneOrMoreLines(lines);
 
     setTimeout(function() {
       smUtils.shortcuts.pressKeyWithModifier(self.C_KEY_CODE, modifierKeys);
       done();
     }, 1000);
   },
+
+  _selectOneOrMoreLines: function(lines) {
+    var $beginning = this.getLine(lines[0]);
+    var $end = this.getLine(lines[1]);
+
+    helper.selectLines($beginning, $end);
+  }
 }

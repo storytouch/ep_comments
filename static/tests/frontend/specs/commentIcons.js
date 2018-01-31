@@ -2,22 +2,67 @@ describe('ep_comments_page - Comment icons', function() {
   var utils = ep_comments_page_test_helper.utils;
   var apiUtils = ep_comments_page_test_helper.apiUtils;
 
-  var LINE_WITH_COMMENT = 0;
-  var LINE_WITH_ANOTHER_COMMENT = 1;
-  var commentId, anotherCommentId;
+  var FIRST_COMMENT_LINE = 0;
+  var SECOND_COMMENT_LINE = 1;
+  var MULTILINE_COMMENT = [2, 5];
+  var firstCommentId, secondCommentId, multLineCommentId;
 
-  before(function(done) {
-    utils.createPad(this, function() {
-      utils.addCommentToLine(LINE_WITH_COMMENT, 'One comment', function() {
-        commentId = utils.getCommentIdOfLine(LINE_WITH_COMMENT);
+  var createScript = function(test, cb) {
+    var smUtils = ep_script_scene_marks_test_helper.utils;
+    var generalText = 'general';
+    var lastLineText = 'scene 1';
+    var script = smUtils.general(generalText) + smUtils.general(generalText) + smUtils.createEpi(lastLineText);
+    utils.createPad(test, cb, script, lastLineText);
+  }
 
-        utils.addCommentToLine(LINE_WITH_ANOTHER_COMMENT, 'Another comment', function() {
-          anotherCommentId = utils.getCommentIdOfLine(LINE_WITH_ANOTHER_COMMENT);
-          done();
-        });
+  var getCommentIds = function() {
+    firstCommentId = utils.getCommentIdOfLine(FIRST_COMMENT_LINE);
+    secondCommentId = utils.getCommentIdOfLine(SECOND_COMMENT_LINE);
+    multLineCommentId = utils.getCommentIdOfLine(MULTILINE_COMMENT[0]); // use the first line commented to get the commentId
+  }
+
+  var createCommentsOnLines = function(cb) {
+    utils.addCommentToLine(FIRST_COMMENT_LINE, 'One comment', function(){
+      utils.addCommentToLine(SECOND_COMMENT_LINE, 'Another comment', function(){
+        utils.addCommentToLines(MULTILINE_COMMENT, 'MultiLines', cb);
       });
     });
+  }
 
+  var areLinesWithCommetIdVisible = function(commentId) {
+    var $linesWithCommentId = helper.padInner$('.' + commentId);
+    return _.every($linesWithCommentId, function(line){
+      var isLineVisible = line.getBoundingClientRect().height;
+      return isLineVisible;
+    });
+  }
+
+  var testIfCaretIsAtBeginningOfCommentedText = function(line) {
+    it('places the caret at beginning of commented text', function(done) {
+      var $lineWithComment = utils.getLine(line);
+      var $lineWithCaret = ep_script_elements_test_helper.utils.getLineWhereCaretIs();
+
+      expect($lineWithCaret.get(0)).to.be($lineWithComment.get(0));
+
+      done();
+    });
+  }
+
+  function testIfSendCommentIdOnAPI (commentId) {
+    it('sends the comment id on the API', function(done) {
+      var activatedComment = apiUtils.getLastActivatedComment();
+      expect(activatedComment).to.be(commentId);
+      done();
+    });
+  }
+
+  before(function(done) {
+    createScript(this, function(){
+      createCommentsOnLines(function(){
+        getCommentIds();
+        done();
+      });
+    });
     this.timeout(60000);
   });
 
@@ -27,13 +72,13 @@ describe('ep_comments_page - Comment icons', function() {
   });
 
   it('adds a comment icon on the same height of commented text', function(done) {
-    var $commentIcon = helper.padOuter$('#commentIcons #icon-' + commentId);
+    var $commentIcon = helper.padOuter$('#commentIcons #icon-' + firstCommentId);
 
     // check icon exists
     expect($commentIcon.length).to.be(1);
 
     // check height is the same
-    var $commentedText = helper.padInner$('.' + commentId);
+    var $commentedText = helper.padInner$('.' + firstCommentId);
     var expectedTop = $commentedText.offset().top + 2; // all icons are +2px down to adjust position
     expect($commentIcon.offset().top).to.be(expectedTop);
 
@@ -42,12 +87,12 @@ describe('ep_comments_page - Comment icons', function() {
 
   context('when comment has a reply and pad is reloaded', function() {
     before(function(done) {
-      apiUtils.simulateCallToCreateReply(commentId, 'anything');
+      apiUtils.simulateCallToCreateReply(firstCommentId, 'anything');
 
       // wait for reply to be saved
       var test = this;
       helper.waitFor(function() {
-        var $commentIcon = helper.padOuter$('#commentIcons #icon-' + commentId);
+        var $commentIcon = helper.padOuter$('#commentIcons #icon-' + firstCommentId);
         return $commentIcon.hasClass('withReply');
       }).done(function() {
         utils.reloadPad(test, done);
@@ -56,7 +101,7 @@ describe('ep_comments_page - Comment icons', function() {
 
     it('loads the comment icon with reply', function(done) {
       helper.waitFor(function() {
-        var $commentIcon = helper.padOuter$('#commentIcons #icon-' + commentId);
+        var $commentIcon = helper.padOuter$('#commentIcons #icon-' + firstCommentId);
         return $commentIcon.hasClass('withReply');
       }).done(done);
     });
@@ -76,7 +121,7 @@ describe('ep_comments_page - Comment icons', function() {
     it('does not show comment icon', function(done) {
       helper.waitFor(function() {
         // check icon is not visible
-        var $commentIcons = helper.padOuter$('#commentIcons #icon-' + commentId + ':visible');
+        var $commentIcons = helper.padOuter$('#commentIcons #icon-' + firstCommentId + ':visible');
         return $commentIcons.length === 0;
       }, 2000).done(done);
     });
@@ -84,10 +129,10 @@ describe('ep_comments_page - Comment icons', function() {
 
   context('when comment is deleted', function() {
     before(function(done) {
-      apiUtils.simulateCallToDeleteComment(commentId);
+      apiUtils.simulateCallToDeleteComment(firstCommentId);
 
       helper.waitFor(function() {
-        return utils.getCommentIdOfLine(LINE_WITH_COMMENT) === null;
+        return utils.getCommentIdOfLine(FIRST_COMMENT_LINE) === null;
       }).done(done);
     });
 
@@ -98,7 +143,7 @@ describe('ep_comments_page - Comment icons', function() {
     it('does not show comment icon', function(done) {
       helper.waitFor(function() {
         // check icon is not visible
-        var $commentIcons = helper.padOuter$('#commentIcons #icon-' + commentId + ':visible');
+        var $commentIcons = helper.padOuter$('#commentIcons #icon-' + firstCommentId + ':visible');
         return $commentIcons.length === 0;
       }, 2000).done(done);
     });
@@ -128,8 +173,8 @@ describe('ep_comments_page - Comment icons', function() {
 
     it('updates comment icon height', function(done) {
       // check height is the same
-      var $commentIcon = helper.padOuter$('#commentIcons #icon-' + commentId);
-      var $commentedText = helper.padInner$('.' + commentId);
+      var $commentIcon = helper.padOuter$('#commentIcons #icon-' + firstCommentId);
+      var $commentedText = helper.padInner$('.' + firstCommentId);
       var expectedTop = $commentedText.offset().top + 2; // all icons are +2px down to adjust position
 
       // icon might take some time to go to the correct position
@@ -144,43 +189,36 @@ describe('ep_comments_page - Comment icons', function() {
 
     before(function(done) {
       // get original value for future comparison on the tests
-      nonHighlighted = utils.getBackgroundColorOf(commentId);
+      nonHighlighted = utils.getBackgroundColorOf(firstCommentId);
 
       // place caret out of line with commented text
-      ep_script_elements_test_helper.utils.placeCaretOnLine(LINE_WITH_ANOTHER_COMMENT, function() {
-        utils.clickOnCommentIcon(commentId);
+      ep_script_elements_test_helper.utils.placeCaretOnLine(SECOND_COMMENT_LINE, function() {
+        utils.clickOnCommentIcon(firstCommentId);
         done();
       });
     });
 
-    it('sends the comment id on the API', function(done) {
-      var activatedComment = apiUtils.getLastActivatedComment();
-      expect(activatedComment).to.be(commentId);
-      done();
-    });
-
-    it('places the caret at beginning of commented text', function(done) {
-      var $lineWithComment = utils.getLine(LINE_WITH_COMMENT);
-      var $lineWithCaret = ep_script_elements_test_helper.utils.getLineWhereCaretIs();
-
-      expect($lineWithCaret.get(0)).to.be($lineWithComment.get(0));
-
-      done();
-    });
+    testIfCaretIsAtBeginningOfCommentedText(FIRST_COMMENT_LINE);
 
     it('highlights the comment on editor', function(done) {
-      var commentTextStyle = utils.getBackgroundColorOf(commentId);
+      var commentTextStyle = utils.getBackgroundColorOf(firstCommentId);
       expect(commentTextStyle).to.not.be(nonHighlighted);
+      done();
+    });
+
+    it('sends the comment id on the API', function(done) {
+      var activatedComment = apiUtils.getLastActivatedComment();
+      expect(activatedComment).to.be(firstCommentId);
       done();
     });
 
     context('and user clicks again on the icon', function() {
       before(function() {
-        utils.clickOnCommentIcon(commentId);
+        utils.clickOnCommentIcon(firstCommentId);
       });
       after(function() {
         // activate comment again, as on before() we've deactivated it
-        utils.clickOnCommentIcon(commentId);
+        utils.clickOnCommentIcon(firstCommentId);
       });
 
       it('sends an undefined comment id on the API', function(done) {
@@ -190,7 +228,7 @@ describe('ep_comments_page - Comment icons', function() {
       });
 
       it('removes the highlight of the comment on editor', function(done) {
-        var commentTextStyle = utils.getBackgroundColorOf(commentId);
+        var commentTextStyle = utils.getBackgroundColorOf(firstCommentId);
         expect(commentTextStyle).to.be(nonHighlighted);
         done();
       });
@@ -202,7 +240,7 @@ describe('ep_comments_page - Comment icons', function() {
       });
       after(function() {
         // activate comment again, as on before() we've deactivated it
-        utils.clickOnCommentIcon(commentId);
+        utils.clickOnCommentIcon(firstCommentId);
       });
 
       it('sends an undefined comment id on the API', function(done) {
@@ -212,7 +250,7 @@ describe('ep_comments_page - Comment icons', function() {
       });
 
       it('removes the highlight of the comment on editor', function(done) {
-        var commentTextStyle = utils.getBackgroundColorOf(commentId);
+        var commentTextStyle = utils.getBackgroundColorOf(firstCommentId);
         expect(commentTextStyle).to.be(nonHighlighted);
         done();
       });
@@ -220,23 +258,54 @@ describe('ep_comments_page - Comment icons', function() {
 
     context('and user clicks on another comment icon', function() {
       before(function() {
-        utils.clickOnCommentIcon(anotherCommentId);
+        utils.clickOnCommentIcon(secondCommentId);
       });
       after(function() {
         // activate original comment again, as on before() we've deactivated it
-        utils.clickOnCommentIcon(commentId);
+        utils.clickOnCommentIcon(firstCommentId);
       });
 
       it('sends the id of the last comment clicked on the API', function(done) {
         var activatedComment = apiUtils.getLastActivatedComment();
-        expect(activatedComment).to.be(anotherCommentId);
+        expect(activatedComment).to.be(secondCommentId);
         done();
       });
 
       it('removes the highlight of the comment on editor', function(done) {
-        var commentTextStyle = utils.getBackgroundColorOf(commentId);
+        var commentTextStyle = utils.getBackgroundColorOf(firstCommentId);
         expect(commentTextStyle).to.be(nonHighlighted);
         done();
+      });
+    });
+
+    context('and comment icon is from a scene mark hidden', function() {
+      before(function () {
+        utils.clickOnCommentIcon(multLineCommentId);
+      });
+
+      it('shows the scene mark hidden', function (done) {
+        var linesWithCommentIdAreVisible = areLinesWithCommetIdVisible(multLineCommentId);
+        expect(linesWithCommentIdAreVisible).to.be(true)
+        done();
+      });
+
+      testIfCaretIsAtBeginningOfCommentedText(MULTILINE_COMMENT[0]);
+
+      it('highlights the comment on editor', function(done) {
+        var commentTextStyle = utils.getBackgroundColorOf(multLineCommentId);
+        expect(commentTextStyle).to.not.be(nonHighlighted);
+        done();
+      });
+
+      it('shows the comment icon on the first scene mark commented', function(done) {
+        var $commentIcon = helper.padOuter$('#commentIcons #icon-' + multLineCommentId);
+        var $firstLineCommented = helper.padInner$('.' + multLineCommentId).first();
+        var expectedTop = $firstLineCommented.offset().top + 2; // all icons are +2px down to adjust position
+
+        // icon might take some time to go to the correct position
+        helper.waitFor(function() {
+          return $commentIcon.offset().top === expectedTop;
+        }).done(done);
       });
     });
   });

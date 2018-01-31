@@ -14,6 +14,7 @@ var copyPasteEvents = require('./copyPasteEvents');
 var api = require('./api');
 var utils = require('./utils');
 var commentSaveOrDelete = require('./commentSaveOrDelete');
+var textMarkIconsPosition = require('./textMarkIconsPosition');
 
 var cssFiles = [
   '//fonts.googleapis.com/css?family=Roboto:300,400', // light, regular
@@ -32,7 +33,8 @@ var cssFiles = [
 ];
 
 var UPDATE_COMMENT_LINE_POSITION_EVENT = 'updateCommentLinePosition';
-
+var COMMENT_CLASS = '.comment';
+var COMMENT_CLASS_PREFIX = 'c-';
 /************************************************************************/
 /*                         ep_comments Plugin                           */
 /************************************************************************/
@@ -46,6 +48,12 @@ function ep_comments(context){
   api.init();
   copyPasteEvents.init();
   this.commentDataManager = commentDataManager.init(this.socket);
+  this.textMarkIconsPosition = textMarkIconsPosition.init({
+    hideIcons: commentIcons.hideIcons,
+    textMarkClass: COMMENT_CLASS,
+    textkMarkPrefix: COMMENT_CLASS_PREFIX,
+    adjustTopOf: commentIcons.adjustTopOf,
+  });
   this.init();
 }
 
@@ -54,7 +62,7 @@ ep_comments.prototype.init = function(){
   var self = this;
 
   newComment.createNewCommentForm(this.ace);
-  commentIcons.insertContainer();
+  commentIcons.insertContainer(this.ace);
 
   // Get initial set of comments and replies
   this.commentDataManager.refreshAllCommentData(function(comments) {
@@ -140,7 +148,7 @@ ep_comments.prototype.init = function(){
   copyPasteEvents.listenToCopyCutPasteEventsOfItems({
     itemType: 'comment',
     subItemType: 'reply',
-    itemSelectorOnPad: '.comment',
+    itemSelectorOnPad: COMMENT_CLASS,
     subItemSelectorOnPad: '.comment-reply',
     getItemsData: function() { return self.commentDataManager.getComments() },
     getSubItemsData: utils.getRepliesIndexedByReplyId,
@@ -170,19 +178,19 @@ ep_comments.prototype.collectCommentsAfterSomeIntervalsOfTime = function() {
 
     var count_comments=0;
     for(var key in self.comments)  {count_comments++;}
-    var padComment  = utils.getPadInner().find('.comment');
+    var padComment  = utils.getPadInner().find(COMMENT_CLASS);
     if( count_comments > padComment.length ) {
        window.setTimeout(function() {
           self.collectComments();
           var count_comments=0;
           for(var key in self.comments)  {count_comments++;}
-          var padComment  = utils.getPadInner().find('.comment');
+          var padComment  = utils.getPadInner().find(COMMENT_CLASS);
           if( count_comments > padComment.length ) {
              window.setTimeout(function() {
                 self.collectComments();
                 var count_comments=0;
                 for(var key in self.comments)  {count_comments++;}
-                var padComment  = utils.getPadInner().find('.comment');
+                var padComment  = utils.getPadInner().find(COMMENT_CLASS);
                 if( count_comments > padComment.length ) {
                    window.setTimeout(function() {
                       self.collectComments();
@@ -200,49 +208,15 @@ ep_comments.prototype.collectCommentsAfterSomeIntervalsOfTime = function() {
 ep_comments.prototype.collectComments = function(callback) {
   this.commentDataManager.updateListOfCommentsStillOnText();
   commentIcons.addIcons(this.commentDataManager.getComments());
-  this.setYofComments();
+  this.textMarkIconsPosition.updateIconsPosition();
 
   if(callback) callback();
 };
 
-// Set all comment icons to be aligned with their commented text
-ep_comments.prototype.setYofComments = function(){
-  // hide comment icons while their position is being updated
-  commentIcons.hideIcons();
-
-  var inlineComments = this.getFirstOcurrenceOfCommentIds();
-  $.each(inlineComments, function(){
-    var topOfCommentedText = this.offsetTop;
-    var commentId = /(?:^| )(c-[A-Za-z0-9]*)/.exec(this.className);
-    if(commentId) {
-      commentIcons.adjustTopOf(commentId[1], topOfCommentedText);
-    }
-  });
-};
-
-ep_comments.prototype.getFirstOcurrenceOfCommentIds = function() {
-  var padInner = utils.getPadInner();
-  var commentsId = this.getUniqueCommentsId();
-  var firstOcurrenceOfCommentIds = _.map(commentsId, function(commentId){
-   return padInner.find("." + commentId).first().get(0);
-  });
-  return firstOcurrenceOfCommentIds;
- }
-
-ep_comments.prototype.getUniqueCommentsId = function() {
-  var inlineComments = utils.getPadInner().find(".comment");
-  var commentsId = _.map(inlineComments, function(inlineComment){
-    var commentId = /(?:^| )(c-[A-Za-z0-9]*)/.exec(inlineComment.className);
-    // avoid when it has a '.comment' that it has a fakeComment class 'fakecomment-123' yet.
-    if(commentId) return commentId[1];
-  });
-  return _.uniq(commentsId);
-}
-
 // Make the adjustments after editor is resized (due to a window resize or
 // enabling/disabling Page View)
 ep_comments.prototype.editorResized = function() {
-  this.setYofComments();
+  this.textMarkIconsPosition.updateIconsPosition();
 }
 
 ep_comments.prototype.getCommentData = function (){
@@ -405,9 +379,9 @@ var hooks = {
     preTextMarker.processAceEditEvent(context);
 
     if(context.callstack.docTextChanged) {
-      // give a small delay, so all lines will be processed when setYofComments() is called
+      // give a small delay, so all lines will be processed when updateIconsPosition() is called
       setTimeout(function() {
-        pad.plugins.ep_comments_page.commentHandler.setYofComments();
+        pad.plugins.ep_comments_page.commentHandler.textMarkIconsPosition.updateIconsPosition();
       }, 250);
     }
 
@@ -550,6 +524,7 @@ exports.aceInitialized = function(hook, context){
   var editorInfo = context.editorInfo;
   editorInfo.ace_getRepFromSelector = _(getRepFromSelector).bind(context);
   editorInfo.ace_getRepFromDOMElement = _(getRepFromDOMElement).bind(context);
+  editorInfo.ace_showSMHiddenIfCommentIsOnIt = _(commentIcons.showSMHiddenIfCommentIsOnIt).bind(context);
 }
 
 exports.aceRegisterNonScrollableEditEvents = function(){
