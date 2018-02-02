@@ -91,7 +91,7 @@ var addListenersToCommentIcons = function(ace) {
 
     // if a comment is on a scene mark hidden, show the scene mark first
     ace.callWithAce(function(ace){
-      ace.ace_showSMHiddenIfCommentIsOnIt(commentId);
+      ace.ace_showSMHiddenIfTextMarkIsOnIt(commentId);
     });
 
     highlightTargetTextOf(commentId);
@@ -100,24 +100,24 @@ var addListenersToCommentIcons = function(ace) {
   });
 }
 
-exports.showSMHiddenIfCommentIsOnIt = function(commentId) {
-  var commentIsOnSceneMarkHidden = isCommentOnSceneMarkHidden(commentId);
+exports.showSMHiddenIfTextMarkIsOnIt = function(textMarkId) {
+  var textMarkIsOnSceneMarkHidden = isTextMarkAppliedOnlyOnASMHidden(textMarkId);
 
-  if (commentIsOnSceneMarkHidden) {
+  if (textMarkIsOnSceneMarkHidden) {
     var rep = this.rep;
     var editorInfo = this.editorInfo;
     var attributeManager = this.documentAttributeManager;
-    var firstLineWhereCommentIsApplied = getFirstLineWhereCommentIsApplied(commentId, rep);
-    sceneMarkVisibility.showSceneMarksAroundLine(firstLineWhereCommentIsApplied, editorInfo, attributeManager);
+    var firstLineWhereTextMarkIsApplied = getFirstLineWhereTextMarkIsApplied(textMarkId, rep);
+    sceneMarkVisibility.showSceneMarksAroundLine(firstLineWhereTextMarkIsApplied, editorInfo, attributeManager);
   }
 }
 
-var isCommentOnSceneMarkHidden = function(commentId) {
-  var $linesWhereCommentIsApplied = utils.getPadInner().find('div').has('.' + commentId);
-  var commmentIsAppliedOnlyOnSceneMark = _.every($linesWhereCommentIsApplied, function(line){
+var isTextMarkAppliedOnlyOnASMHidden = function(textMarkId) {
+  var $linesWhereTextMarkIsApplied = utils.getPadInner().find('div').has('.' + textMarkId);
+  var textMarkIsAppliedOnlyOnSceneMark = _.every($linesWhereTextMarkIsApplied, function(line){
     return smUtils.checkIfHasSceneMark($(line));
   });
-  return commmentIsAppliedOnlyOnSceneMark && linesAreHidden($linesWhereCommentIsApplied);
+  return textMarkIsAppliedOnlyOnSceneMark && linesAreHidden($linesWhereTextMarkIsApplied);
 }
 
 var linesAreHidden = function($lines) {
@@ -127,8 +127,8 @@ var linesAreHidden = function($lines) {
   });
 }
 
-var getFirstLineWhereCommentIsApplied = function(commentId, rep) {
-  var $line = utils.getPadInner().find('div').has('.' + commentId).first();
+var getFirstLineWhereTextMarkIsApplied = function(textMarkId, rep) {
+  var $line = utils.getPadInner().find('div').has('.' + textMarkId).first();
   return getLineNumberFromDOMLine($line, rep);
 }
 

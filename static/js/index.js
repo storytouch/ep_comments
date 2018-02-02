@@ -524,7 +524,7 @@ exports.aceInitialized = function(hook, context){
   var editorInfo = context.editorInfo;
   editorInfo.ace_getRepFromSelector = _(getRepFromSelector).bind(context);
   editorInfo.ace_getRepFromDOMElement = _(getRepFromDOMElement).bind(context);
-  editorInfo.ace_showSMHiddenIfCommentIsOnIt = _(commentIcons.showSMHiddenIfCommentIsOnIt).bind(context);
+  editorInfo.ace_showSMHiddenIfTextMarkIsOnIt = _(commentIcons.showSMHiddenIfTextMarkIsOnIt).bind(context);
 }
 
 exports.aceRegisterNonScrollableEditEvents = function(){
