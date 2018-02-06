@@ -1,4 +1,5 @@
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
+var _ = require('ep_etherpad-lite/static/js/underscore');
 
 var utils = require('ep_comments_page/static/js/utils');
 var api = require('ep_comments_page/static/js/api');
@@ -270,6 +271,7 @@ var adjustTopOf = function(commentId, baseTop) {
 
 // Update which comments have reply
 var updateCommentIconsStyle = function() {
+  var commentDataManager = pad.plugins.ep_comments_page.commentHandler.commentDataManager;
   var $iconsContainer = utils.getPadOuter().find('#commentIcons');
   var $commentsOnText = utils.getPadInner().find('.comment');
 
@@ -279,10 +281,18 @@ var updateCommentIconsStyle = function() {
 
     // ignore comments without a valid id -- maybe comment was deleted?
     if (commentId) {
-      var commentHasReply = $(this).hasClass('comment-reply');
+      var replies = commentDataManager.getRepliesOfComment(commentId);
+
+      // comment can have reply data, but the reply might have been
+      // removed from text (by UNDO, for example)
+      var selectorOfAllReplyIds = _(replies).map(function(reply) {
+        return '.' + reply.replyId;
+      }).join(',');
+      var commentHasReplyOnText = $(this).is(selectorOfAllReplyIds);
+
       // change comment icon
       var $commentIcon = $iconsContainer.find('#icon-' + commentId);
-      $commentIcon.toggleClass('withReply', commentHasReply);
+      $commentIcon.toggleClass('withReply', commentHasReplyOnText);
     }
   });
 }
