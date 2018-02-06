@@ -113,6 +113,37 @@ describe('ep_comments_page - api - "data changed" event', function() {
       });
     });
 
+    // scenario of bug https://trello.com/c/e0Y19z9j/1189
+    context('and comment has a reply', function() {
+      before(function(done) {
+        utils.addCommentReplyToLine(COMMENT_LINE, 'reply text', done);
+      });
+
+      after(function() {
+        utils.undo();
+        utils.undo();
+      });
+
+      it('does not raise any error when user creates another comment in the middle of the first one', function(done) {
+        // try to add 2nd comment
+        var $lineWithOriginalComment = utils.getLine(COMMENT_LINE);
+        helper.selectLines($lineWithOriginalComment, $lineWithOriginalComment, 1, 2);
+        utils.pressShortcutToAddCommentToSelectedText();
+
+        // this is the moment when the exception might happen
+        utils.fillCommentForm('second comment', function() {
+          // wait for line to have a 2nd comment
+          helper.waitFor(function() {
+            return utils.getCommentIdsOfLine(COMMENT_LINE).length > 1;
+          }).done(function() {
+            var comments = apiUtils.getLastDataSent();
+            expect(comments.length).to.be(2);
+            done();
+          });
+        });
+      });
+    });
+
     context('and pad has scenes', function() {
       var LINE_BEFORE_1ST_SCENE           = 2;
       var LINE_ON_HEADING_OF_1ST_SCENE    = LINE_BEFORE_1ST_SCENE + 3; // SMs + heading
