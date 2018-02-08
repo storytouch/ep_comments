@@ -254,30 +254,26 @@ ep_comments_page_test_helper.utils = {
     return commentData;
   },
   getCommentIdOfLine: function(lineNumber) {
-    return this._getCommentOrReplyIdOfLine(lineNumber, /(?:^| )(c-[A-Za-z0-9]*)/);
+    return this.getCommentIdsOfLine(lineNumber)[0] || null;
   },
   getReplyIdOfLine: function(lineNumber) {
-    return this._getCommentOrReplyIdOfLine(lineNumber, /(?:^| )(cr-[A-Za-z0-9]*)/);
+    return this.getReplyIdsOfLine(lineNumber)[0] || null;
   },
-  _getCommentOrReplyIdOfLine: function(lineNumber, regex) {
-    var $line = this.getLine(lineNumber);
-    var commentOrReply = $line.find('.comment, .comment-reply');
-    var cls = commentOrReply.attr('class');
-    var classId = regex.exec(cls);
-    var commentOrReplyId = (classId) ? classId[1] : null;
-
-    return commentOrReplyId;
-  },
-
   getCommentIdsOfLine: function(lineNumber) {
+    return this.getCommentOrReplyIdsOfLine(lineNumber, /(?:^| )(c-[A-Za-z0-9]*)/, '.comment');
+  },
+  getReplyIdsOfLine: function(lineNumber) {
+    return this.getCommentOrReplyIdsOfLine(lineNumber, /(?:^| )(cr-[A-Za-z0-9]*)/, '.comment-reply');
+  },
+  getCommentOrReplyIdsOfLine: function(lineNumber, regexOfIdOnText, selectorOfElementOnText) {
     var $line = this.getLine(lineNumber);
-    var $commentsOnLine = $line.find('.comment');
-    var commentIdsOnLine = $commentsOnLine.map(function() {
+    var $commentsOrRepliesOnLine = $line.find(selectorOfElementOnText);
+    var idsOnLine = $commentsOrRepliesOnLine.map(function() {
       return _(this.classList).filter(function(cls) {
-        return /(?:^| )(c-[A-Za-z0-9]*)/.test(cls);
+        return regexOfIdOnText.test(cls);
       });
     });
-    return commentIdsOnLine;
+    return idsOnLine;
   },
 
   commentIconsEnabled: function() {
