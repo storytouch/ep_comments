@@ -89,6 +89,45 @@ describe('ep_comments_page - api - "data changed" event', function() {
       });
     });
 
+    // scenario of bugs https://trello.com/c/e0Y19z9j/1189 & https://trello.com/c/e0Y19z9j/1195
+    context('and comment has a reply and user creates another comment in the middle of the first one', function() {
+      before(function(done) {
+        utils.addCommentReplyToLine(COMMENT_LINE, 'reply text', function() {
+          // try to add 2nd comment
+          var $lineWithOriginalComment = utils.getLine(COMMENT_LINE);
+          helper.selectLines($lineWithOriginalComment, $lineWithOriginalComment, 1, 2);
+          utils.pressShortcutToAddCommentToSelectedText();
+          utils.fillCommentForm('second comment', done);
+        });
+      });
+
+      after(function() {
+        utils.undo(); // comment creation
+        utils.undo(); // reply creation
+      });
+
+      // https://trello.com/c/e0Y19z9j/1189
+      it('does not raise any error', function(done) {
+        // wait for line to have a 2nd comment
+        helper.waitFor(function() {
+          return utils.getCommentIdsOfLine(COMMENT_LINE).length > 1;
+        }).done(function() {
+          var comments = apiUtils.getLastDataSent();
+          expect(comments.length).to.be(2);
+          done();
+        });
+      });
+
+      // https://trello.com/c/e0Y19z9j/1195
+      it('shows the comment icon without reply', function(done) {
+        var comments = apiUtils.getLastDataSent();
+        var idOfSecondComment = comments[1].commentId;
+        var $commentIcon = helper.padOuter$('#commentIcons #icon-' + idOfSecondComment);
+        expect($commentIcon.hasClass('withReply')).to.be(false);
+        done();
+      });
+    });
+
     context('and one comment is deleted', function() {
       before(function(done) {
         // create one more comment, to have more comments as a starting point for the test

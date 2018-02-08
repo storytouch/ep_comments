@@ -106,24 +106,27 @@ ep_comments_page_test_helper.utils = {
 
   addCommentToLines: function(lines, textOfComment, done) {
     var self = this;
-    var outer$ = helper.padOuter$;
-    var chrome$ = helper.padChrome$;
 
     self.pressShortcutToAddCommentToLines(lines, function() {
-      // wait for form to be displayed
-      var $commentForm = outer$('#newComment');
-      helper.waitFor(function() {
-        return $commentForm.is(':visible');
-      }).done(function() {
-        // fill the comment form and submit it
-        var $commentField = $commentForm.find('textarea.comment-content');
-        $commentField.val(textOfComment);
-        var $submittButton = $commentForm.find('input[type=submit]');
-        $submittButton.click();
-
+      self.fillCommentForm(textOfComment, function() {
         // wait until comment is created and comment id is set
         self.waitForCommentToBeCreatedOnLines(lines, done);
       });
+    });
+  },
+
+  fillCommentForm: function(textOfComment, done) {
+    // wait for form to be displayed
+    var $commentForm = helper.padOuter$('#newComment');
+    helper.waitFor(function() {
+      return $commentForm.is(':visible');
+    }).done(function() {
+      // fill the comment form and submit it
+      var $commentField = $commentForm.find('textarea.comment-content');
+      $commentField.val(textOfComment);
+      var $submittButton = $commentForm.find('input[type=submit]');
+      $submittButton.click();
+      done();
     });
   },
 
@@ -251,19 +254,26 @@ ep_comments_page_test_helper.utils = {
     return commentData;
   },
   getCommentIdOfLine: function(lineNumber) {
-    return this._getCommentOrReplyIdOfLine(lineNumber, /(?:^| )(c-[A-Za-z0-9]*)/);
+    return this.getCommentIdsOfLine(lineNumber)[0] || null;
   },
   getReplyIdOfLine: function(lineNumber) {
-    return this._getCommentOrReplyIdOfLine(lineNumber, /(?:^| )(cr-[A-Za-z0-9]*)/);
+    return this.getReplyIdsOfLine(lineNumber)[0] || null;
   },
-  _getCommentOrReplyIdOfLine: function(lineNumber, regex) {
+  getCommentIdsOfLine: function(lineNumber) {
+    return this.getCommentOrReplyIdsOfLine(lineNumber, /(?:^| )(c-[A-Za-z0-9]*)/, '.comment');
+  },
+  getReplyIdsOfLine: function(lineNumber) {
+    return this.getCommentOrReplyIdsOfLine(lineNumber, /(?:^| )(cr-[A-Za-z0-9]*)/, '.comment-reply');
+  },
+  getCommentOrReplyIdsOfLine: function(lineNumber, regexOfIdOnText, selectorOfElementOnText) {
     var $line = this.getLine(lineNumber);
-    var commentOrReply = $line.find('.comment, .comment-reply');
-    var cls = commentOrReply.attr('class');
-    var classId = regex.exec(cls);
-    var commentOrReplyId = (classId) ? classId[1] : null;
-
-    return commentOrReplyId;
+    var $commentsOrRepliesOnLine = $line.find(selectorOfElementOnText);
+    var idsOnLine = $commentsOrRepliesOnLine.map(function() {
+      return _(this.classList).filter(function(cls) {
+        return regexOfIdOnText.test(cls);
+      });
+    });
+    return idsOnLine;
   },
 
   commentIconsEnabled: function() {
@@ -314,16 +324,15 @@ ep_comments_page_test_helper.utils = {
   },
 
   getLineWhereCaretIs: function() {
-    var inner$ = helper.padInner$;
-    var nodeWhereCaretIs = inner$.document.getSelection().anchorNode;
-    var $lineWhereCaretIs = $(nodeWhereCaretIs).closest("div");
-    return $lineWhereCaretIs;
+    return ep_script_elements_test_helper.utils.getLineWhereCaretIs();
   },
+
   getSelectedText: function() {
     return helper.padInner$.document.getSelection().toString();
   },
 
   C_KEY_CODE: 67, // shortcut is Cmd + Ctrl + C
+
   // based on similar method of smUtils
   pressShortcutToAddCommentToLine: function(line, done) {
     this.pressShortcutToAddCommentToLines([line, line], done);
@@ -331,18 +340,23 @@ ep_comments_page_test_helper.utils = {
 
   pressShortcutToAddCommentToLines(lines, done) {
     var self = this;
+
+    this._selectOneOrMoreLines(lines);
+
+    setTimeout(function() {
+      self.pressShortcutToAddCommentToSelectedText();
+      done();
+    }, 1000);
+  },
+
+  pressShortcutToAddCommentToSelectedText() {
     var smUtils = ep_script_scene_marks_test_helper.utils;
 
     var bowser = helper.padInner$(window)[0].bowser;
     var os = bowser.mac ? 'mac' : 'windows';
     var modifierKeys = smUtils.shortcuts.KEYS_MODIFIER_ADD_SCENE_MARK[os];
 
-    this._selectOneOrMoreLines(lines);
-
-    setTimeout(function() {
-      smUtils.shortcuts.pressKeyWithModifier(self.C_KEY_CODE, modifierKeys);
-      done();
-    }, 1000);
+    smUtils.shortcuts.pressKeyWithModifier(this.C_KEY_CODE, modifierKeys);
   },
 
   _selectOneOrMoreLines: function(lines) {

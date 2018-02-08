@@ -208,7 +208,10 @@ commentDataManager.prototype.updateListOfCommentsStillOnText = function() {
 
     // remove replies that are not on text anymore
     var commentReplyIds = _(commentInfo.element.classList).filter(function(className) {
-      return replyIdRegex.test(className);
+      var isAReplyId = replyIdRegex.test(className);
+      // there might be another comment (with reply) on the same DOM element of this comment
+      var isAReplyIdOfThisComment = isAReplyId && commentData.replies[className];
+      return isAReplyIdOfThisComment;
     });
 
     // sort replies by date. Note: this needs to be done because DELETE/UNDO messes

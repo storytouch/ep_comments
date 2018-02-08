@@ -40,7 +40,7 @@ describe('ep_comments_page - Comment icons', function() {
   var testIfCaretIsAtBeginningOfCommentedText = function(line) {
     it('places the caret at beginning of commented text', function(done) {
       var $lineWithComment = utils.getLine(line);
-      var $lineWithCaret = ep_script_elements_test_helper.utils.getLineWhereCaretIs();
+      var $lineWithCaret = utils.getLineWhereCaretIs();
 
       expect($lineWithCaret.get(0)).to.be($lineWithComment.get(0));
 
