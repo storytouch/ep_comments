@@ -403,10 +403,7 @@ var hooks = {
     else if(context.key.startsWith('comment-reply-')) {
       return ['comment-reply', context.value];
     }
-    // only read marks made by current user
-    else if(context.key.startsWith(preTextMarker.BASE_CLASS) && context.value === clientVars.userId) {
-      return [context.key];
-    }
+    return preTextMarker.processAceAttribsToClasses(context);
   },
 
   aceEditorCSS: function(){
@@ -529,4 +526,9 @@ exports.aceInitialized = function(hook, context){
 
 exports.aceRegisterNonScrollableEditEvents = function(){
   return [preTextMarker.MARK_TEXT_EVENT, preTextMarker.UNMARK_TEXT_EVENT];
+}
+
+exports.collectContentPre = function(hook, context){
+  shared.collectContentPre(hook, context);
+  preTextMarker.processCollectContentPre(context);
 }

@@ -1,10 +1,10 @@
 var _ = require('ep_etherpad-lite/static/js/underscore');
+var shared = require('./shared');
 
 var BASE_CLASS = 'pre-selected-';
 var MARK_TEXT_EVENT = 'markText';
 var UNMARK_TEXT_EVENT = 'unmarkText';
 
-exports.BASE_CLASS = BASE_CLASS;
 exports.MARK_TEXT_EVENT = MARK_TEXT_EVENT;
 exports.UNMARK_TEXT_EVENT = UNMARK_TEXT_EVENT;
 
@@ -13,7 +13,12 @@ var doNothing = function() {}
 var preTextMarker = function(targetType, ace) {
   this.ace = ace;
   this.targetType = targetType;
-  this.markClass = BASE_CLASS + targetType;
+
+  this.markClassPrefix = BASE_CLASS + targetType + '-';
+  // `clientVars.userId` has a `'.'`, which might mess up with jQuery selectors.
+  // Remove it to avoid confusion
+  this.markAttribName = this.markClassPrefix + clientVars.userId.replace('a.', '');
+
   this.markTextEvent = MARK_TEXT_EVENT + '-' + targetType;
   this.unmarkTextEvent = UNMARK_TEXT_EVENT + '-' + targetType;
 
@@ -76,11 +81,11 @@ preTextMarker.prototype.avoidEditorToBeScrolled = function(callstack, nonScrolla
 
 preTextMarker.prototype.addMark = function(editorInfo, callstack) {
   var eventType  = callstack.editEvent.eventType;
-  var attributeName = this.markClass;
+  var attributeName = this.markAttribName;
 
   // we don't want the text marking to be undoable
   this.performNonUnduableEvent(eventType, callstack, function() {
-    editorInfo.ace_setAttributeOnSelection(attributeName, clientVars.userId);
+    editorInfo.ace_setAttributeOnSelection(attributeName, true);
   });
 }
 
@@ -93,12 +98,12 @@ preTextMarker.prototype.removeMarks = function(editorInfo, rep, callstack) {
   var eventType        = callstack.editEvent.eventType;
   var originalSelStart = rep.selStart;
   var originalSelEnd   = rep.selEnd;
-  var attributeName    = this.markClass;
+  var attributeName    = this.markAttribName;
+  var selector         = this.getMarkerSelector();
 
   // we don't want the text marking to be undoable
   this.performNonUnduableEvent(eventType, callstack, function() {
     // remove marked text
-    var selector = '.' + attributeName;
     var repArr = editorInfo.ace_getRepFromSelector(selector);
     // repArr is an array of reps
     _(repArr).each(function(rep) {
@@ -118,9 +123,17 @@ preTextMarker.prototype.performNonUnduableEvent = function(eventType, callstack,
 }
 
 preTextMarker.prototype.processCollectContentPre = function(context) {
-  var attributeName = this.markClass;
-  var attributeValue = clientVars.userId;
-  context.cc.doAttrib(context.state, attributeName + '::' + attributeValue);
+  shared.collectAttribFrom(context, this.markClassPrefix);
+}
+
+preTextMarker.prototype.processAceAttribsToClasses = function(context) {
+  if (context.key === this.markAttribName) {
+    return [context.key];
+  }
+}
+
+preTextMarker.prototype.getMarkerSelector = function() {
+  return '.' + this.markAttribName;
 }
 
 exports.createForTarget = function(targetType, ace) {
@@ -141,4 +154,12 @@ exports.processCollectContentPre = function(context) {
   _(pad.preTextMarkers).each(function(marker) {
     marker.processCollectContentPre(context);
   });
+}
+exports.processAceAttribsToClasses = function(context) {
+  return _(pad.preTextMarkers)
+    .chain()
+    .map(function(marker) { return marker.processAceAttribsToClasses(context) })
+    .flatten()
+    .compact()
+    .value();
 }

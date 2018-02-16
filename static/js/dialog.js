@@ -116,7 +116,7 @@ dialog.prototype.open = function(aceContext, callbackOnSubmit) {
     var $form = $(this);
 
     self.ace.callWithAce(function(ace) {
-      var preMarkedTextSelector = '.' + self.textMarker.markClass;
+      var preMarkedTextSelector = self.textMarker.getMarkerSelector();
       var preMarkedTextRepArr = ace.ace_getRepFromSelector(preMarkedTextSelector);
       self.onSubmit($form, preMarkedTextRepArr, callbackOnSubmit);
     });
@@ -213,7 +213,7 @@ dialog.prototype._cleanupReferenceElementOnPadOuter = function() {
 }
 
 dialog.prototype._getSelectedText = function() {
-  var selector = '.' + this.textMarker.markClass;
+  var selector = this.textMarker.getMarkerSelector();
   var $selectedText = utils.getPadInner().find(selector);
 
   // when multiple lines are selected, use first one as reference to create the shadow
