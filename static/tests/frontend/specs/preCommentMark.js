@@ -1,11 +1,12 @@
 describe('ep_comments_page - Pre-comment text mark', function() {
   var utils = ep_comments_page_test_helper.utils;
-  var firstLineText, secondLineText;
+  var firstLineText, secondLineText, markClass;
 
   before(function(done) {
     utils.createPad(this, function() {
       firstLineText = utils.getLine(0).text();
       secondLineText = utils.getLine(1).text();
+      markClass = helper.padChrome$.window.pad.preTextMarkers.comment.markAttribName;
       selectLineAndOpenCommentForm(0, done);
     });
   });
@@ -14,7 +15,7 @@ describe('ep_comments_page - Pre-comment text mark', function() {
     var inner$ = helper.padInner$;
 
     // verify if text was marked with pre-comment class
-    var $preCommentTextMarked = inner$('.pre-selected-comment');
+    var $preCommentTextMarked = inner$('.' + markClass);
     expect($preCommentTextMarked.length).to.be(1);
     expect($preCommentTextMarked.text()).to.be(firstLineText);
 
@@ -36,7 +37,7 @@ describe('ep_comments_page - Pre-comment text mark', function() {
 
       // it takes some time for marks to be removed, so wait for it
       helper.waitFor(function() {
-        var $preCommentTextMarked = inner$('.pre-selected-comment');
+        var $preCommentTextMarked = inner$('.' + markClass);
         return $preCommentTextMarked.length === 0;
       }).done(done);
     });
@@ -68,7 +69,7 @@ describe('ep_comments_page - Pre-comment text mark', function() {
       var inner$ = helper.padInner$;
 
       // verify if there is no text marked with pre-comment class
-      var $preCommentTextMarked = inner$('.pre-selected-comment');
+      var $preCommentTextMarked = inner$('.' + markClass);
       expect($preCommentTextMarked.length).to.be(0);
 
       done();
@@ -90,7 +91,7 @@ describe('ep_comments_page - Pre-comment text mark', function() {
       var inner$ = helper.padInner$;
 
       // verify if text was marked with pre-comment class
-      var $preCommentTextMarked = inner$('.pre-selected-comment');
+      var $preCommentTextMarked = inner$('.' + markClass);
       expect($preCommentTextMarked.length).to.be(1);
       expect($preCommentTextMarked.text()).to.be(firstLineText);
 
@@ -121,7 +122,7 @@ describe('ep_comments_page - Pre-comment text mark', function() {
       var inner$ = helper.padInner$;
 
       // verify if text is still marked with pre-comment class
-      var $preCommentTextMarked = inner$('.pre-selected-comment');
+      var $preCommentTextMarked = inner$('.' + markClass);
       expect($preCommentTextMarked.length).to.be(1);
       expect($preCommentTextMarked.text()).to.be(firstLineText + newText);
 
@@ -141,7 +142,7 @@ describe('ep_comments_page - Pre-comment text mark', function() {
       var inner$ = helper.padInner$;
 
       // verify if text was marked with pre-comment class
-      var $preCommentTextMarked = inner$('.pre-selected-comment');
+      var $preCommentTextMarked = inner$('.' + markClass);
       expect($preCommentTextMarked.length).to.be(1);
       expect($preCommentTextMarked.text()).to.be(secondLineText);
 
@@ -166,7 +167,7 @@ describe('ep_comments_page - Pre-comment text mark', function() {
 
       // it takes some time for marks to be removed, so wait for it
       helper.waitFor(function() {
-        var $preCommentTextMarked = inner$('.pre-selected-comment');
+        var $preCommentTextMarked = inner$('.' + markClass);
         return $preCommentTextMarked.length === 0;
       }).done(done);
     });
@@ -197,7 +198,7 @@ describe('ep_comments_page - Pre-comment text mark', function() {
       var inner$ = helper.padInner$;
 
       // verify if text was marked with pre-comment class
-      var $preCommentTextMarked = inner$('.pre-selected-comment');
+      var $preCommentTextMarked = inner$('.' + markClass);
       expect($preCommentTextMarked.length).to.be(1);
       expect($preCommentTextMarked.text()).to.be(firstLineText);
 
