@@ -38,10 +38,10 @@ describe('ep_comments_page - Shortcuts', function() {
     });
 
     it('unmarks text', function(done) {
-      var inner$ = helper.padInner$;
+      var markClass = helper.padChrome$.window.pad.preTextMarkers.comment.markAttribName;
 
       // verify if there is no text marked with pre-comment class
-      var $preCommentTextMarked = inner$('.pre-selected-comment');
+      var $preCommentTextMarked = helper.padInner$('.' + markClass);
       expect($preCommentTextMarked.length).to.be(0);
 
       done();
