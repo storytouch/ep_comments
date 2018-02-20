@@ -52,11 +52,11 @@ preTextMarker.prototype.processAceEditEvent = function(context) {
   var eventType  = callstack.editEvent.eventType;
 
   if(eventType === this.unmarkTextEvent) {
-    this.handleUnmarkText(editorInfo, rep, callstack);
     this.avoidEditorToBeScrolled(callstack, UNMARK_TEXT_EVENT);
+    this.handleUnmarkText(editorInfo, rep, callstack);
   } else if(eventType === this.markTextEvent) {
-    this.handleMarkText(editorInfo, rep, callstack);
     this.avoidEditorToBeScrolled(callstack, MARK_TEXT_EVENT);
+    this.handleMarkText(editorInfo, rep, callstack);
   }
 }
 
