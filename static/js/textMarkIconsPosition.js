@@ -56,13 +56,20 @@ textMarkIconsPosition.prototype._getTextMarkIdAndItsPosition = function() {
 }
 
 textMarkIconsPosition.prototype._getTextMarkIconPosition = function(textMarkId) {
-  var $target = utils.getPadInner().find("." + textMarkId).first();
-  var iconPosition =  $target.get(0).offsetTop;
-  var targetElementIsVisible = $target.get(0).getBoundingClientRect().height > 0;
+  var iconPosition =  0;
+  var $target = utils.getPadInner().find('.' + textMarkId).first();
 
-  if (!targetElementIsVisible) {
-    var $targetLine = $target.closest('div');
-    iconPosition = this._getTextMarkIconPositionOnHiddenLines($targetLine, textMarkId);
+  // target icon might not be on pad yet. Eg.: when pasting text with comment,
+  // the comment id will have the prefix 'fake-', so an element with the actual
+  // comment id won't be on the pad yet
+  if ($target.length > 0) {
+    var targetElementIsVisible = $target.get(0).getBoundingClientRect().height > 0;
+    if (targetElementIsVisible) {
+      iconPosition = $target.get(0).offsetTop;
+    } else {
+      var $targetLine = $target.closest('div');
+      iconPosition = this._getTextMarkIconPositionOnHiddenLines($targetLine, textMarkId);
+    }
   }
 
   return iconPosition;
