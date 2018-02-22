@@ -83,9 +83,9 @@ exports.bulkAddComments = function(padId, data, callback)
     });
 
     //save the new element back
-    db.set("comments:" + padId, comments);
-
-    callback(null, commentIds, newComments);
+    db.set("comments:" + padId, comments, function() {
+      callback(null, commentIds, newComments);
+    });
   });
 };
 
@@ -101,9 +101,7 @@ exports.copyComments = function(originalPadId, newPadID, callback)
     });
 
     //save the comments on new pad
-    db.set('comments:' + newPadID, copiedComments);
-
-    callback(null);
+    db.set('comments:' + newPadID, copiedComments, callback);
   });
 };
 
@@ -173,9 +171,9 @@ exports.bulkAddCommentReplies = function(padId, data, callback){
     });
 
     //save the new element back
-    db.set("comment-replies:" + padId, replies);
-
-    callback(null, replyIds, newReplies);
+    db.set("comment-replies:" + padId, replies, function() {
+      callback(null, replyIds, newReplies);
+    });
   });
 };
 
@@ -190,9 +188,7 @@ exports.copyCommentReplies = function(originalPadId, newPadID, callback){
     });
 
     //save the comment replies on new pad
-    db.set('comment-replies:' + newPadID, copiedReplies);
-
-    callback(null);
+    db.set('comment-replies:' + newPadID, copiedReplies, callback);
   });
 };
 
@@ -209,7 +205,6 @@ exports.changeCommentText = function(padId, commentId, commentText, callback){
       prefix = "comment-replies:";
     }
 
-
     //get the entry
     db.get(prefix + padId, function(err, comments){
       if(ERR(err, callback)) return;
@@ -218,9 +213,7 @@ exports.changeCommentText = function(padId, commentId, commentText, callback){
       comments[commentId].text = commentText;
 
       //save the comment updated back
-      db.set(prefix + padId, comments);
-
-      callback(null);
+      db.set(prefix + padId, comments, callback);
     });
   }else{// don't save comment text blank
     callback(true);
