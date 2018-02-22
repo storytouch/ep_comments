@@ -21,13 +21,13 @@ var textMarkIconsPosition = function(config) {
 // Set all text mark icons to be aligned with text where's applied
 // or when it is applied on a hidden line, it looks for a eligible
 // line to show it aside
-textMarkIconsPosition.prototype.updateIconsPosition = function(){
+textMarkIconsPosition.prototype.updateIconsPosition = function() {
   // hide text mark icons while their position is being updated
   this.hideIcons();
   var self = this;
 
   var inlineTextMarks = this._getTextMarkIdAndItsPosition();
-  $.each(inlineTextMarks, function(){
+  $.each(inlineTextMarks, function() {
     if(this.textMarkId && this.textMarkIconPosition) {
       self.adjustTopOf(this.textMarkId, this.textMarkIconPosition);
     }
@@ -36,7 +36,7 @@ textMarkIconsPosition.prototype.updateIconsPosition = function(){
 
 textMarkIconsPosition.prototype._getTextMarkIdAndItsPosition = function() {
   var textMarksId = this._getUniqueTextMarksId();
-  var textMarkIdAndItsPosition = _.map(textMarksId, function(textMarkId){
+  var textMarkIdAndItsPosition = _.map(textMarksId, function(textMarkId) {
     return { textMarkId: textMarkId, textMarkIconPosition: this._getTextMarkIconPosition(textMarkId) };
   }, this);
   return textMarkIdAndItsPosition;
@@ -44,15 +44,14 @@ textMarkIconsPosition.prototype._getTextMarkIdAndItsPosition = function() {
 
  textMarkIconsPosition.prototype._getUniqueTextMarksId = function() {
   var inlineTextMarks = utils.getPadInner().find(this.textMarkClass);
-  var textMarksId = _.map(inlineTextMarks, function(inlineTextMark){
-    var textMarkId = shared.getIdsFrom(inlineTextMark.className, this.textkMarkPrefix);
-    return textMarkId;
-  }, this);
-
-  // transform the array of arrays into a single-level array
-  var textMarksId = _(textMarksId).flatten();
-
-  return _(textMarksId).uniq();
+  return _(inlineTextMarks)
+    .chain()
+    .map(function(inlineTextMark) {
+      return shared.getIdsFrom(inlineTextMark.className, this.textkMarkPrefix);
+    }, this)
+    .flatten()
+    .uniq()
+    .value();
 }
 
 textMarkIconsPosition.prototype._getTextMarkIconPosition = function(textMarkId) {
