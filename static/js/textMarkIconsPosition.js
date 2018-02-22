@@ -21,13 +21,13 @@ var textMarkIconsPosition = function(config) {
 // Set all text mark icons to be aligned with text where's applied
 // or when it is applied on a hidden line, it looks for a eligible
 // line to show it aside
-textMarkIconsPosition.prototype.updateIconsPosition = function(){
+textMarkIconsPosition.prototype.updateIconsPosition = function() {
   // hide text mark icons while their position is being updated
   this.hideIcons();
   var self = this;
 
   var inlineTextMarks = this._getTextMarkIdAndItsPosition();
-  $.each(inlineTextMarks, function(){
+  $.each(inlineTextMarks, function() {
     if(this.textMarkId && this.textMarkIconPosition) {
       self.adjustTopOf(this.textMarkId, this.textMarkIconPosition);
     }
@@ -36,7 +36,7 @@ textMarkIconsPosition.prototype.updateIconsPosition = function(){
 
 textMarkIconsPosition.prototype._getTextMarkIdAndItsPosition = function() {
   var textMarksId = this._getUniqueTextMarksId();
-  var textMarkIdAndItsPosition = _.map(textMarksId, function(textMarkId){
+  var textMarkIdAndItsPosition = _.map(textMarksId, function(textMarkId) {
     return { textMarkId: textMarkId, textMarkIconPosition: this._getTextMarkIconPosition(textMarkId) };
   }, this);
   return textMarkIdAndItsPosition;
@@ -44,25 +44,31 @@ textMarkIconsPosition.prototype._getTextMarkIdAndItsPosition = function() {
 
  textMarkIconsPosition.prototype._getUniqueTextMarksId = function() {
   var inlineTextMarks = utils.getPadInner().find(this.textMarkClass);
-  var textMarksId = _.map(inlineTextMarks, function(inlineTextMark){
-    var textMarkId = shared.getIdsFrom(inlineTextMark.className, this.textkMarkPrefix);
-    return textMarkId;
-  }, this);
-
-  // transform the array of arrays into a single-level array
-  var textMarksId = _(textMarksId).flatten();
-
-  return _(textMarksId).uniq();
+  return _(inlineTextMarks)
+    .chain()
+    .map(function(inlineTextMark) {
+      return shared.getIdsFrom(inlineTextMark.className, this.textkMarkPrefix);
+    }, this)
+    .flatten()
+    .uniq()
+    .value();
 }
 
 textMarkIconsPosition.prototype._getTextMarkIconPosition = function(textMarkId) {
-  var $target = utils.getPadInner().find("." + textMarkId).first();
-  var iconPosition =  $target.get(0).offsetTop;
-  var targetElementIsVisible = $target.get(0).getBoundingClientRect().height > 0;
+  var iconPosition =  0;
+  var $target = utils.getPadInner().find('.' + textMarkId).first();
 
-  if (!targetElementIsVisible) {
-    var $targetLine = $target.closest('div');
-    iconPosition = this._getTextMarkIconPositionOnHiddenLines($targetLine, textMarkId);
+  // target icon might not be on pad yet. Eg.: when pasting text with comment,
+  // the comment id will have the prefix 'fake-', so an element with the actual
+  // comment id won't be on the pad yet
+  if ($target.length > 0) {
+    var targetElementIsVisible = $target.get(0).getBoundingClientRect().height > 0;
+    if (targetElementIsVisible) {
+      iconPosition = $target.get(0).offsetTop;
+    } else {
+      var $targetLine = $target.closest('div');
+      iconPosition = this._getTextMarkIconPositionOnHiddenLines($targetLine, textMarkId);
+    }
   }
 
   return iconPosition;
