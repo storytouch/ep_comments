@@ -172,15 +172,15 @@ describe('ep_comments_page - Comment icons', function() {
     });
 
     it('updates comment icon height', function(done) {
-      // check height is the same
-      var $commentIcon = helper.padOuter$('#commentIcons #icon-' + firstCommentId);
-      var $commentedText = helper.padInner$('.' + firstCommentId);
-      var expectedTop = $commentedText.offset().top + 2; // all icons are +2px down to adjust position
-
+      this.timeout(5000);
       // icon might take some time to go to the correct position
       helper.waitFor(function() {
+        // check height is the same
+        var $commentIcon = helper.padOuter$('#commentIcons #icon-' + firstCommentId);
+        var $commentedText = helper.padInner$('.' + firstCommentId);
+        var expectedTop = $commentedText.offset().top + 2; // all icons are +2px down to adjust position
         return $commentIcon.offset().top === expectedTop;
-      }).done(done);
+      }, 4000).done(done);
     });
   });
 
@@ -298,6 +298,8 @@ describe('ep_comments_page - Comment icons', function() {
       });
 
       it('shows the comment icon on the first scene mark commented', function(done) {
+        this.timeout(5000);
+
         var $commentIcon = helper.padOuter$('#commentIcons #icon-' + multLineCommentId);
         var $firstLineCommented = helper.padInner$('.' + multLineCommentId).first();
         var expectedTop = $firstLineCommented.offset().top + 2; // all icons are +2px down to adjust position
@@ -305,7 +307,7 @@ describe('ep_comments_page - Comment icons', function() {
         // icon might take some time to go to the correct position
         helper.waitFor(function() {
           return $commentIcon.offset().top === expectedTop;
-        }).done(done);
+        }, 4000).done(done);
       });
     });
   });

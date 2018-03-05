@@ -15,6 +15,7 @@ var api = require('./api');
 var utils = require('./utils');
 var commentSaveOrDelete = require('./commentSaveOrDelete');
 var textMarkIconsPosition = require('./textMarkIconsPosition');
+var scheduler = require('./scheduler');
 
 var cssFiles = [
   '//fonts.googleapis.com/css?family=Roboto:300,400', // light, regular
@@ -35,6 +36,7 @@ var cssFiles = [
 var UPDATE_COMMENT_LINE_POSITION_EVENT = 'updateCommentLinePosition';
 var COMMENT_CLASS = '.comment';
 var COMMENT_CLASS_PREFIX = 'c-';
+var TIME_TO_UPDATE_ICON_POSITION = 1000;
 /************************************************************************/
 /*                         ep_comments Plugin                           */
 /************************************************************************/
@@ -54,6 +56,11 @@ function ep_comments(context){
     textkMarkPrefix: COMMENT_CLASS_PREFIX,
     adjustTopOf: commentIcons.adjustTopOf,
   });
+
+  // to avoid lagging while user is typing, we set a scheduler to postpone
+  // calling callback until edition had stopped
+  this.updateIconsPositionSchedule = scheduler.setCallbackWhenUserStopsChangingPad(
+    this.textMarkIconsPosition.updateIconsPosition.bind(this.textMarkIconsPosition), TIME_TO_UPDATE_ICON_POSITION);
   this.init();
 }
 
@@ -379,10 +386,7 @@ var hooks = {
     preTextMarker.processAceEditEvent(context);
 
     if(context.callstack.docTextChanged) {
-      // give a small delay, so all lines will be processed when updateIconsPosition() is called
-      setTimeout(function() {
-        pad.plugins.ep_comments_page.commentHandler.textMarkIconsPosition.updateIconsPosition();
-      }, 250);
+      pad.plugins.ep_comments_page.commentHandler.updateIconsPositionSchedule.padChanged();
     }
 
     var commentWasPasted = ((((pad || {}).plugins || {}).ep_comments_page || {}).commentHandler || {}).shouldCollectComment;

@@ -43,7 +43,8 @@ textMarkIconsPosition.prototype._getTextMarkIdAndItsPosition = function() {
  }
 
  textMarkIconsPosition.prototype._getUniqueTextMarksId = function() {
-  var inlineTextMarks = utils.getPadInner().find(this.textMarkClass);
+  var $lines = utils.getPadInner().find('div');
+  var inlineTextMarks = $lines.find(this.textMarkClass);
   return _(inlineTextMarks)
     .chain()
     .map(function(inlineTextMark) {
@@ -56,7 +57,8 @@ textMarkIconsPosition.prototype._getTextMarkIdAndItsPosition = function() {
 
 textMarkIconsPosition.prototype._getTextMarkIconPosition = function(textMarkId) {
   var iconPosition =  0;
-  var $target = utils.getPadInner().find('.' + textMarkId).first();
+  var $lines = utils.getPadInner().find('div');
+  var $target = $lines.find('.' + textMarkId).first();
 
   // target icon might not be on pad yet. Eg.: when pasting text with comment,
   // the comment id will have the prefix 'fake-', so an element with the actual
@@ -102,7 +104,10 @@ textMarkIconsPosition.prototype._getFirstVisibleLineOfSMSet = function($smLineNo
 }
 
 textMarkIconsPosition.prototype._getFirstVisibleLineWithTextMark = function(textMarkId) {
-  var $linesWithTextMark = utils.getPadInner().find('div').has('.' + textMarkId);
+  var $lines = utils.getPadInner().find('div');
+  var $linesWithTextMark = $lines.find('.' + textMarkId).map(function(){
+    return $(this).closest('div')[0];
+  });
   return this.getFirstVisibleLineOfSet($linesWithTextMark);
 }
 
