@@ -184,7 +184,7 @@ describe('ep_comments_page - Comment copy and paste', function() {
     });
   });
 
-  context('when user copies and pastes a formatted text with comment and reply', function() {
+  context('when user copies and pastes a formatted text with comment and reply - integration with ep_script_copy_cut_paste', function() {
     before(function() {
       var $firstLine = utils.getLine(0);
       helper.selectLines($firstLine, $firstLine); //'something'

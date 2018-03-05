@@ -532,3 +532,7 @@ exports.collectContentPre = function(hook, context){
   shared.collectContentPre(hook, context);
   preTextMarker.processCollectContentPre(context);
 }
+
+exports.acePaste = function(hook, context){
+  copyPasteEvents.handlePaste(context.e);
+}
