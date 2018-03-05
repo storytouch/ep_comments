@@ -155,45 +155,12 @@ ep_comments_page_test_helper.utils = {
     return style.getPropertyValue('background-color');
   },
 
-  // store data into a simple object, indexed by format
-  _createMockedClipboard: function() {
-    return {
-      data: {},
-      setData: function(format, value) {
-        this.data[format] = value;
-      },
-      getData: function(format) {
-        return this.data[format];
-      }
-    };
-  },
-
+  // use ep_copy... to handle copy/cut/paste events
   copySelection: function() {
-    this.clipboardData = this.clipboardData || this._createMockedClipboard();
-    this._triggerEvent('copy');
+    ep_script_copy_cut_paste_test_helper.utils.copy();
   },
-
   pasteOnLine: function(line, done) {
-    var event = this._triggerEvent('paste');
-
-    // as we can't trigger the paste on browser(chrome) natively using execCommand, we firstly trigger
-    // the event and then insert the html.
-    this.placeCaretOnLine(line, function() {
-      var copiedHTML = event.originalEvent.clipboardData.getData('text/html');
-      helper.padInner$.document.execCommand('insertHTML', false, copiedHTML);
-      done();
-    });
-  },
-
-  _triggerEvent: function(eventName) {
-    var event = jQuery.Event(eventName);
-    event.originalEvent = { clipboardData: this.clipboardData };
-
-    // Hack: we need to use the same jQuery instance that is registering the main window,
-    // so we use 'chrome$(inner$('div')[0])' instead of simply 'inner$('div)'
-    helper.padChrome$(helper.padInner$('div')[0]).trigger(event);
-
-    return event;
+    ep_script_copy_cut_paste_test_helper.utils.pasteAtTheEndOfLine(line, done);
   },
 
   // from https://stackoverflow.com/a/22480938/7884942

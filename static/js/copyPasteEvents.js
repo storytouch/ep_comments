@@ -2,21 +2,10 @@ var _ = require('ep_etherpad-lite/static/js/underscore');
 var utils = require('./utils');
 var copyPasteHelper = require('./copyPasteHelper');
 var fakeIdsMapper = require('./copyPasteFakeIdsMapper');
-var htmlExtractor = require('./htmlExtractorFromSelection');
-
-var addTextAndDataOfAllHelpersToClipboardAndDeleteSelectedContent = function(e) {
-  var defaultCutWasPrevented = addTextAndDataOfAllHelpersToClipboard(e);
-
-  // we only remove the selection if the cut default behavior was overrode. Doing it we avoid
-  // losing the text cut on the clipboard
-  if (defaultCutWasPrevented) {
-    utils.getPadInner().get(0).execCommand('delete');
-  }
-}
 
 var addTextAndDataOfAllHelpersToClipboard = function(e) {
-  var $copiedHtml = htmlExtractor.getHtmlOfSelectedContent();
   var clipboardData = e.originalEvent.clipboardData;
+  var $copiedHtml = $(clipboardData.getData('text/html') || '<span/>');
 
   var helpersHaveItemsOnSelection = _(pad.plugins.ep_comments_page.copyPasteHelpers).map(function(helper) {
     return helper.addTextAndDataToClipboard(clipboardData, $copiedHtml);
@@ -47,15 +36,13 @@ exports.init = function() {
   pad.plugins.ep_comments_page = pad.plugins.ep_comments_page || {};
   pad.plugins.ep_comments_page.copyPasteHelpers = pad.plugins.ep_comments_page.copyPasteHelpers || [];
   pad.plugins.ep_comments_page.fakeIdsMapper = fakeIdsMapper.init();
-
-  // Override  copy, cut, paste events on Google chrome and Mozilla Firefox.
-  if(browser.chrome || browser.firefox) {
-    utils.getPadInner().
-    on('copy' , addTextAndDataOfAllHelpersToClipboard).
-    on('cut'  , addTextAndDataOfAllHelpersToClipboardAndDeleteSelectedContent).
-    on('paste', saveItemsAndSubItemsOfAllHelpers);
-  }
 }
+
+// Enable ep_copy_cut_paste to call our handlers for copy, cut & paste events
+exports.handlePaste = saveItemsAndSubItemsOfAllHelpers;
+// As we don't need to remove the text from the pad anymore (ep_copy_cut_paste
+// will handle that), we can simply have a single handler for copy & cut events
+exports.handleCopy = addTextAndDataOfAllHelpersToClipboard;
 
 exports.listenToCopyCutPasteEventsOfItems = function(configs) {
   var helper = copyPasteHelper.init(configs);
