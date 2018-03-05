@@ -5,6 +5,7 @@ describe('ep_comments_page - Comment icons', function() {
   var FIRST_COMMENT_LINE = 0;
   var SECOND_COMMENT_LINE = 1;
   var MULTILINE_COMMENT = [2, 5];
+  var COMMENT_LINE_OF_OTHER_USER = 10;
   var firstCommentId, secondCommentId, multLineCommentId;
 
   var createScript = function(test, cb) {
@@ -309,6 +310,30 @@ describe('ep_comments_page - Comment icons', function() {
           return $commentIcon.offset().top === expectedTop;
         }, 4000).done(done);
       });
+    });
+  });
+
+  context('when another user creates a comment o pad', function() {
+    var originalIconCount;
+    before(function(done) {
+      this.timeout(60000);
+      var multipleUsers = ep_script_copy_cut_paste_test_helper.multipleUsers;
+
+      originalIconCount = helper.padOuter$('.comment-icon').length;
+
+      multipleUsers.openSamePadOnWithAnotherUser(function() {
+        multipleUsers.performAsOtherUser(function(cb) {
+          utils.addCommentToLine(COMMENT_LINE_OF_OTHER_USER, 'Comment of other user', cb);
+        }, done);
+      });
+    });
+
+    it('creates a comment icon for both users', function(done) {
+      helper.waitFor(function() {
+        var $commentIcons = helper.padOuter$('.comment-icon');
+        var allIconsWereCreated = $commentIcons.length === originalIconCount + 1;
+        return allIconsWereCreated;
+      }, 2000).done(done);
     });
   });
 });

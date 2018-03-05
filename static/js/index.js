@@ -179,36 +179,24 @@ ep_comments.prototype.handleReplyDeletion = function(replyId, commentId) {
 
 // This function is useful to collect new comments on the collaborators
 ep_comments.prototype.collectCommentsAfterSomeIntervalsOfTime = function() {
-  var self = this;
-  window.setTimeout(function() {
-    self.collectComments();
+  this.tryToCollectCommentsAndRetryIfNeeded(300);
+}
+ep_comments.prototype.tryToCollectCommentsAndRetryIfNeeded = function(timeToWait) {
+  // cancel, if timeToWait is too long. If data didn't change at this point, waiting
+  // longer won't fix the issue
+  if (timeToWait < 10000) {
+    var self = this;
+    window.setTimeout(function() {
+      self.collectComments();
 
-    var count_comments=0;
-    for(var key in self.comments)  {count_comments++;}
-    var padComment  = utils.getPadInner().find(COMMENT_CLASS);
-    if( count_comments > padComment.length ) {
-       window.setTimeout(function() {
-          self.collectComments();
-          var count_comments=0;
-          for(var key in self.comments)  {count_comments++;}
-          var padComment  = utils.getPadInner().find(COMMENT_CLASS);
-          if( count_comments > padComment.length ) {
-             window.setTimeout(function() {
-                self.collectComments();
-                var count_comments=0;
-                for(var key in self.comments)  {count_comments++;}
-                var padComment  = utils.getPadInner().find(COMMENT_CLASS);
-                if( count_comments > padComment.length ) {
-                   window.setTimeout(function() {
-                      self.collectComments();
-
-                    }, 9000);
-                }
-              }, 3000);
-          }
-        }, 1000);
-    }
-  }, 300);
+      var commentsOnDatabase = Object.keys(self.commentDataManager.getComments());
+      var commentIcons = utils.getPadOuter().find('.comment-icon:visible');
+      if (commentsOnDatabase.length > commentIcons.length) {
+        // try again, but wait a little longer
+        self.tryToCollectCommentsAndRetryIfNeeded(3 * timeToWait);
+      }
+    }, timeToWait);
+  }
 }
 
 // Collect Comments that are still on text
