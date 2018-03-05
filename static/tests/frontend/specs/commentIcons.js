@@ -315,6 +315,8 @@ describe('ep_comments_page - Comment icons', function() {
 
   context('when another user creates a comment o pad', function() {
     var originalIconCount;
+    var COMMENT_TEXT = 'Comment of other user';
+
     before(function(done) {
       this.timeout(60000);
       var multipleUsers = ep_script_copy_cut_paste_test_helper.multipleUsers;
@@ -323,7 +325,7 @@ describe('ep_comments_page - Comment icons', function() {
 
       multipleUsers.openSamePadOnWithAnotherUser(function() {
         multipleUsers.performAsOtherUser(function(cb) {
-          utils.addCommentToLine(COMMENT_LINE_OF_OTHER_USER, 'Comment of other user', cb);
+          utils.addCommentToLine(COMMENT_LINE_OF_OTHER_USER, COMMENT_TEXT, cb);
         }, done);
       });
     });
@@ -334,6 +336,15 @@ describe('ep_comments_page - Comment icons', function() {
         var allIconsWereCreated = $commentIcons.length === originalIconCount + 1;
         return allIconsWereCreated;
       }, 2000).done(done);
+    });
+
+    it('sends the data of created comment', function(done) {
+      var comments = apiUtils.getLastDataSent();
+
+      expect(comments.length).to.be(originalIconCount + 1);
+      expect(comments[comments.length - 1].text).to.be(COMMENT_TEXT);
+
+      done();
     });
   });
 });
