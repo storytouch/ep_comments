@@ -313,7 +313,7 @@ describe('ep_comments_page - Comment icons', function() {
     });
   });
 
-  context('when another user creates a comment o pad', function() {
+  context('when another user creates a comment on pad', function() {
     var originalIconCount;
     var COMMENT_TEXT = 'Comment of other user';
 
