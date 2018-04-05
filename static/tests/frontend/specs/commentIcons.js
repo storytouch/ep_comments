@@ -49,6 +49,36 @@ describe('ep_comments_page - Comment icons', function() {
     });
   }
 
+  var checkIfHasCreatedTwoMoreLinesOnUserBrowser = function(originalNumberOfLines, cb) {
+    helper.waitFor(function(){
+      var numberOfLines = helper.padInner$('div').length;
+      return numberOfLines === originalNumberOfLines + 2;
+    }).done(cb);
+  }
+
+  var createTwoLinesOnTopOfScriptOnOtherUserBrowser = function(done) {
+    var multipleUsers = ep_script_copy_cut_paste_test_helper.multipleUsers;
+    multipleUsers.openSamePadOnWithAnotherUser(function() {
+      multipleUsers.performAsOtherUser(function(cb) {
+        createTwoLinesOnTopOfScript(cb);
+      }, done);
+    });
+  }
+
+  var createTwoLinesOnTopOfScript = function(done) {
+    var originalNumberOfLines = helper.padInner$('div').length;
+
+    // we need to run sendKeys in the same jQuery instance of the browser
+    var $firstTextElement = helper.padChrome$(helper.padInner$('div').first());
+    $firstTextElement.sendkeys('{selectall}{leftarrow}new line{enter}new line{enter}');
+
+    // wait until the new lines are split into separated .ace-line's
+    helper.waitFor(function() {
+      var currentNumberOfLines = helper.padInner$('div').length;
+      return currentNumberOfLines === originalNumberOfLines + 2;
+    }).done(done);
+  }
+
   function testIfSendCommentIdOnAPI (commentId) {
     it('sends the comment id on the API', function(done) {
       var activatedComment = apiUtils.getLastActivatedComment();
@@ -347,4 +377,26 @@ describe('ep_comments_page - Comment icons', function() {
       done();
     });
   });
+
+  context('when another user updates a line with comment', function() {
+    var originalNumberOfLines;
+    before(function (done) {
+      this.timeout(60000);
+      originalNumberOfLines = helper.padInner$('div').length;
+      createTwoLinesOnTopOfScriptOnOtherUserBrowser(function(){
+        // we need to wait for both users have the same amount of lines
+        checkIfHasCreatedTwoMoreLinesOnUserBrowser(originalNumberOfLines, done);
+      });
+    });
+
+    it('updates the comment icon position', function(done){
+      helper.waitFor(function(){
+        var $commentIcon = helper.padOuter$('#commentIcons #icon-' + firstCommentId);
+        var $commentedText = helper.padInner$('.' + firstCommentId);
+        var expectedTop = $commentedText.offset().top + 2; // all icons are +2px down to adjust position
+
+        return $commentIcon.offset().top === expectedTop;
+      }).done(done)
+    });
+  })
 });

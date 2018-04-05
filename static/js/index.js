@@ -16,6 +16,7 @@ var utils = require('./utils');
 var commentSaveOrDelete = require('./commentSaveOrDelete');
 var textMarkIconsPosition = require('./textMarkIconsPosition');
 var scheduler = require('./scheduler');
+var detailedLinesChangedListener = require('ep_script_scene_marks/static/js/detailedLinesChangedListener');
 
 var cssFiles = [
   '//fonts.googleapis.com/css?family=Roboto:300,400', // light, regular
@@ -50,6 +51,7 @@ function ep_comments(context){
   api.init();
   copyPasteEvents.init();
   this.commentDataManager = commentDataManager.init(this.socket);
+  this.lineOfChange = undefined;
   this.textMarkIconsPosition = textMarkIconsPosition.init({
     hideIcons: commentIcons.hideIcons,
     textMarkClass: COMMENT_CLASS,
@@ -60,7 +62,9 @@ function ep_comments(context){
   // to avoid lagging while user is typing, we set a scheduler to postpone
   // calling callback until edition had stopped
   this.updateIconsPositionSchedule = scheduler.setCallbackWhenUserStopsChangingPad(
-    this.textMarkIconsPosition.updateIconsPosition.bind(this.textMarkIconsPosition), TIME_TO_UPDATE_ICON_POSITION);
+    this._updateIconsPositionAffectedByTheLineChange.bind(this),
+    TIME_TO_UPDATE_ICON_POSITION
+  );
   this.init();
 }
 
@@ -171,7 +175,26 @@ ep_comments.prototype.init = function(){
     saveItemsData: this.saveCommentWithoutSelection.bind(this),
     saveSubItemsData: this.saveRepliesWithoutSelection.bind(this),
   });
+
+  detailedLinesChangedListener.onLinesAddedOrRemoved(function(linesChanged) {
+    self._updateMinLineChanged(linesChanged.linesNumberOfChangedNodes);
+    self.updateIconsPositionSchedule.padChanged();
+  }, true, this._getRep());
+
 };
+
+ep_comments.prototype._getRep = function() {
+  var rep;
+  this.ace.callWithAce(function(ace) {
+    rep = ace.ace_getRep();
+  });
+  return rep;
+}
+
+ep_comments.prototype._updateMinLineChanged = function(linesChangedOnThisBatch) {
+  var topLineChangedOnThisBatch = _.min(linesChangedOnThisBatch);
+  this.lineOfChange = _.min([topLineChangedOnThisBatch, this.lineOfChange]);
+}
 
 ep_comments.prototype.handleReplyDeletion = function(replyId, commentId) {
   commentSaveOrDelete.deleteReply(replyId, commentId, this.ace);
@@ -203,7 +226,7 @@ ep_comments.prototype.tryToCollectCommentsAndRetryIfNeeded = function(timeToWait
 ep_comments.prototype.collectComments = function(callback) {
   this.commentDataManager.updateListOfCommentsStillOnText();
   commentIcons.addIcons(this.commentDataManager.getComments());
-  this.textMarkIconsPosition.updateIconsPosition();
+  this.updateAllIconsPosition();
 
   if(callback) callback();
 };
@@ -211,7 +234,11 @@ ep_comments.prototype.collectComments = function(callback) {
 // Make the adjustments after editor is resized (due to a window resize or
 // enabling/disabling Page View)
 ep_comments.prototype.editorResized = function() {
-  this.textMarkIconsPosition.updateIconsPosition();
+  this.updateAllIconsPosition();
+}
+
+ep_comments.prototype.updateAllIconsPosition = function() {
+  this.textMarkIconsPosition.updateIconsPosition(true);
 }
 
 ep_comments.prototype.getCommentData = function (){
@@ -352,6 +379,11 @@ ep_comments.prototype.commentRepliesListen = function(){
   });
 };
 
+ep_comments.prototype._updateIconsPositionAffectedByTheLineChange = function() {
+  this.textMarkIconsPosition.updateIconsPosition(false, this.lineOfChange);
+  this.lineOfChange = undefined; // reset value
+}
+
 /************************************************************************/
 /*                           Etherpad Hooks                             */
 /************************************************************************/
@@ -372,10 +404,6 @@ var hooks = {
 
     // first check if some text is being marked/unmarked to add comment to it
     preTextMarker.processAceEditEvent(context);
-
-    if(context.callstack.docTextChanged) {
-      pad.plugins.ep_comments_page.commentHandler.updateIconsPositionSchedule.padChanged();
-    }
 
     var commentWasPasted = ((((pad || {}).plugins || {}).ep_comments_page || {}).commentHandler || {}).shouldCollectComment;
     var domClean = context.callstack.domClean;

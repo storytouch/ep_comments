@@ -248,10 +248,18 @@ var addIcon = function(commentId) {
 }
 
 // Hide comment icons from container
-var hideIcons = function() {
-  utils.getPadOuter().find('#commentIcons').children().children().each(function(){
-    $(this).hide();
-  });
+var hideIcons = function(hideAllIcons) {
+  var $commentIcons = utils.getPadOuter().find('#commentIcons').children().children();
+  if (!hideAllIcons) {
+    $commentIcons = $commentIcons.filter(_iconNoExistOnText); // get icons are not present on text
+  }
+  $commentIcons.hide();
+}
+
+var _iconNoExistOnText = function() {
+  var commentId = $(this).data('commentid');
+  var commentExistsOnText = utils.getPadInner().find('.' + commentId).length;
+  return !commentExistsOnText;
 }
 
 // Adjust position of the comment icon on the container, to be on the same
