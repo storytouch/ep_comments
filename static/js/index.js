@@ -36,8 +36,10 @@ var cssFiles = [
 
 var UPDATE_COMMENT_LINE_POSITION_EVENT = 'updateCommentLinePosition';
 var COMMENT_CLASS = '.comment';
-var COMMENT_CLASS_PREFIX = 'c-';
 var TIME_TO_UPDATE_ICON_POSITION = 1000;
+var COMMENT_PREFIX_KEY = 'comment-c-';
+var REPLY_PREFIX_KEY = 'comment-reply-';
+
 /************************************************************************/
 /*                         ep_comments Plugin                           */
 /************************************************************************/
@@ -55,7 +57,7 @@ function ep_comments(context){
   this.textMarkIconsPosition = textMarkIconsPosition.init({
     hideIcons: commentIcons.hideIcons,
     textMarkClass: COMMENT_CLASS,
-    textkMarkPrefix: COMMENT_CLASS_PREFIX,
+    textkMarkPrefix: shared.COMMENT_PREFIX,
     adjustTopOf: commentIcons.adjustTopOf,
   });
 
@@ -417,10 +419,10 @@ var hooks = {
 
   // Insert comments classes
   aceAttribsToClasses: function(hook, context){
-    if(context.key === 'comment' && context.value !== "comment-deleted") {
+    if(context.key.startsWith(COMMENT_PREFIX_KEY) && context.value !== "comment-deleted") {
       return ['comment', context.value];
     }
-    else if(context.key.startsWith('comment-reply-')) {
+    else if(context.key.startsWith(REPLY_PREFIX_KEY)) {
       return ['comment-reply', context.value];
     }
     return preTextMarker.processAceAttribsToClasses(context);

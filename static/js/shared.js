@@ -2,6 +2,8 @@ var _ = require('ep_etherpad-lite/static/js/underscore');
 var randomString = require('ep_etherpad-lite/static/js/pad_utils').randomString;
 
 var COMMENT_PREFIX = 'c-';
+exports.COMMENT_PREFIX = COMMENT_PREFIX;
+
 var REPLY_PREFIX = 'cr-';
 
 exports.FAKE_ID_PREFIX = 'fake-';
@@ -11,11 +13,10 @@ exports.collectContentPre = function(hook, context){
   collectAttribFrom(context, REPLY_PREFIX, 'comment-reply-');
 
   var commentIds = getIdsFrom(context.cls, COMMENT_PREFIX);
-  if (commentIds.length > 0) {
-    // FIXME allow more than one comment on each segment
-    // there can be only one comment on each text segment
-    context.cc.doAttrib(context.state, 'comment::' + commentIds[0]);
-  }
+  _.each(commentIds, function(commentId) {
+    var commentValue = 'comment-' + commentId; // e.g. comment-c-123
+    context.cc.doAttrib(context.state, commentValue + '::' + commentId);
+  });
 };
 
 exports.getIdsFrom = function(str, classPrefix) {

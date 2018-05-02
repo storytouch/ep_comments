@@ -4,6 +4,7 @@ var _ = require('ep_etherpad-lite/static/js/underscore');
 var linesChangedListener = require('./linesChangedListener');
 var api = require('./api');
 var utils = require('./utils');
+var shared = require('./shared');
 
 var commentDataManager = function(socket) {
   this.socket = socket;
@@ -166,65 +167,84 @@ commentDataManager.prototype.triggerDataChanged = function() {
 commentDataManager.prototype.updateListOfCommentsStillOnText = function() {
   // TODO can we store the data that we're processing here, so we don't need to redo
   // the processing for the data we had already built?
+  // I guess we should run this method only on the lines changed
 
-  var self = this;
-  var commentIdRegex = /(?:^| )(c-[A-Za-z0-9]*)/;
-  var replyIdRegex = /(?:^| )(cr-[A-Za-z0-9]*)/;
-
-  var $commentsOnText = utils.getPadInner().find('.comment');
   var $scenes = utils.getPadInner().find('div.withHeading');
+
+  var commentsToSend = _(this._getListOfCommentsOrdered()).map(function(commentInfo) {
+    var commentId = commentInfo.commentId;
+    var nodeWithComment = commentInfo.nodeWithComment;
+
+    // create a copy of each comment, so we can change it without messing up
+    // with self.comments
+    var commentData = Object.assign({}, this.comments[commentId]);
+
+    commentData.scene = this._getSceneNumber($scenes, nodeWithComment);
+    commentData.replies = this._getRepliesStillOnTextSortedByDate(commentData, nodeWithComment);
+
+    return commentData;
+  }, this);
+
+  api.triggerDataChanged(commentsToSend);
+}
+
+commentDataManager.prototype._getListOfCommentsOrdered = function() {
+  var $commentsOnText = utils.getPadInner().find('.comment');
 
   // get the order of comments to send on API + grab data from script to be used
   // to fill comment & reply data later
   var orderedComments = $commentsOnText.map(function() {
-    var classCommentId = commentIdRegex.exec($(this).attr('class'));
-    var commentId      = classCommentId && classCommentId[1];
+    var nodeWithComment = this;
+    var nodeWithCommentClass = $(nodeWithComment).attr('class');
+    var commentIds = shared.getCommentIdsFrom(nodeWithCommentClass);
 
-    // ignore comments without a valid id -- maybe comment was deleted?
-    return commentId && {
-      commentId: commentId,
-      element: this,
-    };
+    var commentIdsData = _(commentIds).map(function(commentId){
+      return {
+        commentId: commentId,
+        nodeWithComment: nodeWithComment,
+      }
+    });
+
+    return commentIdsData;
   });
 
   // remove null and duplicate ids (this happens when comment is split
   // into 2 parts -- by an overlapping comment, for example)
   orderedComments = _(orderedComments)
     .chain()
+    .flatten()
     .compact()
     .unique('commentId')
     .value();
 
-  var commentsToSend = _(orderedComments).map(function(commentInfo) {
-    // create a copy of each comment, so we can change it without messing up
-    // with self.comments
-    var commentData = Object.assign({}, self.comments[commentInfo.commentId]);
+  return orderedComments;
+}
 
-    // fill scene number
-    var $lineWithComment = $(commentInfo.element).closest('div');
-    var $headingOfSceneWhereCommentIs = utils.getHeadingOfDomLine($lineWithComment);
-    var sceneNumberOfComment = 1 + $scenes.index($headingOfSceneWhereCommentIs);
-    commentData.scene = sceneNumberOfComment;
+commentDataManager.prototype._getSceneNumber = function ($scenes, nodeWithComment) {
+  // fill scene number
+  var $lineWithComment = $(nodeWithComment).closest('div');
+  var $headingOfSceneWhereCommentIs = utils.getHeadingOfDomLine($lineWithComment);
+  var sceneNumberOfComment = 1 + $scenes.index($headingOfSceneWhereCommentIs);
+  return sceneNumberOfComment;
+}
 
-    // remove replies that are not on text anymore
-    var commentReplyIds = _(commentInfo.element.classList).filter(function(className) {
-      var isAReplyId = replyIdRegex.test(className);
-      // there might be another comment (with reply) on the same DOM element of this comment
-      var isAReplyIdOfThisComment = isAReplyId && commentData.replies[className];
-      return isAReplyIdOfThisComment;
-    });
+commentDataManager.prototype._getRepliesStillOnTextSortedByDate = function (commentData, nodeWithComment) {
+  // remove replies that are not on text anymore
+  var commentReplyIds = _(nodeWithComment.classList).filter(function(className) {
+    var isAReplyId = shared.getReplyIdsFrom(className).length;
 
-    // sort replies by date. Note: this needs to be done because DELETE/UNDO messes
-    // up with the order of the replies on text class
-    var sortedReplyIds = _(commentReplyIds).sortBy(function(replyId) {
-      return commentData.replies[replyId].timestamp;
-    });
-    commentData.replies = _(commentData.replies).pick(sortedReplyIds);
-
-    return commentData;
+    // there might be another comment (with reply) on the same DOM nodeWithComment of this comment
+    var isAReplyIdOfThisComment = isAReplyId && commentData.replies[className];
+    return isAReplyIdOfThisComment;
   });
 
-  api.triggerDataChanged(commentsToSend);
+  // sort replies by date. Note: this needs to be done because DELETE/UNDO messes
+  // up with the order of the replies on text class
+  var sortedReplyIds = _(commentReplyIds).sortBy(function(replyId) {
+    return commentData.replies[replyId].timestamp;
+  });
+
+  return _(commentData.replies).pick(sortedReplyIds);
 }
 
 exports.init = function(socket) {

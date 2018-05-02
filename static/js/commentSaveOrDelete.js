@@ -2,7 +2,7 @@ var _ = require('ep_etherpad-lite/static/js/underscore');
 var utils = require('./utils');
 
 exports.saveCommentOnPreMarkedText = function(commentId, preMarkedTextRepArr, ace) {
-  var attributeName = 'comment';
+  var attributeName = 'comment-' + commentId; //e.g. comment-c-123
   var attributeValue = commentId;
 
   ace.callWithAce(function(aceTop) {
@@ -22,7 +22,7 @@ exports.deleteCommentAndItsReplies = function(commentId, replyIdsOfComment, ace)
 
 var _deleteCommentOnCurrentAceEvent = function(commentId, ace) {
   var selector = '.' + commentId;
-  var attributeName = 'comment';
+  var attributeName = 'comment-' + commentId; //e.g. comment-c-123
   // Note that this is the correct way of doing it, instead of there being
   // a commentId we now flag it as "comment-deleted"
   var attributeValue = 'comment-deleted';

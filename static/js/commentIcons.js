@@ -9,17 +9,17 @@ var linesChangedListener = require('./linesChangedListener');
 
 var getOrCreateIconsContainerAt = function(top) {
   var iconContainer = utils.getPadOuter().find('#commentIcons');
-  var iconClass = "icon-at-"+top;
+  var iconClass = "icon-at-" + top;
 
   // is this the 1st comment on that line?
-  var iconsAtLine = iconContainer.find("."+iconClass);
+  var iconsAtLine = iconContainer.find("." + iconClass);
   var isFirstIconAtLine = iconsAtLine.length === 0;
 
   // create container for icons at target line, if it does not exist yet
   if (isFirstIconAtLine) {
-    iconContainer.append('<div class="comment-icon-line '+iconClass+'"></div>');
-    iconsAtLine = iconContainer.find("."+iconClass);
-    iconsAtLine.css("top", top+"px");
+    iconContainer.append('<div class="comment-icon-line ' + iconClass + '"></div>');
+    iconsAtLine = iconContainer.find("." + iconClass);
+    iconsAtLine.css("top", top + "px");
   }
 
   return iconsAtLine;
