@@ -14,9 +14,7 @@ var copyPasteEvents = require('./copyPasteEvents');
 var api = require('./api');
 var utils = require('./utils');
 var commentSaveOrDelete = require('./commentSaveOrDelete');
-var textMarkIconsPosition = require('./textMarkIconsPosition');
-var scheduler = require('./scheduler');
-var detailedLinesChangedListener = require('ep_script_scene_marks/static/js/detailedLinesChangedListener');
+var sceneMarkVisibility = require('ep_script_scene_marks/static/js/sceneMarkVisibility');
 
 var cssFiles = [
   '//fonts.googleapis.com/css?family=Roboto:300,400', // light, regular
@@ -34,9 +32,6 @@ var cssFiles = [
   'ep_comments_page/static/css/jquery-ui-custom-dark.css',
 ];
 
-var UPDATE_COMMENT_LINE_POSITION_EVENT = 'updateCommentLinePosition';
-var COMMENT_CLASS = '.comment';
-var TIME_TO_UPDATE_ICON_POSITION = 1000;
 var COMMENT_PREFIX_KEY = 'comment-c-';
 var REPLY_PREFIX_KEY = 'comment-reply-';
 
@@ -53,29 +48,16 @@ function ep_comments(context){
   api.init();
   copyPasteEvents.init();
   this.commentDataManager = commentDataManager.init(this.socket);
-  this.lineOfChange = undefined;
-  this.textMarkIconsPosition = textMarkIconsPosition.init({
-    hideIcons: commentIcons.hideIcons,
-    textMarkClass: COMMENT_CLASS,
-    textkMarkPrefix: shared.COMMENT_PREFIX,
-    adjustTopOf: commentIcons.adjustTopOf,
-  });
-
-  // to avoid lagging while user is typing, we set a scheduler to postpone
-  // calling callback until edition had stopped
-  this.updateIconsPositionSchedule = scheduler.setCallbackWhenUserStopsChangingPad(
-    this._updateIconsPositionAffectedByTheLineChange.bind(this),
-    TIME_TO_UPDATE_ICON_POSITION
-  );
+  this.commentIcons = commentIcons.init(this.ace);
   this.init();
 }
 
 // Init Etherpad plugin comment pads
 ep_comments.prototype.init = function(){
+  var ace = this.ace;
   var self = this;
 
-  newComment.createNewCommentForm(this.ace);
-  commentIcons.insertContainer(this.ace);
+  newComment.createNewCommentForm(ace);
 
   // Get initial set of comments and replies
   this.commentDataManager.refreshAllCommentData(function(comments) {
@@ -96,17 +78,6 @@ ep_comments.prototype.init = function(){
   });
   this.socket.on('pushAddCommentReply', function (replyId, reply) {
     self.commentDataManager.addReply(replyId, reply);
-  });
-
-  // When screen size changes (user changes device orientation, for example),
-  // we need to make sure all sidebar comments are on the correct place
-  utils.waitForResizeToFinishThenCall(200, function() {
-    self.editorResized();
-  });
-
-  // Allow recalculating the comments position by event
-  utils.getPadInner().on(UPDATE_COMMENT_LINE_POSITION_EVENT, function(e) {
-    self.editorResized();
   });
 
   // listen to events called by other plugins
@@ -161,7 +132,7 @@ ep_comments.prototype.init = function(){
   copyPasteEvents.listenToCopyCutPasteEventsOfItems({
     itemType: 'comment',
     subItemType: 'reply',
-    itemSelectorOnPad: COMMENT_CLASS,
+    itemSelectorOnPad: utils.COMMENT_CLASS,
     subItemSelectorOnPad: '.comment-reply',
     getItemsData: function() { return self.commentDataManager.getComments() },
     getSubItemsData: utils.getRepliesIndexedByReplyId,
@@ -177,26 +148,7 @@ ep_comments.prototype.init = function(){
     saveItemsData: this.saveCommentWithoutSelection.bind(this),
     saveSubItemsData: this.saveRepliesWithoutSelection.bind(this),
   });
-
-  detailedLinesChangedListener.onLinesAddedOrRemoved(function(linesChanged) {
-    self._updateMinLineChanged(linesChanged.linesNumberOfChangedNodes);
-    self.updateIconsPositionSchedule.padChanged();
-  }, true, this._getRep());
-
 };
-
-ep_comments.prototype._getRep = function() {
-  var rep;
-  this.ace.callWithAce(function(ace) {
-    rep = ace.ace_getRep();
-  });
-  return rep;
-}
-
-ep_comments.prototype._updateMinLineChanged = function(linesChangedOnThisBatch) {
-  var topLineChangedOnThisBatch = _.min(linesChangedOnThisBatch);
-  this.lineOfChange = _.min([topLineChangedOnThisBatch, this.lineOfChange]);
-}
 
 ep_comments.prototype.handleReplyDeletion = function(replyId, commentId) {
   commentSaveOrDelete.deleteReply(replyId, commentId, this.ace);
@@ -227,21 +179,11 @@ ep_comments.prototype.tryToCollectCommentsAndRetryIfNeeded = function(timeToWait
 // Collect Comments that are still on text
 ep_comments.prototype.collectComments = function(callback) {
   this.commentDataManager.updateListOfCommentsStillOnText();
-  commentIcons.addIcons(this.commentDataManager.getComments());
-  this.updateAllIconsPosition();
+  this.commentIcons.addIcons(this.commentDataManager.getComments());
+  this.commentIcons.updateAllIconsPosition();
 
   if(callback) callback();
 };
-
-// Make the adjustments after editor is resized (due to a window resize or
-// enabling/disabling Page View)
-ep_comments.prototype.editorResized = function() {
-  this.updateAllIconsPosition();
-}
-
-ep_comments.prototype.updateAllIconsPosition = function() {
-  this.textMarkIconsPosition.updateIconsPosition(true);
-}
 
 ep_comments.prototype.getCommentData = function (){
   var data = {};
@@ -380,11 +322,6 @@ ep_comments.prototype.commentRepliesListen = function(){
     self.commentDataManager.refreshAllReplyData();
   });
 };
-
-ep_comments.prototype._updateIconsPositionAffectedByTheLineChange = function() {
-  this.textMarkIconsPosition.updateIconsPosition(false, this.lineOfChange);
-  this.lineOfChange = undefined; // reset value
-}
 
 /************************************************************************/
 /*                           Etherpad Hooks                             */
@@ -541,9 +478,12 @@ function getRepFromDOMElement(span) {
 
 exports.aceInitialized = function(hook, context){
   var editorInfo = context.editorInfo;
+  var rep = context.rep;
+  var attributeManager = context.documentAttributeManager;
+
   editorInfo.ace_getRepFromSelector = _(getRepFromSelector).bind(context);
   editorInfo.ace_getRepFromDOMElement = _(getRepFromDOMElement).bind(context);
-  editorInfo.ace_showSMHiddenIfTextMarkIsOnIt = _(commentIcons.showSMHiddenIfTextMarkIsOnIt).bind(context);
+  editorInfo.ace_showSceneMarksAroundLine = _.partial(sceneMarkVisibility.showSceneMarksAroundLine, _, editorInfo, attributeManager);
 }
 
 exports.aceRegisterNonScrollableEditEvents = function(){

@@ -2,6 +2,7 @@ var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var smUtils = require('ep_script_scene_marks/static/js/utils');
 
 exports.OPEN_NEW_COMMENT_MODAL_EVENT = 'OPEN_NEW_COMMENT_MODAL_EVENT';
+exports.COMMENT_CLASS = '.comment';
 
 // Easier access to outer pad
 var padOuter;
