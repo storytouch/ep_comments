@@ -4,7 +4,7 @@ var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var utils = require('./utils');
 var shared = require('./shared');
 
-var FIRST_LINE_OF_SCRIPT = 0;
+var FIRST_LINE_OF_PAD = 0;
 /*
 Values of config:
   - hideIcons: function that hides the target icons
@@ -22,11 +22,15 @@ var textMarkIconsPosition = function(config) {
 // Set all text mark icons to be aligned with text where's applied
 // or when it is applied on a hidden line, it looks for a eligible
 // line to show it aside
-textMarkIconsPosition.prototype.updateIconsPosition = function(updateAllIconsPosition, lineOfChange) {
-  this.hideIcons(updateAllIconsPosition);
+textMarkIconsPosition.prototype.updateAllIconsPosition = function() {
+  this.updateIconsPosition(FIRST_LINE_OF_PAD);
+}
+textMarkIconsPosition.prototype.updateIconsPosition = function(lineOfChange) {
+  var updateAllIcons = lineOfChange === FIRST_LINE_OF_PAD;
+  this.hideIcons(updateAllIcons);
 
   var self = this;
-  var inlineTextMarks = this._getTextMarkIdAndItsPosition(updateAllIconsPosition, lineOfChange);
+  var inlineTextMarks = this._getTextMarkIdAndItsPosition(lineOfChange);
   $.each(inlineTextMarks, function() {
     if(this.textMarkId && this.textMarkIconPosition) {
       self.adjustTopOf(this.textMarkId, this.textMarkIconPosition);
@@ -34,19 +38,18 @@ textMarkIconsPosition.prototype.updateIconsPosition = function(updateAllIconsPos
   });
 }
 
-textMarkIconsPosition.prototype._getTextMarkIdAndItsPosition = function(updateAllIconsPosition, lineOfChange) {
-  var textMarksId = this._getUniqueTextMarksId(updateAllIconsPosition, lineOfChange);
+textMarkIconsPosition.prototype._getTextMarkIdAndItsPosition = function(lineOfChange) {
+  var textMarksId = this._getUniqueTextMarksId(lineOfChange);
   var textMarkIdAndItsPosition = _.map(textMarksId, function(textMarkId) {
     return { textMarkId: textMarkId, textMarkIconPosition: this._getTextMarkIconPosition(textMarkId) };
   }, this);
   return textMarkIdAndItsPosition;
  }
 
- textMarkIconsPosition.prototype._getUniqueTextMarksId = function(updateAllIconsPosition, lineOfChange) {
-  // targetLine is the line that's used as first one of the interval that we need
-  // to recalculate textMark icons' position
-  var targetLine = updateAllIconsPosition ? FIRST_LINE_OF_SCRIPT : lineOfChange;
-  var $lines = utils.getPadInner().find('div').eq(targetLine).nextAll().addBack();
+ // lineOfChange is the line that's used as first one of the interval that we need
+ // to recalculate textMark icons' position
+ textMarkIconsPosition.prototype._getUniqueTextMarksId = function(lineOfChange) {
+  var $lines = utils.getPadInner().find('div').eq(lineOfChange).nextAll().addBack();
   var inlineTextMarks = $lines.find(this.textMarkClass);
   return _(inlineTextMarks)
     .chain()

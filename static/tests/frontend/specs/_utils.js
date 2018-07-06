@@ -15,11 +15,20 @@ ep_comments_page_test_helper.utils = {
       self._enlargeScreen();
       self._chooseToShowComments();
 
+      // use a shorter timeout, so tests don't take too long to build icons
+      self.speedUpIconCreation();
+
       // wait for all helper libs to be loaded
       helper.waitFor(function() {
         return helper.padOuter$.window.scrollIntoView;
       }).done(done);
     }, this.padId);
+  },
+
+  speedUpIconCreation: function() {
+    var thisPlugin = helper.padChrome$.window.pad.plugins.ep_comments_page;
+    thisPlugin.commentHandler.lineChangeEventTriggerer.padChangedListener.timeout = 0;
+    thisPlugin.commentHandler.commentIcons.timeToUpdateIconPosition = 0;
   },
 
   createPad: function(test, done, scriptContent, lastLineText) {
