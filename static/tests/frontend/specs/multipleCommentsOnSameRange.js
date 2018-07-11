@@ -27,7 +27,7 @@ describe('ep_comments_page - allow add comments on a same range of text', functi
     },
 
     createTwoCommentsThatOverlaps: function (cb) {
-      utils.addCommentToLine(FIRST_COMMENT_LINE, FIRST_COMMENT_TEXT, function(){
+      utils.addCommentToLine(FIRST_COMMENT_LINE, FIRST_COMMENT_TEXT, function() {
         // give an extra time to create the second comment
         setTimeout(function() {
           utils.addCommentToLines([FIRST_COMMENT_LINE, SECOND_COMMENT_LINE], SECOND_COMMENT_TEXT, cb);
@@ -45,10 +45,10 @@ describe('ep_comments_page - allow add comments on a same range of text', functi
     });
   }
 
-  context('when user adds more than one comment on the same range', function(){
+  context('when user adds more than one comment on the same range', function() {
     before(function (done) {
       // we create a comment so we create a second one that wraps the first one
-      helpersOfCommentsOnSameRange.createTwoCommentsThatOverlaps(function(){
+      helpersOfCommentsOnSameRange.createTwoCommentsThatOverlaps(function() {
         helpersOfCommentsOnSameRange.getCommentIds();
         done();
       });
@@ -65,17 +65,18 @@ describe('ep_comments_page - allow add comments on a same range of text', functi
 
     it('sends the data of the comment created via API', function (done) {
       var comments = apiUtils.getLastDataSent();
+      var commentsText = comments.map(function(comment) { return comment.text });
       expect(comments.length).to.be(2);
-      expect(comments[0].text).to.be(SECOND_COMMENT_TEXT);
-      expect(comments[1].text).to.be(FIRST_COMMENT_TEXT);
+      expect(commentsText).to.contain(FIRST_COMMENT_TEXT);
+      expect(commentsText).to.contain(SECOND_COMMENT_TEXT);
       done();
     });
 
-    context('when user edits a text with a comment applied', function(){
+    context('when user edits a text with a comment applied', function() {
       before(function (done) {
         var $firstLine = utils.getLine(FIRST_COMMENT_LINE);
         $firstLine.sendkeys('{selectall}{rightarrow}{backspace}')
-        helper.waitFor(function(){
+        helper.waitFor(function() {
           var $firstLine = utils.getLine(FIRST_COMMENT_LINE);
           var firstLineText = $firstLine.text();
           return firstLineText === 'somethin'; // remove the last char of the 1st line

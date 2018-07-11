@@ -11,6 +11,7 @@ var preTextMarker = require('./preTextMarker');
 var commentDataManager = require('./commentDataManager');
 var commentL10n = require('./commentL10n');
 var copyPasteEvents = require('./copyPasteEvents');
+var lineChangeEventTriggerer = require('./lineChangeEventTriggerer');
 var api = require('./api');
 var utils = require('./utils');
 var commentSaveOrDelete = require('./commentSaveOrDelete');
@@ -47,6 +48,7 @@ function ep_comments(context){
 
   api.init();
   copyPasteEvents.init();
+  this.lineChangeEventTriggerer = lineChangeEventTriggerer.init(this.ace);
   this.commentDataManager = commentDataManager.init(this.socket);
   this.commentIcons = commentIcons.init(this.ace);
   this.init();
@@ -180,7 +182,6 @@ ep_comments.prototype.tryToCollectCommentsAndRetryIfNeeded = function(timeToWait
 ep_comments.prototype.collectComments = function(callback) {
   this.commentDataManager.updateListOfCommentsStillOnText();
   this.commentIcons.addIcons(this.commentDataManager.getComments());
-  this.commentIcons.updateAllIconsPosition();
 
   if(callback) callback();
 };

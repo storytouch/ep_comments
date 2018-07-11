@@ -1,7 +1,4 @@
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
-var _ = require('ep_etherpad-lite/static/js/underscore');
-
-var detailedLinesChangedListener = require('ep_script_scene_marks/static/js/detailedLinesChangedListener');
 
 var api                   = require('./api');
 var linesChangedListener  = require('./linesChangedListener');
@@ -9,30 +6,31 @@ var textHighlighter       = require('./textHighlighter');
 var textMarkIconsPosition = require('./textMarkIconsPosition');
 var shared                = require('./shared');
 var utils                 = require('./utils');
-var scheduler             = require('./scheduler');
 var textMarkSMVisibility  = require('./textMarkSMVisibility');
 
 var COMMENT_HIGHLIGHT_COLOR = '#FFFACD';
 var TIME_TO_UPDATE_ICON_POSITION = 1000;
-var UPDATE_COMMENT_LINE_POSITION_EVENT = 'updateCommentLinePosition';
 
-var commentIcons = function (ace) {
-  this.ace = ace;
+var commentIcons = function(ace) {
   this._insertContainer(); // create the container
+
+  // allow this time to be changed if we need to speed things up
+  this.timeToUpdateIconPosition = TIME_TO_UPDATE_ICON_POSITION;
+
   this.textHighlighter = textHighlighter.init('active_comment');
   this.textMarkSMVisibility = textMarkSMVisibility.init(ace);
-  this.lineOfChange = undefined;
   this.textMarkIconsPosition = textMarkIconsPosition.init({
     hideIcons: this.hideIcons.bind(this),
     textMarkClass: utils.COMMENT_CLASS,
     textkMarkPrefix: shared.COMMENT_PREFIX,
     adjustTopOf: this.adjustTopOf.bind(this),
   });
+
   this._addListenersToUpdateIconStyle();
   this._addListenersToCommentIcons();
   this._addListenersToDeactivateComment();
+  this._addListenersToUpdateIconsPositions();
   this._loadHelperLibs();
-  this._listenToDifferentScenariosWhereIconPositionMightChange();
   api.setHandleCommentActivation(this._handleCommentActivation.bind(this));
 }
 
@@ -67,55 +65,21 @@ commentIcons.prototype.addIcons = function(comments) {
   }
 
   this._updateCommentIconsStyle();
+  this._updateAllIconsPosition();
 }
 
-commentIcons.prototype._updateIconsPositionAffectedByTheLineChange = function() {
-  this.textMarkIconsPosition.updateIconsPosition(false, this.lineOfChange);
-  this.lineOfChange = undefined; // reset value
+commentIcons.prototype._updateAllIconsPosition = function () {
+  this.textMarkIconsPosition.updateAllIconsPosition();
 }
 
-commentIcons.prototype.updateAllIconsPosition = function() {
-  this.textMarkIconsPosition.updateIconsPosition(true);
-}
-
-commentIcons.prototype._listenToDifferentScenariosWhereIconPositionMightChange = function () {
+commentIcons.prototype._addListenersToUpdateIconsPositions = function () {
   var self = this;
-
-  // to avoid lagging while user is typing, we set a scheduler to postpone
-  // calling callback until edition had stopped
-  this.updateIconsPositionSchedule = scheduler.setCallbackWhenUserStopsChangingPad(
-    self._updateIconsPositionAffectedByTheLineChange.bind(self),
-    TIME_TO_UPDATE_ICON_POSITION
-  );
-
-  detailedLinesChangedListener.onLinesAddedOrRemoved(function(linesChanged) {
-    self._updateMinLineChanged(linesChanged.linesNumberOfChangedNodes);
-    self.updateIconsPositionSchedule.padChanged();
-  }, true, this._getRep());
-
-  // When screen size changes (user changes device orientation, for example),
-  // we need to make sure all sidebar comments are on the correct place
-  utils.waitForResizeToFinishThenCall(200, function() {
-    self.updateAllIconsPosition();
+  utils.getPadInner().on(utils.LINE_CHANGED_EVENT, function(e, data) {
+    var lineOfChange = data.lineNumber;
+    setTimeout(function() {
+      self.textMarkIconsPosition.updateIconsPosition(lineOfChange);
+    }, self.timeToUpdateIconPosition);
   });
-
-  // Allow recalculating the comments position by event
-  utils.getPadInner().on(UPDATE_COMMENT_LINE_POSITION_EVENT, function(e) {
-    self.updateAllIconsPosition();
-  });
-}
-
-commentIcons.prototype._getRep = function() {
-  var rep;
-  this.ace.callWithAce(function(ace) {
-    rep = ace.ace_getRep();
-  });
-  return rep;
-}
-
-commentIcons.prototype._updateMinLineChanged = function(linesChangedOnThisBatch) {
-  var topLineChangedOnThisBatch = _.min(linesChangedOnThisBatch);
-  this.lineOfChange = _.min([topLineChangedOnThisBatch, this.lineOfChange]);
 }
 
 // Create container to hold comment icons

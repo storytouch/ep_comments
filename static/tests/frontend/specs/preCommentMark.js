@@ -1,21 +1,18 @@
 describe('ep_comments_page - Pre-comment text mark', function() {
   var utils = ep_comments_page_test_helper.utils;
-  var firstLineText, secondLineText, markClass;
+  var firstLineText, secondLineText;
 
   before(function(done) {
     utils.createPad(this, function() {
       firstLineText = utils.getLine(0).text();
       secondLineText = utils.getLine(1).text();
-      markClass = helper.padChrome$.window.pad.preTextMarkers.comment.markAttribName;
       selectLineAndOpenCommentForm(0, done);
     });
   });
 
   it('marks selected text when New Comment form is opened', function(done) {
-    var inner$ = helper.padInner$;
-
     // verify if text was marked with pre-comment class
-    var $preCommentTextMarked = inner$('.' + markClass);
+    var $preCommentTextMarked = getPreCommentTextMarked();
     expect($preCommentTextMarked.length).to.be(1);
     expect($preCommentTextMarked.text()).to.be(firstLineText);
 
@@ -33,11 +30,9 @@ describe('ep_comments_page - Pre-comment text mark', function() {
     });
 
     it('unmarks text', function(done) {
-      var inner$ = helper.padInner$;
-
       // it takes some time for marks to be removed, so wait for it
       helper.waitFor(function() {
-        var $preCommentTextMarked = inner$('.' + markClass);
+        var $preCommentTextMarked = getPreCommentTextMarked();
         return $preCommentTextMarked.length === 0;
       }).done(done);
     });
@@ -66,10 +61,8 @@ describe('ep_comments_page - Pre-comment text mark', function() {
     });
 
     it('unmarks text', function(done) {
-      var inner$ = helper.padInner$;
-
       // verify if there is no text marked with pre-comment class
-      var $preCommentTextMarked = inner$('.' + markClass);
+      var $preCommentTextMarked = getPreCommentTextMarked();
       expect($preCommentTextMarked.length).to.be(0);
 
       done();
@@ -88,10 +81,8 @@ describe('ep_comments_page - Pre-comment text mark', function() {
     });
 
     it('keeps marked text', function(done) {
-      var inner$ = helper.padInner$;
-
       // verify if text was marked with pre-comment class
-      var $preCommentTextMarked = inner$('.' + markClass);
+      var $preCommentTextMarked = getPreCommentTextMarked();
       expect($preCommentTextMarked.length).to.be(1);
       expect($preCommentTextMarked.text()).to.be(firstLineText);
 
@@ -119,10 +110,8 @@ describe('ep_comments_page - Pre-comment text mark', function() {
     });
 
     it('keeps marked text', function(done) {
-      var inner$ = helper.padInner$;
-
       // verify if text is still marked with pre-comment class
-      var $preCommentTextMarked = inner$('.' + markClass);
+      var $preCommentTextMarked = getPreCommentTextMarked();
       expect($preCommentTextMarked.length).to.be(1);
       expect($preCommentTextMarked.text()).to.be(firstLineText + newText);
 
@@ -139,10 +128,8 @@ describe('ep_comments_page - Pre-comment text mark', function() {
     });
 
     it('changes the marked text', function(done) {
-      var inner$ = helper.padInner$;
-
       // verify if text was marked with pre-comment class
-      var $preCommentTextMarked = inner$('.' + markClass);
+      var $preCommentTextMarked = getPreCommentTextMarked();
       expect($preCommentTextMarked.length).to.be(1);
       expect($preCommentTextMarked.text()).to.be(secondLineText);
 
@@ -163,11 +150,9 @@ describe('ep_comments_page - Pre-comment text mark', function() {
     });
 
     it('does not have any marked text after pad is fully loaded', function(done) {
-      var inner$ = helper.padInner$;
-
       // it takes some time for marks to be removed, so wait for it
       helper.waitFor(function() {
-        var $preCommentTextMarked = inner$('.' + markClass);
+        var $preCommentTextMarked = getPreCommentTextMarked();
         return $preCommentTextMarked.length === 0;
       }).done(done);
     });
@@ -195,10 +180,8 @@ describe('ep_comments_page - Pre-comment text mark', function() {
     });
 
     it('keeps marked text', function(done) {
-      var inner$ = helper.padInner$;
-
       // verify if text was marked with pre-comment class
-      var $preCommentTextMarked = inner$('.' + markClass);
+      var $preCommentTextMarked = getPreCommentTextMarked();
       expect($preCommentTextMarked.length).to.be(1);
       expect($preCommentTextMarked.text()).to.be(firstLineText);
 
@@ -217,5 +200,10 @@ describe('ep_comments_page - Pre-comment text mark', function() {
       // make sure form is closed before we start
       utils.closeModal('#newComment', openCommentForm);
     }
+  }
+
+  var getPreCommentTextMarked = function() {
+    var markClass = helper.padChrome$.window.pad.preTextMarkers.comment.markAttribName;
+    return helper.padInner$('.' + markClass);
   }
 });
