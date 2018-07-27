@@ -27,7 +27,8 @@ commentDataManager.prototype.getComments = function() {
 }
 
 commentDataManager.prototype.getRepliesOfComment = function(commentId) {
-  return this.comments[commentId].replies;
+  var replies = this.comments[commentId] ? this.comments[commentId].replies : {};
+  return replies;
 }
 
 commentDataManager.prototype.addComments = function(comments) {
@@ -234,7 +235,7 @@ commentDataManager.prototype._getRepliesStillOnTextSortedByDate = function (comm
     var isAReplyId = shared.getReplyIdsFrom(className).length;
 
     // there might be another comment (with reply) on the same DOM nodeWithComment of this comment
-    var isAReplyIdOfThisComment = isAReplyId && commentData.replies[className];
+    var isAReplyIdOfThisComment = isAReplyId && commentData.replies && commentData.replies[className];
     return isAReplyIdOfThisComment;
   });
 

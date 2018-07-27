@@ -163,10 +163,9 @@ commentIcons.prototype._updateCommentIconsStyle = function() {
   var $commentsOnText = utils.getPadInner().find('.comment');
 
   $commentsOnText.each(function() {
-    var commentId = shared.getCommentIdsFrom($(this).attr('class'));
-
-    // ignore comments without a valid id -- maybe comment was deleted?
-    if (commentId) {
+    var commentIds = shared.getCommentIdsFrom($(this).attr('class'));
+    var $comment = $(this);
+    commentIds.forEach(function(commentId) {
       var replies = commentDataManager.getRepliesOfComment(commentId);
 
       // comment can have reply data, but the reply might have been
@@ -174,12 +173,12 @@ commentIcons.prototype._updateCommentIconsStyle = function() {
       var selectorOfAllReplyIds = _(replies).map(function(reply) {
         return '.' + reply.replyId;
       }).join(',');
-      var commentHasReplyOnText = $(this).is(selectorOfAllReplyIds);
+      var commentHasReplyOnText = $comment.is(selectorOfAllReplyIds);
 
       // change comment icon
       var $commentIcon = $iconsContainer.find('#icon-' + commentId);
       $commentIcon.toggleClass('withReply', commentHasReplyOnText);
-    }
+    })
   });
 }
 
