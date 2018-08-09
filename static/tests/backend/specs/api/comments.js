@@ -249,8 +249,93 @@ describe('create comment API broadcast', function(){
       });
     });
   });
-
 })
+
+describe('update comments API broadcast', function(){
+  var padID, commentIdToEdit, socket;
+  beforeEach(function(done){
+    createPad(function(err, newPadID) {
+      if (err) throw err;
+      padID = newPadID;
+      socket = io.connect(appUrl + "/comment");
+
+      createComment(padID, {}, function(err, commentId) {
+        if(err) throw err;
+        if(!commentId) throw new Error("Comment should had been created");
+        commentIdToEdit = commentId;
+        done();
+      });
+    });
+  });
+
+  it('updates the text of the comment', function(done){
+    var newText = 'comment updated!';
+    var data = {
+      padId: padID,
+      commentId: commentIdToEdit,
+      commentText: newText,
+    }
+
+    updateCommentAndGetListOfComments(data, socket, function(res){
+      validateCommentText(res, commentIdToEdit, newText);
+    }, done);
+  });
+
+  context('when comment text is empty', function(){
+    it('does not save the comment text', function (done) {
+      var originalCommentText = 'This is a comment';
+      var newText = '';
+      var data = {
+        padId: padID,
+        commentId: commentIdToEdit,
+        commentText: newText,
+      }
+
+      updateCommentAndGetListOfComments(data, socket, function(res){
+        validateCommentText(res, commentIdToEdit, originalCommentText);
+      }, done);
+    });
+  })
+
+  context('when it tries to update a comment that does not exists', function(){
+    it('returns an error', function(done){ // when an error happens the callback returns true
+      var nonExistentCommentId = 'c-noExist123';
+      var newText = 'anything';
+      var data = {
+        padId: padID,
+        commentId: nonExistentCommentId,
+        commentText: newText,
+      }
+      updateComment(data, socket, function(error){
+        if (error !== true) {
+          throw new Error("It should return an error");
+        }
+        done();
+      })
+    })
+  });
+})
+
+var validateCommentText = function(res, commentId, expectedCommentText) {
+  var comment_data = res.body.data.comments[commentId];
+  if(comment_data.text !== expectedCommentText) {
+    throw new Error("Wrong text. Expected: " + expectedCommentText + ", got: " + comment_data.text);
+  }
+}
+
+var updateComment = function(commentData, socket, cb) {
+  socket.emit('updateCommentText', commentData, function(error){
+    cb(error);
+  });
+}
+
+var updateCommentAndGetListOfComments = function(commentData, socket, callbackValidator, done) {
+  updateComment(commentData, socket, function(){
+    api.get(listCommentsEndPointFor(commentData.padId, apiKey))
+      .expect(callbackValidator)
+      .end(done);
+  });
+}
 
 var listCommentsEndPointFor = function(padID, apiKey) {
   var extraParams = "";

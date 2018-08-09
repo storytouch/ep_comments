@@ -194,7 +194,7 @@ exports.copyCommentReplies = function(originalPadId, newPadID, callback){
 
 exports.changeCommentText = function(padId, commentId, commentText, callback){
   var commentTextIsNotEmpty = (commentText || '').length > 0;
-  if(commentTextIsNotEmpty){
+  if(commentTextIsNotEmpty && commentId){
     // Given a comment we update the comment text
     // We need to change readOnly PadIds to Normal PadIds
     padId = _getReadWritePadId(padId);
@@ -208,12 +208,17 @@ exports.changeCommentText = function(padId, commentId, commentText, callback){
     //get the entry
     db.get(prefix + padId, function(err, comments){
       if(ERR(err, callback)) return;
+      var targetComment = comments[commentId];
+      if (targetComment) {
+        //update the comment text
+        targetComment.text = commentText;
 
-      //update the comment text
-      comments[commentId].text = commentText;
-
-      //save the comment updated back
-      db.set(prefix + padId, comments, callback);
+        //save the comment updated back
+        db.set(prefix + padId, comments, callback);
+      }else{
+        console.log('Error on updating comment with id ' + commentId + '. Comment does not exist');
+        callback(true)
+      }
     });
   }else{// don't save comment text blank
     callback(true);
