@@ -6,6 +6,7 @@ describe('ep_comments_page - api - "data changed" event', function() {
   var textOfLastCreatedComment = 'I was created later';
   var textOfReply = 'I am a reply';
 
+  var FIRST_LINE = 0;
   var COMMENT_LINE = 1;
 
   before(function (done) {
@@ -283,5 +284,38 @@ describe('ep_comments_page - api - "data changed" event', function() {
         });
       });
     });
+  });
+
+  // this type of scenario usually it is originated due to a bug. As
+  // we have no way to simulate it, we simulate the consequence of it.
+  // So, we create the comment classes without having a comment with the
+  // commentId saved on the database
+  context('when there is a ghost comment', function(){
+    var addGhostCommentOnLine = function(line){
+      var $targetLine = utils.getLine(line);
+      $targetLine.find('span').first().addClass("comment c-notValid1234");
+    }
+
+    before(function(done) {
+      // we have two comments, a valid and the ghost one
+      utils.createPad(this, function(){
+        utils.addCommentToLine(COMMENT_LINE, textOfFirstCreatedComment, function(){
+          apiUtils.waitForDataToBeSent(function() {
+            apiUtils.resetData();
+            addGhostCommentOnLine(FIRST_LINE);
+            done();
+          });
+        });
+      })
+    });
+
+    it('only sends the valid comments via API', function(done){ // valid === any comment that's not a ghost one
+      apiUtils.waitForDataToBeSent(function() {
+        var comments = apiUtils.getLastDataSent();
+        expect(comments.length).to.be(1);
+        expect(comments[0].text).to.be(textOfFirstCreatedComment);
+        done();
+      });
+    })
   });
 });

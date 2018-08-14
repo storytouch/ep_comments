@@ -65,22 +65,29 @@ exports.bulkAddComments = function(padId, data, callback)
     if(comments == null) comments = {};
 
     var newComments = [];
-    var commentIds = _.map(data, function(commentData) {
-      //if the comment was copied it already has a commentID, so we don't need create one
-      var commentId = commentData.commentId || shared.generateCommentId();
+    var commentIds = _(data)
+      .chain()
+      .map(function(commentData) {
+        if (commentData.text.length > 0) {
+          //if the comment was copied it already has a commentID, so we don't need create one
+          var commentId = commentData.commentId || shared.generateCommentId();
 
-      var comment = {
-        "author": commentData.author || "empty",
-        "name": commentData.name,
-        "text": commentData.text,
-        "timestamp": parseInt(commentData.timestamp) || new Date().getTime()
-      };
-      //add the entry for this pad
-      comments[commentId] = comment;
+          var comment = {
+            "author": commentData.author || "empty",
+            "name": commentData.name,
+            "text": commentData.text,
+            "timestamp": parseInt(commentData.timestamp) || new Date().getTime()
+          };
+          //add the entry for this pad
+          comments[commentId] = comment;
 
-      newComments.push(comment);
-      return commentId;
-    });
+          newComments.push(comment);
+          return commentId;
+        }
+        return; 
+      })
+      .compact()
+      .value();
 
     //save the new element back
     db.set("comments:" + padId, comments, function() {

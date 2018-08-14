@@ -172,19 +172,26 @@ commentDataManager.prototype.updateListOfCommentsStillOnText = function() {
 
   var $scenes = utils.getPadInner().find('div.withHeading');
 
-  var commentsToSend = _(this._getListOfCommentsOrdered()).map(function(commentInfo) {
-    var commentId = commentInfo.commentId;
-    var nodeWithComment = commentInfo.nodeWithComment;
+  var commentsToSend = _(this._getListOfCommentsOrdered())
+    .chain()
+    .map(function(commentInfo) {
+      var commentId = commentInfo.commentId;
+      var targetComment = this.comments[commentId];
+      if (targetComment !== undefined) {
+        // create a copy of each comment, so we can change it without messing up
+        // with self.comments
+        var commentData = Object.assign({}, targetComment);
 
-    // create a copy of each comment, so we can change it without messing up
-    // with self.comments
-    var commentData = Object.assign({}, this.comments[commentId]);
+        var nodeWithComment = commentInfo.nodeWithComment;
+        commentData.scene = this._getSceneNumber($scenes, nodeWithComment);
+        commentData.replies = this._getRepliesStillOnTextSortedByDate(commentData, nodeWithComment);
 
-    commentData.scene = this._getSceneNumber($scenes, nodeWithComment);
-    commentData.replies = this._getRepliesStillOnTextSortedByDate(commentData, nodeWithComment);
-
-    return commentData;
-  }, this);
+        return commentData;
+      }
+      return; 
+    }, this)
+    .compact()
+    .value();
 
   api.triggerDataChanged(commentsToSend);
 }

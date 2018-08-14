@@ -316,6 +316,87 @@ describe('update comments API broadcast', function(){
   });
 })
 
+describe('bulk adding comments API', function(){
+  var padId, socket;
+  beforeEach(function(done){
+    createPad(function(err, newPadID) {
+      if (err) throw err;
+      padId = newPadID;
+      socket = io.connect(appUrl + "/comment");
+      done();
+    });
+  });
+
+  it('adds a bulk of comments', function(done){
+    var firstCommentId = 'c-aLongCommentID12';
+    var secondCommentId = 'c-aLongCommentID34';
+    var firstComment = _buildComment(commentData(), firstCommentId, padId);
+    var secondComment = _buildComment(commentData(), secondCommentId, padId);
+
+    addCommentsInBulk(socket, padId, [firstComment, secondComment], function(comments){ // add 2 comments
+      api.get(listCommentsEndPointFor(padId, apiKey)) // get the list of the comments
+      .expect(function(res){
+        var commentKeys = Object.keys(res.body.data.comments);
+        var hasFirstComment = commentKeys.includes(firstCommentId);
+        var hasSecondComment = commentKeys.includes(secondCommentId);
+        var savedTheTwoComments = commentKeys.length === 2 && hasFirstComment && hasSecondComment;
+        if (!savedTheTwoComments) {
+          throw new Error("It should save two comments");
+        }
+      })
+      .end(done);
+    });
+  })
+
+  context('when a comment added has not text field', function(){
+    it('does not save it', function (done) {
+      var firstCommentId = 'c-aLongCommentID12';
+      var emptyCommentId = 'c-anEmptyComment34';
+      var emptyTextComment = {
+        name: 'The Author',
+        text: ''
+      };
+
+      // we create two comments, only the first one is valid
+      var firstComment = _buildComment(commentData(), firstCommentId, padId);
+      var emptyComment = _buildComment(emptyTextComment, emptyCommentId, padId);
+
+      addCommentsInBulk(socket, padId, [firstComment, emptyComment], function(comments){
+        api.get(listCommentsEndPointFor(padId, apiKey)) // get the list of the comments
+        .expect(function(res){
+          var emptyComment = res.body.data.comments[emptyCommentId];
+          var firstComment = res.body.data.comments[firstCommentId];
+
+          if (Object.keys(res.body.data.comments).length !== 1 || !firstComment) {
+            throw new Error("It should save only the comment with id " + firstCommentId);
+          }
+
+          if (emptyComment) {
+            throw new Error("It should not save a comment with empty text");
+          }
+        })
+        .end(done);
+      });
+    });
+  })
+})
+
+var addCommentsInBulk = function(socket, padId, commentData, cb) {
+  socket.emit('bulkAddComment', padId, commentData, function(commentsAdded){
+    cb(commentsAdded);
+  });
+}
+
+var _buildComment = function(commentData, commentId, padId){
+  var data = {};
+  data.padId = padId;
+  data.commentId = commentId;
+  data.text = commentData.text;
+  data.name = commentData.name;
+
+  return data;
+}
+
 var validateCommentText = function(res, commentId, expectedCommentText) {
   var comment_data = res.body.data.comments[commentId];
   if(comment_data.text !== expectedCommentText) {
