@@ -28,6 +28,7 @@ var DO_NOTHING = function(){};
                                               padInner when positioning the dialog.
                                               Default: use the selected text
      - onSubmit: function to be called when user submits the form on $content (if any)
+     - beforeOpen: function to be called when user requests dialog to be opened
      - customClose: function to be called when user closes the dialog
      - doNotAnimate: flag to animate or not dialog opening & closing. Default: false
      - openWithinViewport: flag to allow dialog to be opened always inside the viewport. If
@@ -38,6 +39,7 @@ var dialog = function(config) {
   this.textMarker = preTextMarker.createForTarget(config.targetType, config.ace);
   this.$content = config.$content;
   this.onSubmit = config.onSubmit || DO_NOTHING;
+  this.beforeOpen = config.beforeOpen || DO_NOTHING;
   this.ace = config.ace;
   this.shouldMarkText = !config.targetAlreadyMarked;
   this.openWithinViewport = config.openWithinViewport;
@@ -109,6 +111,7 @@ dialog.prototype._localizeDialogContent = function() {
 }
 
 dialog.prototype.open = function(aceContext, callbackOnSubmit) {
+  callbackOnSubmit = callbackOnSubmit || DO_NOTHING;
   var self = this;
 
   // Detach current "submit" handler to be able to call the updated callbackOnSubmit
@@ -132,6 +135,7 @@ dialog.prototype.open = function(aceContext, callbackOnSubmit) {
 
   this._localizeDialogContent();
   this._resetForm();
+  this.beforeOpen();
   this._openDialog();
 
   if (this.scrollAfterOpeningDialog) {
