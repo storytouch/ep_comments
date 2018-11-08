@@ -56,6 +56,9 @@
   font-weight: 300; /* Roboto Light */
   text-transform: lowercase;
 
-  color: #808286; /* color 130 */
   border: none;
+}
+
+.ui-dialog input.button:disabled {
+  cursor: not-allowed;
 }

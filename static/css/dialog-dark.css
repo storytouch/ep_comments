@@ -15,6 +15,10 @@
   box-shadow: inset 1px 1px 1px 1px rgba(0, 0, 0, 0.125);
 }
 
+.theme-dark .ui-dialog input.button--save:disabled {
+  color: #515256; /* $COLOR_80 */
+}
+
 /* form fields */
 .theme-dark .ui-dialog input {
   color: #A0A2A6; /* color 160 */
