@@ -7,6 +7,7 @@ var textMarkIconsPosition = require('./textMarkIconsPosition');
 var shared                = require('./shared');
 var utils                 = require('./utils');
 var textMarkSMVisibility  = require('./textMarkSMVisibility');
+var commentInfoDialog     = require('./commentInfoDialog');
 
 var COMMENT_HIGHLIGHT_COLOR = '#FFFACD';
 var TIME_TO_UPDATE_ICON_POSITION = 1000;

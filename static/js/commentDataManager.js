@@ -26,6 +26,10 @@ commentDataManager.prototype.getComments = function() {
   return this.comments;
 }
 
+commentDataManager.prototype.getComment = function(commentId) {
+  return this.comments[commentId];
+}
+
 commentDataManager.prototype.getRepliesOfComment = function(commentId) {
   var replies = this.comments[commentId] ? this.comments[commentId].replies : {};
   return replies;

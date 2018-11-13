@@ -11,6 +11,7 @@ var ACTIVATE_COMMENT_MESSAGE_TYPE = 'comment_activate';
 var EDIT_COMMENT_MESSAGE_TYPE = 'comment_edit';
 var EDIT_REPLY_MESSAGE_TYPE = 'comment_reply_edit';
 var DELETE_REPLY_MESSAGE_TYPE = 'comment_reply_delete';
+var SHOW_COMMENT_INFO_EVENT = 'show_comment_info';
 
 exports.init = function() {
   // listen to outbound calls of this API
@@ -46,6 +47,11 @@ var _handleOutboundCalls = function _handleOutboundCalls(e) {
       var replyId = e.data.replyId;
       onReplyDeletion(replyId, commentId);
       break;
+
+    case SHOW_COMMENT_INFO_EVENT:
+      var commentId = e.data.commentId;
+      onShowCommentInfo(commentId);
+      break;
   }
 }
 
@@ -77,6 +83,11 @@ exports.setHandleReplyCreation = function(fn) {
 var onReplyDeletion = function() {};
 exports.setHandleReplyDeletion = function(fn) {
   onReplyDeletion = fn;
+}
+
+var onShowCommentInfo = function() {};
+exports.setHandleShowCommentInfo = function(fn) {
+  onShowCommentInfo = fn;
 }
 
 /*
