@@ -57,6 +57,7 @@ ep_comments_page_test_helper.apiUtils = {
   EDIT_COMMENT_EVENT: 'comment_edit',
   EDIT_REPLY_EVENT: 'comment_reply_edit',
   DELETE_REPLY_EVENT: 'comment_reply_delete',
+  SHOW_COMMENT_INFO_EVENT: 'show_comment_info',
 
   simulateCallToDeleteComment: function(commentId) {
     var message = {
@@ -116,4 +117,12 @@ ep_comments_page_test_helper.apiUtils = {
     inboundApiEventsTarget.postMessage(message, '*');
   },
 
+  simulateCallToShowCommentInfo: function(commentId) {
+    var message = {
+      type: this.SHOW_COMMENT_INFO_EVENT,
+      commentId: commentId,
+    };
+    var inboundApiEventsTarget = helper.padChrome$.window;
+    inboundApiEventsTarget.postMessage(message, '*');
+  },
 }

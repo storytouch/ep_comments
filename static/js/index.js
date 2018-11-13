@@ -16,6 +16,7 @@ var api = require('./api');
 var utils = require('./utils');
 var commentSaveOrDelete = require('./commentSaveOrDelete');
 var sceneMarkVisibility = require('ep_script_scene_marks/static/js/sceneMarkVisibility');
+var commentInfoDialog = require('./commentInfoDialog');
 
 var cssFiles = [
   '//fonts.googleapis.com/css?family=Roboto:300,400', // light, regular
@@ -51,6 +52,7 @@ function ep_comments(context){
   this.lineChangeEventTriggerer = lineChangeEventTriggerer.init(this.ace);
   this.commentDataManager = commentDataManager.init(this.socket);
   this.commentIcons = commentIcons.init(this.ace);
+  this.commentInfoDialog = commentInfoDialog.init(this.ace);
   this.init();
 }
 
@@ -111,6 +113,11 @@ ep_comments.prototype.init = function(){
   api.setHandleReplyDeletion(function(replyId, commentId) {
     commentSaveOrDelete.deleteReply(replyId, commentId, self.ace);
   });
+
+  api.setHandleShowCommentInfo(function(commentId) {
+    self.commentInfoDialog.showCommentInfoForId(commentId);
+  });
+
   this.socket.on('pushDeleteCommentReply', function(replyId, commentId) {
     commentSaveOrDelete.deleteReply(replyId, commentId, self.ace);
   });

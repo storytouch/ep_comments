@@ -123,3 +123,12 @@ var selectFullTextOfRepArray = function(repArr, ace) {
   ace.ace_performSelectionChange(beginningOfSelection, endOfSelection, true);
 }
 exports.selectFullTextOfRepArray = selectFullTextOfRepArray;
+
+// TODO: we have the same function on ep_touches. We should remove there
+// and use this one
+exports.replaceDialogContentWith = function($template, dialog, selector) {
+  // replace content on the original dialog
+  var $currentContent = dialog.$content.find(selector);
+  var $newContent = $template.find(selector);
+  $currentContent.replaceWith($newContent);
+}
