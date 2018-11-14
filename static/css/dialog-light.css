@@ -15,6 +15,10 @@
   box-shadow: inset 1px 1px 1px 1px rgba(0, 0, 0, 0.125);
 }
 
+.theme-light .ui-dialog input.button:disabled {
+  color: #EAEBED; /* $COLOR_235 */
+}
+
 /* form fields */
 .theme-light .ui-dialog input {
   color: #64666A; /* color 100 */
