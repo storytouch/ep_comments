@@ -66,10 +66,15 @@ copyPasteHelper.prototype._buildDataWithFakeIds = function($copiedHtml, items, g
   var originalIds = getIdsFromHtml($copiedHtml);
 
   _(originalIds).each(function(originaId) {
-    var fakeId = 'fake-' + originaId;
     var originalItem = items[originaId];
-    var itemWithFakeId = this._replaceIdOnItemAndSubItems(originalItem, fakeId, setItemIdOnItem, updateSubItemsToo);
-    itemsWithFakeIds[fakeId] = itemWithFakeId;
+    var fakeId = '';
+
+    // only replace id with a fake one if item has any data
+    if (originalItem) {
+      fakeId = 'fake-' + originaId;
+      var itemWithFakeId = this._replaceIdOnItemAndSubItems(originalItem, fakeId, setItemIdOnItem, updateSubItemsToo);
+      itemsWithFakeIds[fakeId] = itemWithFakeId;
+    }
 
     // replace item id on pad content
     $copiedHtml.find('.' + originaId).removeClass(originaId).addClass(fakeId);
