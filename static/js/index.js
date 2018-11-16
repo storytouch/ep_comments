@@ -42,17 +42,16 @@ var REPLY_PREFIX_KEY = 'comment-reply-';
 /************************************************************************/
 
 // Container
-function ep_comments(context){
-  this.ace = context.ace;
-  this.socket = utils.openSocketConnectionToRoute('/comment');
+function ep_comments(ace, socket){
+  this.ace                  = ace;
+  this.socket               = socket;
   this.shouldCollectComment = false;
-
-  api.init();
-  copyPasteEvents.init();
-  this.lineChangeEventTriggerer = lineChangeEventTriggerer.init(this.ace);
-  this.commentDataManager = commentDataManager.init(this.socket);
-  this.commentIcons = commentIcons.init(this.ace);
-  this.commentInfoDialog = commentInfoDialog.init(this.ace);
+  this.thisPlugin           = pad.plugins.ep_comments_page;
+  this.api                  = this.thisPlugin.api;
+  this.commentDataManager   = this.thisPlugin.commentDataManager;
+  this.commentIcons         = this.thisPlugin.commentIcons;
+  this.commentInfoDialog    = this.thisPlugin.commentInfoDialog;
+  // this.copyPasteEvents      = this.thisPlugin.copyPasteEvents; // not a object!
   this.init();
 }
 
@@ -91,7 +90,7 @@ ep_comments.prototype.init = function(){
 
   utils.getPadInner().find('#innerdocbody').addClass('comments');
 
-  api.setHandleReplyCreation(function(commentId, text) {
+  this.api.setHandleReplyCreation(function(commentId, text) {
     var data = self.getCommentData();
     data.commentId = commentId;
     data.reply = text;
@@ -102,7 +101,7 @@ ep_comments.prototype.init = function(){
     });
   });
 
-  api.setHandleCommentDeletion(function(commentId) {
+  this.api.setHandleCommentDeletion(function(commentId) {
     var repliesOfComment = self.commentDataManager.getRepliesOfComment(commentId);
     var replyIds = _(repliesOfComment).pluck('replyId');
 
@@ -110,11 +109,11 @@ ep_comments.prototype.init = function(){
 
     self.collectComments();
   });
-  api.setHandleReplyDeletion(function(replyId, commentId) {
+  this.api.setHandleReplyDeletion(function(replyId, commentId) {
     commentSaveOrDelete.deleteReply(replyId, commentId, self.ace);
   });
 
-  api.setHandleShowCommentInfo(function(commentId) {
+  this.api.setHandleShowCommentInfo(function(commentId) {
     self.commentInfoDialog.showCommentInfoForId(commentId);
   });
 
@@ -339,10 +338,19 @@ var hooks = {
 
   // Init pad comments
   postAceInit: function(hook, context){
-    var Comments = new ep_comments(context);
-    pad.plugins = pad.plugins || {};
-    pad.plugins.ep_comments_page = pad.plugins.ep_comments_page || {};
-    pad.plugins.ep_comments_page.commentHandler = Comments;
+    var ace                             = context.ace;
+    var socket                          = utils.openSocketConnectionToRoute('/comment');
+    pad.plugins                         = pad.plugins || {};
+    pad.plugins.ep_comments_page        = pad.plugins.ep_comments_page || {};
+    var thisPlugin                      = pad.plugins.ep_comments_page;
+    thisPlugin.api                      = api.init();
+    copyPasteEvents.init(); // it does not return an object! that's fugly
+    thisPlugin.lineChangeEventTriggerer = lineChangeEventTriggerer.init(ace);
+    thisPlugin.commentDataManager       = commentDataManager.init(socket);
+    thisPlugin.commentIcons             = commentIcons.init(ace);
+    thisPlugin.commentInfoDialog        = commentInfoDialog.init(ace);
+    var comments                        = new ep_comments(ace, socket);
+    thisPlugin.commentHandler           = comments;
   },
 
   aceEditEvent: function(hook, context){

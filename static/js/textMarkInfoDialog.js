@@ -15,19 +15,26 @@ var DO_NOTHING = function() {};
   values of 'props'. All of them are required
   ace: object reference to context.ace
   buildTextMarkData: function that builds the object that is displayed on the window
-  infoTemplate: object with strings id and mainComponentSelector
+  infoTemplate: object with strings id and mainComponentSelector of info template
+  editTemplate: object with strings id and mainComponentSelector of edit template
   dialogTitleKey: string with L10n key used on window title
   targetType: string used on dialog config.
+  editTextMarkFormId: string with 'id' of the text mark form
+  saveTextMark: function that saves the object text mark
 */
 
 var textMarkInfoDialog = function(props) {
   var ace = props.ace;
   this.buildTextMarkData = props.buildTextMarkData;
   this.infoTemplate = props.infoTemplate;
+  this.editTemplate = props.editTemplate;
   this.dialogTitleKey = props.dialogTitleKey;
+  this.editTextMarkFormId = props.editTextMarkFormId; // better refactor it!
+  this.saveTextMark = props.saveTextMark;
   this.textMarkIdBeingDisplayed = undefined;
   this.targetType = props.targetType;
   this.infoDialog = this._createInfoDialog(ace);
+  this.editDialog = this._createEditDialog(ace);
 };
 
 textMarkInfoDialog.prototype._createInfoDialog = function(ace) {
@@ -42,10 +49,62 @@ textMarkInfoDialog.prototype._createInfoDialog = function(ace) {
     doNotAnimate: true,
     openWithinViewport: true,
     dialogOpts: {
-      buttons: [],
+      buttons: [this._buildButton('edit', this._closeInfoDialogAndShowEditDialog.bind(this))],
     },
   };
   return dialog.create(configs);
+};
+
+textMarkInfoDialog.prototype._createEditDialog = function(ace) {
+  // $content will be filled with data later, when dialog is opened
+  var $emptyContent = $(`<div><div id="${this.editTextMarkFormId}"></div></div>`);
+  var configs = {
+    $content: $emptyContent,
+    dialogTitleL10nKey: this.dialogTitleKey,
+    ace: ace,
+    targetType: this.targetType,
+    // infoDialog handles the text marking
+    targetAlreadyMarked: true,
+    onSubmit: this._saveTextMark.bind(this),
+    customClose: this._closeEditDialogAndShowInfoDialog.bind(this),
+    doNotAnimate: true,
+  };
+  return dialog.create(configs);
+};
+
+textMarkInfoDialog.prototype._buildButton = function(key, action) {
+  var self = this;
+  return {
+    text: key,
+    // TODO: check if we need to add this translation ???
+    'data-l10n-id': 'ep_script_touches.tag_occurrence_info.' + key,
+    class: 'button--' + key,
+    click: function(e) {
+      var textMarkId = self.textMarkIdBeingDisplayed;
+      action(textMarkId);
+    },
+  };
+};
+
+textMarkInfoDialog.prototype._saveTextMark = function($formContainer) {
+  var textMarkId = this.textMarkIdBeingDisplayed;
+  this.saveTextMark(textMarkId, $formContainer, this._closeEditDialogAndShowInfoDialog.bind(this));
+};
+
+textMarkInfoDialog.prototype._closeEditDialogAndShowInfoDialog = function() {
+  var textMarkId = this.textMarkIdBeingDisplayed;
+  this.showTextMarkInfoDialogForId(textMarkId, this.currentOwner);
+  this.editDialog.close();
+};
+
+textMarkInfoDialog.prototype._closeInfoDialogAndShowEditDialog = function() {
+  this._fillTextMarkContentOnEditDialog();
+  this.editDialog.open();
+  this.infoDialog.close();
+};
+
+textMarkInfoDialog.prototype.getCurrentOwner = function() {
+  return this.currentOwner;
 };
 
 textMarkInfoDialog.prototype.showTextMarkInfoDialogForId = function(textMarkId, owner) {
@@ -97,6 +156,10 @@ textMarkInfoDialog.prototype._getCurrentRepSelection = function() {
 
 textMarkInfoDialog.prototype._fillTextMarkContentOnInfoDialog = function() {
   this._fillTextMarkContent(this.infoDialog, this.infoTemplate.id, this.infoTemplate.mainComponentSelector);
+};
+
+textMarkInfoDialog.prototype._fillTextMarkContentOnEditDialog = function() {
+  this._fillTextMarkContent(this.editDialog, this.editTemplate.id, this.editTemplate.mainComponentSelector);
 };
 
 textMarkInfoDialog.prototype._buildTextMarkInfoDataToShowOnTemplate = function(textMarkId) {
