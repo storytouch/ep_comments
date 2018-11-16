@@ -2,18 +2,18 @@ var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var _ = require('ep_etherpad-lite/static/js/underscore');
 
 var linesChangedListener = require('./linesChangedListener');
-var api = require('./api');
 var utils = require('./utils');
 var shared = require('./shared');
 
 var commentDataManager = function(socket) {
+  this.thisPlugin = pad.plugins.ep_comments_page;
   this.socket = socket;
   this.comments = {};
 
   linesChangedListener.onLineChanged('.comment, heading', this.triggerDataChanged.bind(this));
 
-  api.setHandleCommentEdition(this._onCommentEdition.bind(this));
-  api.setHandleReplyEdition(this._onReplyEdition.bind(this));
+  this.thisPlugin.api.setHandleCommentEdition(this._onCommentEdition.bind(this));
+  this.thisPlugin.api.setHandleReplyEdition(this._onReplyEdition.bind(this));
 
   // listen to comment or reply changes made by other users on this pad
   var self = this;
@@ -76,7 +76,7 @@ commentDataManager.prototype.addReply = function(replyId, replyData, doNotTrigge
   }
 }
 
-commentDataManager.prototype._onCommentEdition = function(commentId, commentText) {
+commentDataManager.prototype._onCommentEdition = function(commentId, commentText, cb) {
   var self = this;
   var data = {
     padId: clientVars.padId,
@@ -92,6 +92,7 @@ commentDataManager.prototype._onCommentEdition = function(commentId, commentText
       comment.text = commentText;
 
       self.triggerDataChanged();
+      cb();
     }
   });
 }
@@ -197,7 +198,7 @@ commentDataManager.prototype.updateListOfCommentsStillOnText = function() {
     .compact()
     .value();
 
-  api.triggerDataChanged(commentsToSend);
+  this.thisPlugin.api.triggerDataChanged(commentsToSend);
 }
 
 commentDataManager.prototype._getListOfCommentsOrdered = function() {

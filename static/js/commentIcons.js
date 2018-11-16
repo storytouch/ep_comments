@@ -1,18 +1,17 @@
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 
-var api                   = require('./api');
 var linesChangedListener  = require('./linesChangedListener');
 var textHighlighter       = require('./textHighlighter');
 var textMarkIconsPosition = require('./textMarkIconsPosition');
 var shared                = require('./shared');
 var utils                 = require('./utils');
 var textMarkSMVisibility  = require('./textMarkSMVisibility');
-var commentInfoDialog     = require('./commentInfoDialog');
 
 var COMMENT_HIGHLIGHT_COLOR = '#FFFACD';
 var TIME_TO_UPDATE_ICON_POSITION = 1000;
 
 var commentIcons = function(ace) {
+  this.thisPlugin = pad.plugins.ep_comments_page;
   this._insertContainer(); // create the container
 
   // allow this time to be changed if we need to speed things up
@@ -32,7 +31,7 @@ var commentIcons = function(ace) {
   this._addListenersToDeactivateComment();
   this._addListenersToUpdateIconsPositions();
   this._loadHelperLibs();
-  api.setHandleCommentActivation(this._handleCommentActivation.bind(this));
+  this.thisPlugin.api.setHandleCommentActivation(this._handleCommentActivation.bind(this));
 }
 
 // Adjust position of the comment icon on the container, to be on the same
@@ -101,7 +100,7 @@ commentIcons.prototype._addListenersToCommentIcons = function() {
     self._toggleActiveCommentIcon($(this));
     var commentId = self._targetCommentIdOf(e);
     self._removeHighlightOfTargetTextOf(commentId);
-    api.triggerCommentDeactivation();
+    self.thisPlugin.api.triggerCommentDeactivation();
   }).on("click", ".comment-icon.inactive", function(e){
     // deactivate/hide other comment boxes that are opened, so we have only
     // one comment box opened at a time
@@ -118,7 +117,7 @@ commentIcons.prototype._addListenersToCommentIcons = function() {
 
     self._highlightTargetTextOf(commentId);
     self._placeCaretAtBeginningOfTextOf(commentId);
-    api.triggerCommentActivation(commentId);
+    self.thisPlugin.api.triggerCommentActivation(commentId);
   });
 }
 
@@ -159,7 +158,7 @@ commentIcons.prototype._addIcon = function(commentId) {
 
 // Update which comments have reply
 commentIcons.prototype._updateCommentIconsStyle = function() {
-  var commentDataManager = pad.plugins.ep_comments_page.commentHandler.commentDataManager;
+  var commentDataManager = pad.plugins.ep_comments_page.commentDataManager;
   var $iconsContainer = utils.getPadOuter().find('#commentIcons');
   var $commentsOnText = utils.getPadInner().find('.comment');
 
@@ -253,7 +252,7 @@ commentIcons.prototype._deactivateCommentIfNotOnSelectedElements = function(e) {
   if (openedComment) {
     this._toggleActiveCommentIcon($(openedComment));
     this._removeHighlightOfAllComments();
-    api.triggerCommentDeactivation();
+    this.thisPlugin.api.triggerCommentDeactivation();
   }
 }
 

@@ -1,10 +1,9 @@
 var _ = require('ep_etherpad-lite/static/js/underscore');
 
-var commentSaveOrDelete = require('./commentSaveOrDelete');
-
 // messages sent to outside
 var COMMENT_ACTIVATED_MESSAGE_TYPE = 'comment_activated';
 var NEW_DATA_MESSAGE_TYPE = 'comments_data_changed';
+
 // messages coming from outside
 var DELETE_COMMENT_MESSAGE_TYPE = 'comment_delete';
 var ACTIVATE_COMMENT_MESSAGE_TYPE = 'comment_activate';
@@ -13,82 +12,85 @@ var EDIT_REPLY_MESSAGE_TYPE = 'comment_reply_edit';
 var DELETE_REPLY_MESSAGE_TYPE = 'comment_reply_delete';
 var SHOW_COMMENT_INFO_EVENT = 'show_comment_info';
 
-exports.init = function() {
+var commentApi = function() {
+  this.onCommentDeletion = function() {};
+  this.onCommentEdition = function() {};
+  this.onCommentActivation = function() {};
+  this.onReplyEdition = function() {};
+  this.onReplyCreate = function() {};
+  this.onReplyDeletion = function() {};
+  this.onShowCommentInfo = function() {};
+
+  var self = this;
+
   // listen to outbound calls of this API
   window.addEventListener('message', function(e) {
-    _handleOutboundCalls(e);
+    self._handleOutboundCalls(e);
   });
-}
+};
 
-var _handleOutboundCalls = function _handleOutboundCalls(e) {
+commentApi.prototype._handleOutboundCalls = function(e) {
   switch (e.data.type) {
     case DELETE_COMMENT_MESSAGE_TYPE:
-      onCommentDeletion(e.data.commentId);
+      this.onCommentDeletion(e.data.commentId);
       break;
 
     case ACTIVATE_COMMENT_MESSAGE_TYPE:
-      onCommentActivation(e.data.commentId);
+      this.onCommentActivation(e.data.commentId);
       break;
 
     case EDIT_COMMENT_MESSAGE_TYPE:
-      onCommentEdition(e.data.commentId, e.data.text);
+      this.onCommentEdition(e.data.commentId, e.data.text);
       break;
 
     case EDIT_REPLY_MESSAGE_TYPE:
       if (e.data.replyId === undefined) {
-        onReplyCreate(e.data.commentId, e.data.text);
+        this.onReplyCreate(e.data.commentId, e.data.text);
       } else {
-        onReplyEdition(e.data.commentId, e.data.replyId, e.data.text);
+        this.onReplyEdition(e.data.commentId, e.data.replyId, e.data.text);
       }
       break;
 
     case DELETE_REPLY_MESSAGE_TYPE:
       var commentId = e.data.commentId;
       var replyId = e.data.replyId;
-      onReplyDeletion(replyId, commentId);
+      this.onReplyDeletion(replyId, commentId);
       break;
 
     case SHOW_COMMENT_INFO_EVENT:
       var commentId = e.data.commentId;
-      onShowCommentInfo(commentId);
+      this.onShowCommentInfo(commentId);
       break;
   }
-}
+};
 
-var onCommentDeletion = function() {};
-exports.setHandleCommentDeletion = function(fn) {
-  onCommentDeletion = fn;
-}
+commentApi.prototype.setHandleCommentDeletion = function(fn) {
+  this.onCommentDeletion = fn;
+};
 
-var onCommentActivation = function() {};
-exports.setHandleCommentActivation = function(fn) {
-  onCommentActivation = fn;
-}
+commentApi.prototype.setHandleCommentActivation = function(fn) {
+  this.onCommentActivation = fn;
+};
 
-var onCommentEdition = function() {};
-exports.setHandleCommentEdition = function(fn) {
-  onCommentEdition = fn;
-}
+commentApi.prototype.setHandleCommentEdition = function(fn) {
+  this.onCommentEdition = fn;
+};
 
-var onReplyEdition = function() {};
-exports.setHandleReplyEdition = function(fn) {
-  onReplyEdition = fn;
-}
+commentApi.prototype.setHandleReplyEdition = function(fn) {
+  this.onReplyEdition = fn;
+};
 
-var onReplyCreate = function() {};
-exports.setHandleReplyCreation = function(fn) {
-  onReplyCreate = fn;
-}
+commentApi.prototype.setHandleReplyCreation = function(fn) {
+  this.onReplyCreate = fn;
+};
 
-var onReplyDeletion = function() {};
-exports.setHandleReplyDeletion = function(fn) {
-  onReplyDeletion = fn;
-}
+commentApi.prototype.setHandleReplyDeletion = function(fn) {
+  this.onReplyDeletion = fn;
+};
 
-var onShowCommentInfo = function() {};
-exports.setHandleShowCommentInfo = function(fn) {
-  onShowCommentInfo = fn;
-}
+commentApi.prototype.setHandleShowCommentInfo = function(fn) {
+  this.onShowCommentInfo = fn;
+};
 
 /*
   message: {
@@ -96,16 +98,17 @@ exports.setHandleShowCommentInfo = function(fn) {
     commentId: 'c-b4WEFBNt7Bxu6Dhr'
   }
 */
-exports.triggerCommentActivation = function(commentId) {
+commentApi.prototype.triggerCommentActivation = function(commentId) {
   var message = {
     type: COMMENT_ACTIVATED_MESSAGE_TYPE,
     commentId: commentId,
   };
-  _triggerEvent(message);
-}
-exports.triggerCommentDeactivation = function() {
+  this._triggerEvent(message);
+};
+
+commentApi.prototype.triggerCommentDeactivation = function() {
   this.triggerCommentActivation(undefined);
-}
+};
 
 /*
   message: {
@@ -132,17 +135,21 @@ exports.triggerCommentDeactivation = function() {
     ]
   }
 */
-exports.triggerDataChanged = function(commentsData) {
+commentApi.prototype.triggerDataChanged = function(commentsData) {
   var message = {
     type: NEW_DATA_MESSAGE_TYPE,
     values: commentsData,
   };
 
-  _triggerEvent(message);
-}
+  this._triggerEvent(message);
+};
 
-var _triggerEvent = function _triggerEvent(message) {
+commentApi.prototype._triggerEvent = function(message) {
   // if there's a wrapper to Etherpad, send data to it; otherwise use Etherpad own window
   var target = window.parent ? window.parent : window;
   target.postMessage(message, '*');
-}
+};
+
+exports.init = function() {
+  return new commentApi();
+};

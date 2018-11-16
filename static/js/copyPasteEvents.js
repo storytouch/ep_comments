@@ -31,6 +31,7 @@ var saveItemsAndSubItemsOfAllHelpers = function(e) {
   });
 }
 
+// XXX: that's not a standard way to do it!
 exports.init = function() {
   pad.plugins = pad.plugins || {};
   pad.plugins.ep_comments_page = pad.plugins.ep_comments_page || {};
