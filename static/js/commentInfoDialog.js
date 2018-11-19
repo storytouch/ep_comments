@@ -23,6 +23,7 @@ var commentInfoDialog = function(ace) {
     targetType: TARGET_TYPE,
     editTextMarkFormId: EDIT_COMMENT_FORM_ID,
     saveTextMark: this._saveComment.bind(this),
+    removeTextMark: this._removeComment.bind(this),
   });
   this.showCommentInfoForId = this.showCommentInfoForId.bind(this);
 };
@@ -42,6 +43,10 @@ commentInfoDialog.prototype._buildCommentData = function(commentId) {
 commentInfoDialog.prototype._saveComment = function(commentId, $formContainer, cb) {
   var description = $formContainer.find('#comment-description').val();
   this.thisPlugin.api.onCommentEdition(commentId, description, cb);
+};
+
+commentInfoDialog.prototype._removeComment = function(commentId) {
+  this.thisPlugin.api.onCommentDeletion(commentId);
 };
 
 exports.init = function(ace) {

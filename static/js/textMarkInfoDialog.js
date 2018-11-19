@@ -21,6 +21,7 @@ var DO_NOTHING = function() {};
   targetType: string used on dialog config.
   editTextMarkFormId: string with 'id' of the text mark form
   saveTextMark: function that saves the object text mark
+  removeTextMark: function that deletes the text mark
 */
 
 var textMarkInfoDialog = function(props) {
@@ -31,6 +32,7 @@ var textMarkInfoDialog = function(props) {
   this.dialogTitleKey = props.dialogTitleKey;
   this.editTextMarkFormId = props.editTextMarkFormId; // better refactor it!
   this.saveTextMark = props.saveTextMark;
+  this.removeTextMark = props.removeTextMark;
   this.textMarkIdBeingDisplayed = undefined;
   this.targetType = props.targetType;
   this.infoDialog = this._createInfoDialog(ace);
@@ -49,7 +51,10 @@ textMarkInfoDialog.prototype._createInfoDialog = function(ace) {
     doNotAnimate: true,
     openWithinViewport: true,
     dialogOpts: {
-      buttons: [this._buildButton('edit', this._closeInfoDialogAndShowEditDialog.bind(this))],
+      buttons: [
+        this._buildButton('edit', this._closeInfoDialogAndShowEditDialog.bind(this)),
+        this._buildButton('delete', this._deleteTextMarkAndCloseInfoDialog.bind(this)),
+      ],
     },
   };
   return dialog.create(configs);
@@ -86,6 +91,18 @@ textMarkInfoDialog.prototype._buildButton = function(key, action) {
   };
 };
 
+textMarkInfoDialog.prototype._deleteTextMarkAndCloseInfoDialog = function(textMarkId) {
+  this.removeTextMark(textMarkId);
+  this.hideTextMarkInfoDialog();
+};
+
+textMarkInfoDialog.prototype.hideTextMarkInfoDialog = function() {
+  if (this.infoDialog.isOpen()) {
+    this.textMarkIdBeingDisplayed = undefined;
+    this.infoDialog.close();
+  }
+};
+
 textMarkInfoDialog.prototype._saveTextMark = function($formContainer) {
   var textMarkId = this.textMarkIdBeingDisplayed;
   this.saveTextMark(textMarkId, $formContainer, this._closeEditDialogAndShowInfoDialog.bind(this));
@@ -115,7 +132,11 @@ textMarkInfoDialog.prototype.showTextMarkInfoDialogForId = function(textMarkId, 
   this._showTextMarkInfoDialog(textMarkId, selectTextUsedAsReferenceForDialogPosition, owner);
 };
 
-textMarkInfoDialog.prototype._showTextMarkInfoDialog = function(textMarkId, selectTextUsedAsReferenceForDialogPosition, owner) {
+textMarkInfoDialog.prototype._showTextMarkInfoDialog = function(
+  textMarkId,
+  selectTextUsedAsReferenceForDialogPosition,
+  owner
+) {
   var self = this;
   this.textMarkIdBeingDisplayed = textMarkId;
   this.currentOwner = owner;
