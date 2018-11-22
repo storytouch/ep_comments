@@ -1,7 +1,6 @@
 var _ = require('ep_etherpad-lite/static/js/underscore');
 var utils = require('./utils');
 var copyPasteHelper = require('./copyPasteHelper');
-var fakeIdsMapper = require('./copyPasteFakeIdsMapper');
 
 var addTextAndDataOfAllHelpersToClipboard = function(e) {
   var clipboardData = e.originalEvent.clipboardData;
@@ -31,12 +30,10 @@ var saveItemsAndSubItemsOfAllHelpers = function(e) {
   });
 }
 
-// XXX: that's not a standard way to do it!
 exports.init = function() {
   pad.plugins = pad.plugins || {};
   pad.plugins.ep_comments_page = pad.plugins.ep_comments_page || {};
   pad.plugins.ep_comments_page.copyPasteHelpers = pad.plugins.ep_comments_page.copyPasteHelpers || [];
-  pad.plugins.ep_comments_page.fakeIdsMapper = fakeIdsMapper.init();
 }
 
 // Enable ep_copy_cut_paste to call our handlers for copy, cut & paste events
