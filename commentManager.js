@@ -1,24 +1,15 @@
 var _ = require('ep_etherpad-lite/static/js/underscore');
 var db = require('ep_etherpad-lite/node/db/DB').db;
-var ERR = require("ep_etherpad-lite/node_modules/async-stacktrace");
+var ERR = require('ep_etherpad-lite/node_modules/async-stacktrace');
 var randomString = require('ep_etherpad-lite/static/js/pad_utils').randomString;
-var readOnlyManager = require("ep_etherpad-lite/node/db/ReadOnlyManager.js");
-var shared = require('./static/js/shared');
 
-var _getReadWritePadId = function(padId) {
-  var isReadOnly = padId.indexOf("r.") === 0;
-  if(isReadOnly){
-    readOnlyManager.getPadId(padId, function(err, rwPadId){
-      padId = rwPadId;
-    });
-  };
-  return padId;
-}
+var shared = require('./static/js/shared');
+var utils = require('./utils');
 
 exports.getComments = function (padId, callback)
 {
   // We need to change readOnly PadIds to Normal PadIds
-  padId = _getReadWritePadId(padId);
+  padId = utils.getReadWritePadId(padId);
 
   // Not sure if we will encouter race conditions here..  Be careful.
 
@@ -55,7 +46,7 @@ exports.addComment = function(padId, data, callback)
 exports.bulkAddComments = function(padId, data, callback)
 {
    // We need to change readOnly PadIds to Normal PadIds
-   padId = _getReadWritePadId(padId);
+   padId = utils.getReadWritePadId(padId);
 
   //get the entry
   db.get("comments:" + padId, function(err, comments) {
@@ -84,7 +75,7 @@ exports.bulkAddComments = function(padId, data, callback)
           newComments.push(comment);
           return commentId;
         }
-        return; 
+        return;
       })
       .compact()
       .value();
@@ -114,7 +105,7 @@ exports.copyComments = function(originalPadId, newPadID, callback)
 
 exports.getCommentReplies = function (padId, callback){
  // We need to change readOnly PadIds to Normal PadIds
- padId = _getReadWritePadId(padId);
+ padId = utils.getReadWritePadId(padId);
 
   //get the globalComments replies
   db.get("comment-replies:" + padId, function(err, replies)
@@ -146,7 +137,7 @@ exports.addCommentReply = function(padId, data, callback){
 
 exports.bulkAddCommentReplies = function(padId, data, callback){
   // We need to change readOnly PadIds to Normal PadIds
-  padId = _getReadWritePadId(padId);
+  padId = utils.getReadWritePadId(padId);
 
   //get the entry
   db.get("comment-replies:" + padId, function(err, replies){
@@ -204,7 +195,7 @@ exports.changeCommentText = function(padId, commentId, commentText, callback){
   if(commentTextIsNotEmpty && commentId){
     // Given a comment we update the comment text
     // We need to change readOnly PadIds to Normal PadIds
-    padId = _getReadWritePadId(padId);
+    padId = utils.getReadWritePadId(padId);
 
     // If we're dealing with comment replies we need to a different query
     var prefix = "comments:";
