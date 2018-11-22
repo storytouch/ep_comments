@@ -10,7 +10,7 @@ var ACTIVATE_COMMENT_MESSAGE_TYPE = 'comment_activate';
 var EDIT_COMMENT_MESSAGE_TYPE = 'comment_edit';
 var EDIT_REPLY_MESSAGE_TYPE = 'comment_reply_edit';
 var DELETE_REPLY_MESSAGE_TYPE = 'comment_reply_delete';
-var SHOW_COMMENT_INFO_EVENT = 'show_comment_info';
+var SHOW_COMMENT_INFO_TYPE = 'show_comment_info';
 
 var commentApi = function() {
   this.onCommentDeletion = function() {};
@@ -57,7 +57,7 @@ commentApi.prototype._handleOutboundCalls = function(e) {
       this.onReplyDeletion(replyId, commentId);
       break;
 
-    case SHOW_COMMENT_INFO_EVENT:
+    case SHOW_COMMENT_INFO_TYPE:
       var commentId = e.data.commentId;
       this.onShowCommentInfo(commentId);
       break;
