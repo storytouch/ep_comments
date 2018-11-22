@@ -12,6 +12,7 @@ var commentDataManager = require('./commentDataManager');
 var commentL10n = require('./commentL10n');
 var copyPasteEvents = require('./copyPasteEvents');
 var lineChangeEventTriggerer = require('./lineChangeEventTriggerer');
+var fakeIdsMapper = require('./copyPasteFakeIdsMapper');
 var api = require('./api');
 var utils = require('./utils');
 var commentSaveOrDelete = require('./commentSaveOrDelete');
@@ -51,7 +52,7 @@ function ep_comments(ace, socket){
   this.commentDataManager   = this.thisPlugin.commentDataManager;
   this.commentIcons         = this.thisPlugin.commentIcons;
   this.commentInfoDialog    = this.thisPlugin.commentInfoDialog;
-  // this.copyPasteEvents      = this.thisPlugin.copyPasteEvents; // not a object!
+  this.fakeIdsMapper        = this.thisPlugin.fakeIdsMapper;
   this.init();
 }
 
@@ -344,7 +345,12 @@ var hooks = {
     pad.plugins.ep_comments_page        = pad.plugins.ep_comments_page || {};
     var thisPlugin                      = pad.plugins.ep_comments_page;
     thisPlugin.api                      = api.init();
-    copyPasteEvents.init(); // it does not return an object! that's fugly
+    thisPlugin.fakeIdsMapper            = fakeIdsMapper.init()
+
+    // TODO: we should return an object in this module following the way other
+    // modules do
+    copyPasteEvents.init();
+
     thisPlugin.lineChangeEventTriggerer = lineChangeEventTriggerer.init(ace);
     thisPlugin.commentDataManager       = commentDataManager.init(socket);
     thisPlugin.commentIcons             = commentIcons.init(ace);
