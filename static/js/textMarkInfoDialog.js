@@ -81,8 +81,7 @@ textMarkInfoDialog.prototype._buildButton = function(key, action) {
   var self = this;
   return {
     text: key,
-    // TODO: check if we need to add this translation ???
-    'data-l10n-id': 'ep_script_touches.tag_occurrence_info.' + key,
+    'data-l10n-id': 'ep_comments_page.comments_template.' + key,
     class: 'button--' + key,
     click: function(e) {
       var textMarkId = self.textMarkIdBeingDisplayed;
