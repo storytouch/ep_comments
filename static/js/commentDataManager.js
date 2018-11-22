@@ -92,7 +92,7 @@ commentDataManager.prototype._onCommentEdition = function(commentId, commentText
       comment.text = commentText;
 
       self.triggerDataChanged();
-      cb();
+      if (cb) cb();
     }
   });
 }
