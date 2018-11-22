@@ -18,6 +18,7 @@ var utils = require('./utils');
 var commentSaveOrDelete = require('./commentSaveOrDelete');
 var sceneMarkVisibility = require('ep_script_scene_marks/static/js/sceneMarkVisibility');
 var commentInfoDialog = require('./commentInfoDialog');
+var textMarkInfoDialog = require('./textMarkInfoDialog');
 
 var cssFiles = [
   '//fonts.googleapis.com/css?family=Roboto:300,400', // light, regular
@@ -509,7 +510,7 @@ exports.aceInitialized = function(hook, context){
 }
 
 exports.aceRegisterNonScrollableEditEvents = function(){
-  return [preTextMarker.MARK_TEXT_EVENT, preTextMarker.UNMARK_TEXT_EVENT];
+  return [preTextMarker.MARK_TEXT_EVENT, preTextMarker.UNMARK_TEXT_EVENT, textMarkInfoDialog.NON_SCROLLABLE_EVENT];
 }
 
 exports.collectContentPre = function(hook, context){

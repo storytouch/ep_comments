@@ -3,10 +3,7 @@ var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var utils = require('./utils');
 var dialog = require('./dialog');
 
-// TODO: refactor it!
-// this proly does not make sense for comments. We should check this code
-// when we prepare the migration for ep_touches
-var NON_SCROLLABLE_EVENT = 'selectNonFilteredTagOccurrence';
+var NON_SCROLLABLE_EVENT = 'selectTextMarks';
 exports.NON_SCROLLABLE_EVENT = NON_SCROLLABLE_EVENT;
 
 var DO_NOTHING = function() {};
