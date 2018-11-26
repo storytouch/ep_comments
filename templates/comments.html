@@ -24,6 +24,34 @@
   </form>
 </script>
 
+<script id="replies-info-template" type="text/html">
+  <div>
+    {{each replies}}
+      <div>
+        <div class="reply-description">
+          <div class="reply-description-body">${text}</div>
+        </div>
+
+        <div class="buttons-row reply-buttons">
+          <input
+            class="reply-button--edit"
+            type="submit"
+            value="Edit"
+            data-reply-id=${replyId}
+            data-l10n-id="ep_comments_page.comments_template.edit"
+          />
+          <input
+            class="reply-button--delete"
+            type="submit"
+            value="Delete"
+            data-reply-id=${replyId}
+            data-l10n-id="ep_comments_page.comments_template.delete" />
+          </div>
+      </div>
+    {{/each}}
+  </div>
+</script>
+
 <script id="commment-info-template" type="text/html">
   <div>
     <div id="text-mark-info">
