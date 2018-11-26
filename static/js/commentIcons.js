@@ -158,7 +158,7 @@ commentIcons.prototype._addIcon = function(commentId) {
 
 // Update which comments have reply
 commentIcons.prototype._updateCommentIconsStyle = function() {
-  var commentDataManager = pad.plugins.ep_comments_page.commentDataManager;
+  var commentDataManager = this.thisPlugin.commentDataManager;
   var $iconsContainer = utils.getPadOuter().find('#commentIcons');
   var $commentsOnText = utils.getPadInner().find('.comment');
 
@@ -223,7 +223,7 @@ commentIcons.prototype._makeSureEditorHasTheFocus = function() {
 }
 
 commentIcons.prototype._addListenersToUpdateIconStyle = function() {
-  linesChangedListener.onLineChanged('.comment-reply', this._updateCommentIconsStyle);
+  linesChangedListener.onLineChanged('.comment-reply', this._updateCommentIconsStyle.bind(this));
 }
 
 // Listen to clicks on the page to be able to close comment when clicking

@@ -25,7 +25,7 @@ var commentInfoDialog = function(ace) {
     saveTextMark: this._saveComment.bind(this),
     removeTextMark: this._removeComment.bind(this),
   });
-  this.showCommentInfoForId = this.showCommentInfoForId.bind(this);
+  this.showCommentInfoForId = this.showCommentInfoForId;
 };
 
 commentInfoDialog.prototype.showCommentInfoForId = function(commentId, owner) {

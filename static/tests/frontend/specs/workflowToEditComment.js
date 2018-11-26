@@ -23,7 +23,7 @@ describe('ep_comments_page - workflow to edit a comment', function() {
 
   context('when user clicks on the "edit" button of the dialog', function() {
     before(function() {
-      getCommentInfoDialog()
+      utils.getCommentInfoDialog()
         .find('.button--edit')
         .click();
     });
@@ -34,7 +34,7 @@ describe('ep_comments_page - workflow to edit a comment', function() {
     });
 
     it('closes the Comment info dialog', function(done) {
-      closeCommentInfoDialog(done);
+      testIfCommentInfoDialogIsClosed(done);
     });
 
     context('and user changes the description and saves the change', function() {
@@ -52,8 +52,8 @@ describe('ep_comments_page - workflow to edit a comment', function() {
       });
 
       it('opens the Comment info dialog with the updated description', function(done) {
-        openCommentInfoDialog(function() {
-          var newDescription = getCommentInfoDialog()
+        utils.testIfCommentDialogIsClosed(function() {
+          var newDescription = utils.getCommentInfoDialog()
             .find('.comment-description-body')
             .text();
           expect(newDescription.trim()).to.be('changed!');
@@ -63,39 +63,33 @@ describe('ep_comments_page - workflow to edit a comment', function() {
 
       context('then user clicks on the "close" button of the dialog', function() {
         before(function() {
-          getCommentInfoDialog()
+          utils.getCommentInfoDialog()
             .find('.ui-dialog-titlebar-close')
             .click();
         });
 
         it('closes the Comment info dialog', function(done) {
-          closeCommentInfoDialog(done);
+          testIfCommentInfoDialogIsClosed(done);
         });
       });
     });
   });
 
+  var epCommentsUtils = ep_comments_page_test_helper.utils;
+
   // assume dialogs are opened
-  var closeCommentInfoDialog = function(done) {
+  var testIfCommentInfoDialogIsClosed = function(done) {
     helper
       .waitFor(function() {
-        return !getCommentInfoDialog().is(':visible');
-      })
-      .done(done);
-  };
-  var closeCommentEditDialog = function(done) {
-    helper
-      .waitFor(function() {
-        return !getCommentEditDialog().is(':visible');
+        return !epCommentsUtils.getCommentInfoDialog().is(':visible');
       })
       .done(done);
   };
 
-  // assume dialogs are closed
-  var openCommentInfoDialog = function(done) {
+  var closeCommentEditDialog = function(done) {
     helper
       .waitFor(function() {
-        return getCommentInfoDialog().is(':visible');
+        return !getCommentEditDialog().is(':visible');
       })
       .done(done);
   };
@@ -107,10 +101,6 @@ describe('ep_comments_page - workflow to edit a comment', function() {
         return getCommentEditDialog().is(':visible');
       }, 4000)
       .done(done);
-  };
-
-  var getCommentInfoDialog = function() {
-    return helper.padOuter$('.ui-dialog--comment:has(#text-mark-info)');
   };
 
   var getCommentEditDialog = function() {
