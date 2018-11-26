@@ -34,6 +34,7 @@ var cssFiles = [
   'ep_comments_page/static/css/jquery-ui-custom.css',
   'ep_comments_page/static/css/jquery-ui-custom-light.css',
   'ep_comments_page/static/css/jquery-ui-custom-dark.css',
+  'ep_comments_page/static/css/commentDialog.css',
 ];
 
 var COMMENT_PREFIX_KEY = 'comment-c-';

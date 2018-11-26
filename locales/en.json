@@ -5,5 +5,6 @@
   "ep_comments_page.comments_template.close.title" : "Close",
 
   "ep_comments_page.comments_template.delete" : "delete",
-  "ep_comments_page.comments_template.edit" : "edit"
+  "ep_comments_page.comments_template.edit" : "edit",
+  "ep_comments_page.comments_template.show_replies" : "show replies {{repliesLength}}"
 }

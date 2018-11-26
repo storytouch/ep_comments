@@ -9,7 +9,7 @@ exports.NON_SCROLLABLE_EVENT = NON_SCROLLABLE_EVENT;
 var DO_NOTHING = function() {};
 
 /*
-  values of 'props'. All of them are required
+  values of 'props'.
   ace: object reference to context.ace
   buildTextMarkData: function that builds the object that is displayed on the window
   infoTemplate: object with strings id and mainComponentSelector of info template
@@ -19,6 +19,8 @@ var DO_NOTHING = function() {};
   editTextMarkFormId: string with 'id' of the text mark form
   saveTextMark: function that saves the object text mark
   removeTextMark: function that deletes the text mark
+  infoDialogCustomButtons: array of objects with additional buttons to show on info dialog window (optional)
+  addAdditionalElementsOnInfoDialog: function the add custom elements on the info dialog window (optional)
 */
 
 var textMarkInfoDialog = function(props) {
@@ -30,6 +32,8 @@ var textMarkInfoDialog = function(props) {
   this.editTextMarkFormId = props.editTextMarkFormId; // better refactor it!
   this.saveTextMark = props.saveTextMark;
   this.removeTextMark = props.removeTextMark;
+  this.infoDialogCustomButtons = props.infoDialogCustomButtons || [];
+  this.addAdditionalElementsOnInfoDialog = props.addAdditionalElementsOnInfoDialog || function(){};
   this.textMarkIdBeingDisplayed = undefined;
   this.targetType = props.targetType;
   this.infoDialog = this._createInfoDialog(ace);
@@ -39,6 +43,7 @@ var textMarkInfoDialog = function(props) {
 textMarkInfoDialog.prototype._createInfoDialog = function(ace) {
   // $content will be filled with data later, when dialog is opened
   var $emptyContent = $('<div><div id="text-mark-info"></div></div>');
+  var infoDialogButtons = this._buildInfoDialogButtons();
   var configs = {
     $content: $emptyContent,
     dialogTitleL10nKey: this.dialogTitleKey,
@@ -48,13 +53,25 @@ textMarkInfoDialog.prototype._createInfoDialog = function(ace) {
     doNotAnimate: true,
     openWithinViewport: true,
     dialogOpts: {
-      buttons: [
-        this._buildButton('edit', this._closeInfoDialogAndShowEditDialog.bind(this)),
-        this._buildButton('delete', this._deleteTextMarkAndCloseInfoDialog.bind(this)),
-      ],
+      buttons: infoDialogButtons,
     },
   };
   return dialog.create(configs);
+};
+
+textMarkInfoDialog.prototype._buildInfoDialogButtons = function() {
+  var defaultInfoDialogButtons = [
+    { buttonName: 'edit', handler: this._closeInfoDialogAndShowEditDialog.bind(this) },
+    { buttonName: 'delete', handler: this._deleteTextMarkAndCloseInfoDialog.bind(this) },
+  ];
+
+  // a dialogue window has at least two buttons (edit and delete). On comment
+  // dialogue we have an additional button that toggles the reply window
+  var dialogButtons = _(defaultInfoDialogButtons.concat(this.infoDialogCustomButtons)).compact();
+
+  return _(dialogButtons).map(function(dialogButton) {
+    return this._buildButton(dialogButton);
+  }, this);
 };
 
 textMarkInfoDialog.prototype._createEditDialog = function(ace) {
@@ -74,11 +91,15 @@ textMarkInfoDialog.prototype._createEditDialog = function(ace) {
   return dialog.create(configs);
 };
 
-textMarkInfoDialog.prototype._buildButton = function(key, action) {
+textMarkInfoDialog.prototype._buildButton = function(props) {
   var self = this;
+  var key = props.buttonName;
+  var action = props.handler;
+  var l10nArgs = props.buttonL10nArgs || '{}'
   return {
     text: key,
     'data-l10n-id': 'ep_comments_page.comments_template.' + key,
+    'data-l10n-args': l10nArgs,
     class: 'button--' + key,
     click: function(e) {
       var textMarkId = self.textMarkIdBeingDisplayed;
@@ -140,7 +161,7 @@ textMarkInfoDialog.prototype._showTextMarkInfoDialog = function(
 
   this._keepCurrentRepSelection(function() {
     var dialog = self.infoDialog;
-    self._fillTextMarkContentOnInfoDialog();
+    self._fillTextMarkContentOnInfoDialog(self.addAdditionalElementsOnInfoDialog);
     selectTextUsedAsReferenceForDialogPosition(dialog);
     dialog.open(null, DO_NOTHING);
   });
@@ -172,8 +193,8 @@ textMarkInfoDialog.prototype._getCurrentRepSelection = function() {
   return currentRep;
 };
 
-textMarkInfoDialog.prototype._fillTextMarkContentOnInfoDialog = function() {
-  this._fillTextMarkContent(this.infoDialog, this.infoTemplate.id, this.infoTemplate.mainComponentSelector);
+textMarkInfoDialog.prototype._fillTextMarkContentOnInfoDialog = function(addAditionalContentIfNecessary) {
+  this._fillTextMarkContent(this.infoDialog, this.infoTemplate.id, this.infoTemplate.mainComponentSelector, addAditionalContentIfNecessary);
 };
 
 textMarkInfoDialog.prototype._fillTextMarkContentOnEditDialog = function() {
@@ -184,15 +205,16 @@ textMarkInfoDialog.prototype._buildTextMarkInfoDataToShowOnTemplate = function(t
   return this.buildTextMarkData(textMarkId);
 };
 
-textMarkInfoDialog.prototype._fillTextMarkContent = function(dialog, templateSelector, mainComponentSelector) {
+textMarkInfoDialog.prototype._fillTextMarkContent = function(dialog, templateSelector, mainComponentSelector, addAditionalContentIfNecessary) {
   // fill content with most up-to-date data
   var textMarkId = this.textMarkIdBeingDisplayed;
-
   var textMarkInfoDataToFillTemplate = this._buildTextMarkInfoDataToShowOnTemplate(textMarkId);
-
   var $textMarkInfo = $(templateSelector).tmpl(textMarkInfoDataToFillTemplate);
 
   utils.replaceDialogContentWith($textMarkInfo, dialog, mainComponentSelector);
+
+  // add buttons, append content if necessary
+  if (addAditionalContentIfNecessary) addAditionalContentIfNecessary(dialog, textMarkInfoDataToFillTemplate);
 };
 
 textMarkInfoDialog.prototype._selectTextOfBegginingOfTextMark = function(textMarkId, dialog) {
