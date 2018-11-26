@@ -116,6 +116,7 @@ textMarkInfoDialog.prototype._closeInfoDialogAndShowEditDialog = function() {
   this.infoDialog.close();
 };
 
+// TODO: check if this method is used on other place
 textMarkInfoDialog.prototype.getCurrentOwner = function() {
   return this.currentOwner;
 };

@@ -340,5 +340,20 @@ ep_comments_page_test_helper.utils = {
     var $end = this.getLine(lines[1]);
 
     helper.selectLines($beginning, $end);
-  }
+  },
+
+  getCommentInfoDialog: function() {
+    return helper.padOuter$('.ui-dialog--comment:has(#text-mark-info)');
+  },
+
+  // assume dialogs are closed
+  testIfCommentDialogIsClosed: function(done) {
+    var self = this;
+    helper
+      .waitFor(function() {
+        return self.getCommentInfoDialog().is(':visible');
+      })
+      .done(done);
+  },
+
 }

@@ -21,9 +21,11 @@ describe('ep_comments_page - workflow to remove a comment', function() {
     this.timeout(60000);
   });
 
+  var epCommentsUtils = ep_comments_page_test_helper.utils;
+
   context('when user clicks on the "delete" button of the dialog', function() {
     before(function() {
-      getCommentInfoDialog()
+      epCommentsUtils.getCommentInfoDialog()
         .find('.button--delete')
         .click();
     });
@@ -35,20 +37,16 @@ describe('ep_comments_page - workflow to remove a comment', function() {
     });
 
     it('closes the Comment info dialog', function(done) {
-      closeCommentInfoDialog(done);
+      testIfCommentDialogIsClosed(done);
     });
   });
 
   // assume dialogs are opened
-  var closeCommentInfoDialog = function(done) {
+  var testIfCommentDialogIsClosed = function(done) {
     helper
       .waitFor(function() {
-        return !getCommentInfoDialog().is(':visible');
+        return !epCommentsUtils.getCommentInfoDialog().is(':visible');
       })
       .done(done);
-  };
-
-  var getCommentInfoDialog = function() {
-    return helper.padOuter$('.ui-dialog--comment:has(#text-mark-info)');
   };
 });
