@@ -9,6 +9,7 @@ var commentDataManager = function(socket) {
   this.thisPlugin = pad.plugins.ep_comments_page;
   this.socket = socket;
   this.comments = {};
+  this.commentsStillOnText = {};
 
   linesChangedListener.onLineChanged('.comment, heading', this.triggerDataChanged.bind(this));
 
@@ -26,8 +27,13 @@ commentDataManager.prototype.getComments = function() {
   return this.comments;
 }
 
-commentDataManager.prototype.getComment = function(commentId) {
-  return this.comments[commentId];
+// we only return the comment data if this comment is still present on text
+commentDataManager.prototype.getDataOfCommentIfStillPresentOnText = function(commentId) {
+  var comment = this.commentsStillOnText.filter(function(comment){
+    return comment.commentId === commentId;
+  });
+
+  return comment.length ? comment[0] : {};
 }
 
 commentDataManager.prototype.getRepliesOfComment = function(commentId) {
@@ -193,10 +199,14 @@ commentDataManager.prototype.updateListOfCommentsStillOnText = function() {
 
         return commentData;
       }
-      return; 
+      return;
     }, this)
     .compact()
     .value();
+
+  // keep these comments data, so it can be used on the Etherpad side (e.g. show comments
+  // data on the comment info dialog)
+  this.commentsStillOnText = commentsToSend;
 
   this.thisPlugin.api.triggerDataChanged(commentsToSend);
 }

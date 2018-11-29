@@ -37,7 +37,27 @@ var commentInfoDialog = function(ace) {
     ],
   });
   this.showCommentInfoForId = this.showCommentInfoForId;
+  this.addListenerOfReplyButtons();
 };
+
+commentInfoDialog.prototype.addListenerOfReplyButtons = function() {
+  var self = this;
+  utils.getPadOuter().find('.ui-dialog--comment').on('click', '.reply-button--delete', function(e) {
+    self._handleReplyRemoval(e);
+  })
+}
+
+commentInfoDialog.prototype._handleReplyRemoval = function(e) {
+  var replyId = $(e.currentTarget).data('reply-id');
+  var commentId = $(e.currentTarget).data('comment-id');
+  this._removeReplySectionFromReplyWindow(replyId);
+  this.thisPlugin.api.onReplyDeletion(replyId, commentId);
+}
+
+commentInfoDialog.prototype._removeReplySectionFromReplyWindow = function(replyId) {
+  var classOfReplySection = '.replyId-' + replyId;
+  utils.getPadOuter().find('#replies-container').find(classOfReplySection).remove();
+}
 
 // TODO: implement change of the button name here
 commentInfoDialog.prototype.toggleReplyWindow = function() {
@@ -52,7 +72,7 @@ commentInfoDialog.prototype.showCommentInfoForId = function(commentId, owner) {
 };
 
 commentInfoDialog.prototype._buildCommentData = function(commentId) {
-  var comment = this.thisPlugin.commentDataManager.getComment(commentId);
+  var comment = this.thisPlugin.commentDataManager.getDataOfCommentIfStillPresentOnText(commentId);
   var repliesLength = Object.keys(comment.replies).length;
   return {
     formId: EDIT_COMMENT_FORM_ID,

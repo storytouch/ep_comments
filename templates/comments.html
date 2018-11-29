@@ -27,7 +27,7 @@
 <script id="replies-info-template" type="text/html">
   <div>
     {{each replies}}
-      <div>
+      <div class="replyId-${replyId}">
         <div class="reply-description">
           <div class="reply-description-body">${text}</div>
         </div>
@@ -37,6 +37,7 @@
             class="reply-button--edit"
             type="submit"
             value="Edit"
+            data-comment-id=${commentId}
             data-reply-id=${replyId}
             data-l10n-id="ep_comments_page.comments_template.edit"
           />
@@ -44,6 +45,7 @@
             class="reply-button--delete"
             type="submit"
             value="Delete"
+            data-comment-id=${commentId}
             data-reply-id=${replyId}
             data-l10n-id="ep_comments_page.comments_template.delete" />
           </div>

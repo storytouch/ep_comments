@@ -1,4 +1,4 @@
-describe.only('ep_comments_page - show comment info', function() {
+describe('ep_comments_page - show comment info', function() {
   var utils = ep_comments_page_test_helper.utils;
   var apiUtils = ep_comments_page_test_helper.apiUtils;
   var COMMENT_LINE = 0;
@@ -18,22 +18,13 @@ describe.only('ep_comments_page - show comment info', function() {
     this.timeout(60000);
   });
 
-  var getReplyContainer = function() {
-    return helper.padOuter$('#replies-container');
-  };
-
   var getReplyText = function(index) {
-    return getReplyContainer()
+    return utils.getReplyContainer()
       .children()
       .eq(index)
       .find('.reply-description')
       .text()
       .trim();
-  };
-
-  var clickOnShowReplyButton = function() {
-    var $replyButton = helper.padOuter$('.button--show_replies');
-    $replyButton.click();
   };
 
   context('when comment does not have replies', function() {
@@ -42,7 +33,8 @@ describe.only('ep_comments_page - show comment info', function() {
       apiUtils.simulateCallToShowCommentInfo(commentId);
     });
 
-    it('does not show replies button', function(done) {
+    // TODO: to implement it
+    xit('does not show replies button', function(done) {
       done();
     });
   });
@@ -71,14 +63,14 @@ describe.only('ep_comments_page - show comment info', function() {
 
     context('and user clicks on replies button', function() {
       before(function() {
-        clickOnShowReplyButton();
+        utils.clickOnShowReplyButton();
       });
 
       it('renders the replies', function(done) {
-        var repliesContainerIsVisible = getReplyContainer().is(':visible');
-        var containerChildrenLength = getReplyContainer().children().length;
+        var repliesContainerIsVisible = utils.getReplyContainer().is(':visible');
+        var containerChildrenLength = utils.getReplyContainer().children().length;
         expect(repliesContainerIsVisible).to.be(true);
-        expect(getReplyContainer().length).to.be(1);
+        expect(utils.getReplyContainer().length).to.be(1);
         expect(containerChildrenLength).to.be(2);
         done();
       });
@@ -96,11 +88,11 @@ describe.only('ep_comments_page - show comment info', function() {
 
       context('and user clicks again on reply button', function() {
         before(function() {
-          clickOnShowReplyButton();
+          utils.clickOnShowReplyButton();
         });
 
         it('hides the replies window', function(done) {
-          var repliesContainerIsVisible = getReplyContainer().is(':visible');
+          var repliesContainerIsVisible = utils.getReplyContainer().is(':visible');
           expect(repliesContainerIsVisible).to.be(false);
           done();
         });
