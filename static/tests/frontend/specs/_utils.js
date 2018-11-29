@@ -356,4 +356,12 @@ ep_comments_page_test_helper.utils = {
       .done(done);
   },
 
+  clickOnShowReplyButton: function() {
+    var $replyButton = helper.padOuter$('.button--show_replies');
+    $replyButton.click();
+  },
+
+  getReplyContainer: function() {
+    return helper.padOuter$('#replies-container');
+  },
 }
