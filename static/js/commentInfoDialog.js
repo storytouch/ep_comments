@@ -68,16 +68,20 @@ commentInfoDialog.prototype._handleReplySave = function(event) {
 
   // get text from text edit form dialog, after remove it from reply dialog
   var newReplyText = this._getTextFromEditFormDialog(targetData.replyId);
-  this._getEditFormDialog(targetData.replyId).remove();
 
-  // set the new reply text on the reply info dialog and make it visible
-  // again
-  var $originalReply = this._getReplyInfoDialog(targetData.replyId);
-  $originalReply.find('.reply-description-body').text(newReplyText);
-  $originalReply.children().show();
+  // avoid saving empty replies
+  if(newReplyText.trim().length) {
+    this._getEditFormDialog(targetData.replyId).remove();
 
-  // save the reply text on database
-  this.thisPlugin.api.onReplyEdition(targetData.commentId, targetData.replyId, newReplyText);
+    // set the new reply text on the reply info dialog and make it visible
+    // again
+    var $originalReply = this._getReplyInfoDialog(targetData.replyId);
+    $originalReply.find('.reply-description-body').text(newReplyText);
+    $originalReply.children().show();
+
+    // save the reply text on database
+    this.thisPlugin.api.onReplyEdition(targetData.commentId, targetData.replyId, newReplyText);
+  }
 };
 
 commentInfoDialog.prototype._getEditFormDialog = function(replyId) {

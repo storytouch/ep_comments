@@ -27,7 +27,6 @@ describe('ep_comments_page - workflow to edit reply', function() {
       .click();
   };
 
-
   var addTextToReplyEditFieldAndPressSave = function(replyIndex, newReplyText) {
     var $replyInfo = helper
       .padOuter$('#replies-container')
@@ -56,6 +55,12 @@ describe('ep_comments_page - workflow to edit reply', function() {
     return getReplyInfoDialogue(replyIndex)
       .find('.reply-description')
       .is(':visible');
+  };
+
+  var getReplyInfoText = function(replyIndex) {
+    return getReplyInfoDialogue(replyIndex)
+      .find('.reply-description-body')
+      .text();
   };
 
   context('when user click on "edit" on reply', function() {
@@ -95,12 +100,25 @@ describe('ep_comments_page - workflow to edit reply', function() {
     });
 
     context('and user changes the text', function() {
-      var newReplyText = 'new reply text';
+      var newReplyText = ''; // empty text
+      before(function() {
+        addTextToReplyEditFieldAndPressSave(replyIndex, newReplyText);
+      });
+
       context('and it is an empty text', function() {
-        xit('does not save the reply text');
+        it('keeps the edit dialogue opened', function(done) {
+          expect(isReplyEditFormVisible(replyIndex)).to.be(true);
+          done();
+        });
+
+        it('does not save the reply text', function(done) {
+          expect(getReplyInfoText(replyIndex)).to.be(FIRST_REPLY_TEXT);
+          done();
+        });
       });
 
       context('and user saves the change', function() {
+        var newReplyText = 'new reply text';
         before(function() {
           addTextToReplyEditFieldAndPressSave(replyIndex, newReplyText);
         });
@@ -115,21 +133,19 @@ describe('ep_comments_page - workflow to edit reply', function() {
           done();
         });
 
-        it('displays the reply info dialogue with the new text', function(done){
-          var replyInfoText = getReplyInfoDialogue(replyIndex).find('.reply-description-body').text();
-          expect(replyInfoText).to.be(newReplyText);
+        it('displays the reply info dialogue with the new text', function(done) {
+          expect(getReplyInfoText(replyIndex)).to.be(newReplyText);
           done();
-        })
+        });
 
         // every time we open the comment info we get a fresh comment data. So
         // to make sure the reply was saved, we close the dialogue and open it
         // again
         it('saves the new text as the reply text', function(done) {
           utils.closeCommentWindowAndClickOnShowReplies(COMMENT_AND_REPLIES_LINE, function() {
-            var replyInfoText = getReplyInfoDialogue(replyIndex).find('.reply-description-body').text();
-            expect(replyInfoText).to.be(newReplyText);
+            expect(getReplyInfoText(replyIndex)).to.be(newReplyText);
             done();
-          })
+          });
         });
       });
 
