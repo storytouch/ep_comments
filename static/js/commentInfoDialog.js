@@ -18,6 +18,7 @@ var REPLY_CONTAINER_ID = '#replies-container';
 var REPLY_BUTTON_DELETE = '.reply-button--delete';
 var REPLY_BUTTON_EDIT = '.reply-button--edit';
 var REPLY_BUTTON_SAVE = '.reply-button--save';
+var REPLY_BUTTON_CANCEL = '.reply-button--cancel';
 var COMMENT_WINDOW_CLASS = '.ui-dialog--comment';
 var COMMENT_ID_DATA_ATTR = 'comment-id';
 var REPLY_ID_DATA_ATTR = 'reply-id';
@@ -52,6 +53,7 @@ commentInfoDialog.prototype.addListenerOfReplyButtons = function() {
   $commentWindow.on('click', REPLY_BUTTON_DELETE, this._handleReplyRemoval.bind(this));
   $commentWindow.on('click', REPLY_BUTTON_EDIT, this._handleReplyEdition.bind(this));
   $commentWindow.on('click', REPLY_BUTTON_SAVE, this._handleReplySave.bind(this));
+  $commentWindow.on('click', REPLY_BUTTON_CANCEL, this._handleReplyCancelEdition.bind(this));
 };
 
 commentInfoDialog.prototype._getTargetData = function(e) {
@@ -65,22 +67,23 @@ commentInfoDialog.prototype._getTargetData = function(e) {
 commentInfoDialog.prototype._handleReplySave = function(event) {
   event.preventDefault(); // avoid reload the editor
   var targetData = this._getTargetData(event);
+  var replyId = targetData.replyId;
 
   // get text from text edit form dialog, after remove it from reply dialog
-  var newReplyText = this._getTextFromEditFormDialog(targetData.replyId);
+  var newReplyText = this._getTextFromEditFormDialog(replyId);
 
   // avoid saving empty replies
-  if(newReplyText.trim().length) {
-    this._getEditFormDialog(targetData.replyId).remove();
+  if (newReplyText.trim().length) {
+    this._getEditFormDialog(replyId).remove();
 
     // set the new reply text on the reply info dialog and make it visible
     // again
     var $originalReply = this._getReplyInfoDialog(targetData.replyId);
     $originalReply.find('.reply-description-body').text(newReplyText);
-    $originalReply.children().show();
+    this._showOrHideInfoReplyDialog(replyId, true);
 
     // save the reply text on database
-    this.thisPlugin.api.onReplyEdition(targetData.commentId, targetData.replyId, newReplyText);
+    this.thisPlugin.api.onReplyEdition(targetData.commentId, replyId, newReplyText);
   }
 };
 
@@ -112,21 +115,32 @@ commentInfoDialog.prototype._handleReplyRemoval = function(event) {
 // dialog is appended only when there is an edition
 commentInfoDialog.prototype._handleReplyEdition = function(event) {
   var targetData = this._getTargetData(event);
-  var $replyContainer = this._getReplyInfoDialog(targetData.replyId);
+  var replyId = targetData.replyId;
 
-  // hide the info dialog and get the original reply text
-  var $infoReplyDialog = $replyContainer.children();
-  $infoReplyDialog.hide();
-  var originalText = $infoReplyDialog.find('.reply-description-body').text();
+  // hide the info dialog
+  this._showOrHideInfoReplyDialog(replyId, false);
 
-  this._buildEditFormAndAddOnReplyContainer(originalText, targetData, $replyContainer);
+  // show the edit form and pre-fill with the reply original text
+  this._buildEditFormAndAddOnReplyContainer(targetData);
 };
 
-commentInfoDialog.prototype._buildEditFormAndAddOnReplyContainer = function(text, commentAndReplyIds, $replyContainer) {
-  var replyData = Object.assign(commentAndReplyIds, { text: text });
+commentInfoDialog.prototype._getTextOfInfoReplyDialog = function(replyId) {
+  var $replyContainer = this._getReplyInfoDialog(replyId);
+  var $infoReplyDialog = $replyContainer.children();
+  return $infoReplyDialog.find('.reply-description-body').text();
+};
+
+commentInfoDialog.prototype._buildEditFormAndAddOnReplyContainer = function(commentAndReplyIds) {
+  // build the edit form
+  var replyId = commentAndReplyIds.replyId;
+  var replyOriginalText = this._getTextOfInfoReplyDialog(replyId);
+  var replyData = Object.assign(commentAndReplyIds, { text: replyOriginalText });
   var $editReplyWindow = $('#edit-reply-template').tmpl(replyData);
+
+  // add it to the reply container
+  var $replyContainer = this._getReplyInfoDialog(replyId);
   $replyContainer.append($editReplyWindow);
-  $replyContainer.find('#reply-description').focus(); // change focus to edition
+  $replyContainer.find('#reply-description').focus(); // change focus to the description field
 };
 
 commentInfoDialog.prototype._removeReplySectionFromReplyWindow = function(replyId) {
@@ -138,7 +152,23 @@ commentInfoDialog.prototype._removeReplySectionFromReplyWindow = function(replyI
     .remove();
 };
 
+commentInfoDialog.prototype._handleReplyCancelEdition = function(event) {
+  event.preventDefault(); // avoid to reload the page
+  var targetData = this._getTargetData(event);
+  var replyId = targetData.replyId;
+  this._getEditFormDialog(replyId).remove(); // remove the edit dialog
+  this._showOrHideInfoReplyDialog(replyId, true); // show the info reply dialog that was hidden
+};
+
+commentInfoDialog.prototype._showOrHideInfoReplyDialog = function(replyId, displayElement) {
+  var $replyContainer = this._getReplyInfoDialog(replyId);
+  var $infoReplyDialog = $replyContainer.children();
+  $infoReplyDialog.toggle(displayElement); // when displayElement is true, it shows the element
+};
+
 // TODO: implement change of the button name here
+// maybe we should use $.toggle here. We could avoid adding
+// a css file
 commentInfoDialog.prototype.toggleReplyWindow = function() {
   utils
     .getPadOuter()
