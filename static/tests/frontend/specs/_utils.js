@@ -364,4 +364,35 @@ ep_comments_page_test_helper.utils = {
   getReplyContainer: function() {
     return helper.padOuter$('#replies-container');
   },
+
+  isCommentInfoWindowVisible: function() {
+    return helper.padOuter$('#text-mark-info').is(':visible');
+  },
+
+  // usually when we call this function we did some change the requires some
+  // time to be processed (e.g. edit a field). That's why we have to use a
+  // "timeout". We ensure when we open the window again we have the most recent
+  // data
+  closeCommentWindowAndClickOnShowReplies: function(commentLine, cb) {
+    var self = this;
+    var apiUtils = ep_comments_page_test_helper.apiUtils;
+    setTimeout(function() {
+      helper.padOuter$('.ui-dialog-titlebar-close').click(); // close comment window
+
+      // open comment window again
+      var commentId = self.getCommentIdOfLine(commentLine);
+      apiUtils.simulateCallToShowCommentInfo(commentId);
+
+      helper
+        .waitFor(function() {
+          // wait to the comment info be displayed
+          return self.isCommentInfoWindowVisible();
+        })
+        .done(function() {
+          // show reply window
+          self.clickOnShowReplyButton();
+          cb();
+        });
+    }, 500);
+  }
 }

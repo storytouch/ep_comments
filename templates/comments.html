@@ -54,6 +54,30 @@
   </div>
 </script>
 
+<script id="edit-reply-template" type="text/html">
+  <div>
+    <form class="for-reply" id="edit-reply-${replyId}">
+      <div class="comment-description">
+        <textarea
+          id="reply-description"
+          placeholder="describe the reply"
+          data-l10n-id="ep_comments_page.edit_reply_template.description.placeholder"
+        >${text}</textarea>
+      </div>
+      <div class="buttons-row comment-buttons">
+        <input
+          class="button button--save reply-button--save"
+          type="submit"
+          value="Save"
+          data-comment-id=${commentId}
+          data-reply-id=${replyId}
+          data-l10n-id="ep_script_touches.new_tag_occurrence_template.save.value"
+        />
+      </div>
+    </form>
+  </div>
+</script>
+
 <script id="commment-info-template" type="text/html">
   <div>
     <div id="text-mark-info">

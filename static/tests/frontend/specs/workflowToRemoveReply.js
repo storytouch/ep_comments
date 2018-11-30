@@ -27,17 +27,13 @@ describe('ep_comments_page - workflow to remove reply', function() {
       .click();
   };
 
-  var isCommentInfoWindowVisible = function() {
-    return helper.padOuter$('#text-mark-info').is(':visible');
-  };
-
   context('when user click on "remove" on reply', function() {
     before(function(done) {
       var commentId = utils.getCommentIdOfLine(COMMENT_AND_REPLIES_LINE);
       apiUtils.simulateCallToShowCommentInfo(commentId);
       helper
         .waitFor(function() {
-          return isCommentInfoWindowVisible();
+          return utils.isCommentInfoWindowVisible();
         })
         .done(function() {
           utils.clickOnShowReplyButton();
@@ -55,26 +51,10 @@ describe('ep_comments_page - workflow to remove reply', function() {
     // opened, we close, open again to check if the reply removed is not on the
     // window anymore
     it('removes the reply', function(done) {
-      // we have to wait a little to give time to the reply be removed from the database
-      setTimeout(function() {
-        helper.padOuter$('.ui-dialog-titlebar-close').click(); // close comment window
-
-        // open comment window again
-        var commentId = utils.getCommentIdOfLine(COMMENT_AND_REPLIES_LINE);
-        apiUtils.simulateCallToShowCommentInfo(commentId);
-
-        helper
-          .waitFor(function() {
-            // wait to the comment info be displayed
-            return isCommentInfoWindowVisible();
-          })
-          .done(function() {
-            // show reply window
-            utils.clickOnShowReplyButton();
-            expect(utils.getReplyContainer().children().length).to.be(1);
-            done();
-          });
-      }, 500);
+      utils.closeCommentWindowAndClickOnShowReplies(COMMENT_AND_REPLIES_LINE, function() {
+        expect(utils.getReplyContainer().children().length).to.be(1);
+        done();
+      })
     });
   });
 });
