@@ -2,6 +2,14 @@ var textMarkInfoDialog = require('./textMarkInfoDialog');
 var utils = require('./utils');
 var commentL10n = require('./commentL10n');
 
+var DATE_FORMAT_OPTIONS = {
+  day: 'numeric',
+  month: 'numeric',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
 var EDIT_COMMENT_FORM_ID = 'edit-comment';
 var INFO_TEMPLATE = {
   id: '#commment-info-template',
@@ -22,6 +30,8 @@ var REPLY_BUTTON_CANCEL = '.reply-button--cancel';
 var COMMENT_WINDOW_CLASS = '.ui-dialog--comment';
 var COMMENT_ID_DATA_ATTR = 'comment-id';
 var REPLY_ID_DATA_ATTR = 'reply-id';
+var COMMENT_DATE_CLASS = 'comment-date';
+var COMMENT_INFO_BUTTON_CONTAINER = '.ui-dialog-buttonset';
 
 var commentInfoDialog = function(ace) {
   this.thisPlugin = pad.plugins.ep_comments_page;
@@ -199,6 +209,7 @@ commentInfoDialog.prototype._buildCommentData = function(commentId) {
     initials: initials,
     author: comment.name,
     sceneNumber: comment.scene,
+    timestamp: comment.timestamp,
     formId: EDIT_COMMENT_FORM_ID,
     description: comment.text,
     replies: comment.replies,
@@ -229,8 +240,16 @@ commentInfoDialog.prototype._buildReplyWindow = function(dialog, commentData) {
   commentL10n.localize(dialog.widget);
 };
 
+// [1] the format is something like '12/3/2018, 2:48 PM'
+commentInfoDialog.prototype._addDateFieldToComment = function(dialog, commentData) {
+  dialog.widget.find('.' + COMMENT_DATE_CLASS).remove(); // remove any previous occurrence of comment date
+  var date = new Date(commentData.timestamp).toLocaleString(undefined, DATE_FORMAT_OPTIONS); // [1]
+  dialog.widget.find(COMMENT_INFO_BUTTON_CONTAINER).append('<span class="' + COMMENT_DATE_CLASS + '">' + date + '</span>');
+};
+
 commentInfoDialog.prototype.addAdditionalElementsOnInfoDialog = function(infoDialog, commentData) {
   this._updateReplyButtonText(infoDialog, commentData);
+  this._addDateFieldToComment(infoDialog, commentData);
   this._buildReplyWindow(infoDialog, commentData);
 };
 

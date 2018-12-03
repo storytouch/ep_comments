@@ -64,10 +64,11 @@ describe('ep_comments_page - show comment info', function() {
       done();
     });
 
-    // TODO: to implement it
-    xit('displays the date that comment was created', function(done) {
+    // this regex tests the format something like '12/3/2018, 2:48 PM'
+    it('displays the date that comment was created', function(done) {
+      var dateField =  helper.padOuter$('.comment-date').text();
+      expect(dateField).to.match(/((0[1-9]|[12]\d|3[01])\/([1-9]|1[0-2])\/[12]\d{3})(, ([0-9]|1[0-2]):[0-9][0-9] (A|P)M)/);
       done();
-
     });
 
     it('displays the length of replies', function(done) {
