@@ -7,5 +7,6 @@
   "ep_comments_page.edit_reply_template.description.placeholder" : "write here your reply",
   "ep_comments_page.comments_template.delete" : "delete",
   "ep_comments_page.comments_template.edit" : "edit",
-  "ep_comments_page.comments_template.show_replies" : "show replies {{repliesLength}}"
+  "ep_comments_page.comments_template.show_replies" : "show replies {{repliesLength}}",
+  "ep_comments_page.comments_template.scene" : "SCENE {{sceneNumber}}"
 }

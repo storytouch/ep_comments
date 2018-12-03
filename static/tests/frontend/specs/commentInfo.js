@@ -27,6 +27,10 @@ describe('ep_comments_page - show comment info', function() {
       .trim();
   };
 
+  var getTextOfDescriptionHeader = function(field) {
+    var commentDescriptionHeader = helper.padOuter$('.comment-description-header');
+    return commentDescriptionHeader.find('.' + field).text();
+  }
   context('when comment does not have replies', function() {
     before(function() {
       var commentId = utils.getCommentIdOfLine(COMMENT_LINE);
@@ -45,7 +49,28 @@ describe('ep_comments_page - show comment info', function() {
       apiUtils.simulateCallToShowCommentInfo(commentId);
     });
 
-    it('shows the length of replies', function(done) {
+    it('displays the comment creator initials', function(done) {
+      expect(getTextOfDescriptionHeader('initials')).to.be('JO');
+      done();
+    });
+
+    it('displays the comment creator', function(done) {
+      expect(getTextOfDescriptionHeader('author')).to.be('John');
+      done();
+    });
+
+    it('displays the scene position', function(done) {
+      expect(getTextOfDescriptionHeader('scene')).to.be('SCENE 0');
+      done();
+    });
+
+    // TODO: to implement it
+    xit('displays the date that comment was created', function(done) {
+      done();
+
+    });
+
+    it('displays the length of replies', function(done) {
       helper
         .waitFor(function() {
           return helper.padOuter$('#text-mark-info').is(':visible');

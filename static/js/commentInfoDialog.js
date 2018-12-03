@@ -180,10 +180,25 @@ commentInfoDialog.prototype.showCommentInfoForId = function(commentId, owner) {
   this.textMarkInfoDialog.showTextMarkInfoDialogForId(commentId, owner);
 };
 
+commentInfoDialog.prototype._buildAuthorInitials = function(name) {
+  var names = name.trim().split(' ');
+  var thereIsALastName = names.length > 1;
+
+  var firstInitial = names[0][0];
+  var lastInitial = thereIsALastName ? names[names.length - 1][0] : names[0][1];
+  var userInitials = (firstInitial || '') + (lastInitial || '');
+
+  return userInitials.toUpperCase();
+};
+
 commentInfoDialog.prototype._buildCommentData = function(commentId) {
   var comment = this.thisPlugin.commentDataManager.getDataOfCommentIfStillPresentOnText(commentId);
   var repliesLength = Object.keys(comment.replies).length;
+  var initials = this._buildAuthorInitials(comment.name);
   return {
+    initials: initials,
+    author: comment.name,
+    sceneNumber: comment.scene,
     formId: EDIT_COMMENT_FORM_ID,
     description: comment.text,
     replies: comment.replies,
