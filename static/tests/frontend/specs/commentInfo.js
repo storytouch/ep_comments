@@ -17,7 +17,11 @@ describe('ep_comments_page - show comment info', function() {
     utils.createPad(this, function() {
       utils.addCommentToLine(COMMENT_LINE, 'comment text', function() {
         utils.addCommentAndReplyToLine(COMMENT_AND_REPLIES_LINE, 'second comment', FIRST_REPLY_TEXT, function() {
-          utils.addCommentReplyToLine(COMMENT_AND_REPLIES_LINE, SECOND_REPLY_TEXT, done);
+          utils.addCommentReplyToLine(COMMENT_AND_REPLIES_LINE, SECOND_REPLY_TEXT, function() {
+            var commentId = utils.getCommentIdOfLine(COMMENT_AND_REPLIES_LINE);
+            apiUtils.simulateCallToShowCommentInfo(commentId);
+            done();
+          });
         });
       });
     });
@@ -39,6 +43,30 @@ describe('ep_comments_page - show comment info', function() {
     return commentDescriptionHeader.find('.' + field).text();
   };
 
+  it('displays the comment creator initials', function(done) {
+    expect(getTextOfDescriptionHeader('initials')).to.be('JO');
+    done();
+  });
+
+  it('displays the comment creator', function(done) {
+    expect(getTextOfDescriptionHeader('author')).to.be('John');
+    done();
+  });
+
+  it('displays the scene position', function(done) {
+    expect(getTextOfDescriptionHeader('scene')).to.be('SCENE 0');
+    done();
+  });
+
+  // this regex tests the format something like '12/3/2018, 2:48 PM'
+  it('displays the date that comment was created', function(done) {
+    var dateField = helper.padOuter$('.comment-date').text();
+    expect(dateField).to.match(
+      /((0[1-9]|[12]\d|3[01])\/([1-9]|1[0-2])\/[12]\d{3})(, ([0-9]|1[0-2]):[0-9][0-9] (A|P)M)/
+    );
+    done();
+  });
+
   context('when comment does not have replies', function() {
     before(function() {
       var commentId = utils.getCommentIdOfLine(COMMENT_LINE);
@@ -57,30 +85,6 @@ describe('ep_comments_page - show comment info', function() {
     before(function() {
       var commentId = utils.getCommentIdOfLine(COMMENT_AND_REPLIES_LINE);
       apiUtils.simulateCallToShowCommentInfo(commentId);
-    });
-
-    it('displays the comment creator initials', function(done) {
-      expect(getTextOfDescriptionHeader('initials')).to.be('JO');
-      done();
-    });
-
-    it('displays the comment creator', function(done) {
-      expect(getTextOfDescriptionHeader('author')).to.be('John');
-      done();
-    });
-
-    it('displays the scene position', function(done) {
-      expect(getTextOfDescriptionHeader('scene')).to.be('SCENE 0');
-      done();
-    });
-
-    // this regex tests the format something like '12/3/2018, 2:48 PM'
-    it('displays the date that comment was created', function(done) {
-      var dateField = helper.padOuter$('.comment-date').text();
-      expect(dateField).to.match(
-        /((0[1-9]|[12]\d|3[01])\/([1-9]|1[0-2])\/[12]\d{3})(, ([0-9]|1[0-2]):[0-9][0-9] (A|P)M)/
-      );
-      done();
     });
 
     it('displays the length of replies', function(done) {
