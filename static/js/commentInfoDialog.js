@@ -27,7 +27,7 @@ var EP_COMMENT_L10N_PREFIX = 'ep_comments_page.comments_template.';
 var DIALOG_TITLE_KEY = EP_COMMENT_L10N_PREFIX + 'comment';
 var TARGET_TYPE = 'comment';
 var SHOW_REPLIES_BUTTON_CLASS = '.button--show_replies';
-var REPLY_CONTAINER_ID = '#replies-container';
+var REPLY_CONTAINER_ID = 'replies-container';
 var REPLY_BUTTON_DELETE = '.reply-button--delete';
 var REPLY_BUTTON_EDIT = '.reply-button--edit';
 var REPLY_BUTTON_SAVE = '.reply-button--save';
@@ -37,6 +37,8 @@ var COMMENT_ID_DATA_ATTR = 'comment-id';
 var REPLY_ID_DATA_ATTR = 'reply-id';
 var COMMENT_DATE_CLASS = 'comment-date';
 var COMMENT_INFO_BUTTON_CONTAINER = '.ui-dialog-buttonset';
+var REPLY_DESCRIPTION_BODY_CLASS = '.reply-description-body';
+var REPLY_ID_CLASS_PREFIX = '.replyId-';
 
 var commentInfoDialog = function(ace) {
   this.thisPlugin = pad.plugins.ep_comments_page;
@@ -80,7 +82,7 @@ commentInfoDialog.prototype._getTargetData = function(e) {
 };
 
 commentInfoDialog.prototype._handleReplySave = function(event) {
-  event.preventDefault(); // avoid reload the editor
+  event.preventDefault(); // avoid reloading the editor
   var targetData = this._getTargetData(event);
   var replyId = targetData.replyId;
 
@@ -91,11 +93,14 @@ commentInfoDialog.prototype._handleReplySave = function(event) {
   if (newReplyText.trim().length) {
     this._getEditFormDialog(replyId).remove();
 
-    // set the new reply text on the reply info dialog and make it visible
-    // again
+    // [1] set the new reply text and [2] the time when the edition was made on
+    // the reply info dialog and [3] make it visible again
     var $originalReply = this._getReplyInfoDialog(targetData.replyId);
-    $originalReply.find('.reply-description-body').text(newReplyText);
-    this._showOrHideInfoReplyDialog(replyId, true);
+    $originalReply.find(REPLY_DESCRIPTION_BODY_CLASS).text(newReplyText); // [1]
+    var timeNow = new Date().getTime();
+    var dateOfEdition = this._buildPrettyDate(timeNow);
+    $originalReply.find('.reply-date').text(dateOfEdition); // [2]
+    this._showOrHideInfoReplyDialog(replyId, true); // [3]
 
     // save the reply text on database
     this.thisPlugin.api.onReplyEdition(targetData.commentId, replyId, newReplyText);
@@ -113,10 +118,10 @@ commentInfoDialog.prototype._getTextFromEditFormDialog = function(replyId) {
 };
 
 commentInfoDialog.prototype._getReplyInfoDialog = function(replyId) {
-  var classOfReplySection = '.replyId-' + replyId;
+  var classOfReplySection = REPLY_ID_CLASS_PREFIX + replyId;
   return utils
     .getPadOuter()
-    .find(REPLY_CONTAINER_ID)
+    .find('#' + REPLY_CONTAINER_ID)
     .find(classOfReplySection);
 };
 
@@ -142,7 +147,7 @@ commentInfoDialog.prototype._handleReplyEdition = function(event) {
 commentInfoDialog.prototype._getTextOfInfoReplyDialog = function(replyId) {
   var $replyContainer = this._getReplyInfoDialog(replyId);
   var $infoReplyDialog = $replyContainer.children();
-  return $infoReplyDialog.find('.reply-description-body').text();
+  return $infoReplyDialog.find(REPLY_DESCRIPTION_BODY_CLASS).text();
 };
 
 commentInfoDialog.prototype._buildEditFormAndAddOnReplyContainer = function(commentAndReplyIds) {
@@ -159,16 +164,16 @@ commentInfoDialog.prototype._buildEditFormAndAddOnReplyContainer = function(comm
 };
 
 commentInfoDialog.prototype._removeReplySectionFromReplyWindow = function(replyId) {
-  var classOfReplySection = '.replyId-' + replyId;
+  var classOfReplySection = REPLY_ID_CLASS_PREFIX + replyId;
   utils
     .getPadOuter()
-    .find('#replies-container')
+    .find('#' + REPLY_CONTAINER_ID)
     .find(classOfReplySection)
     .remove();
 };
 
 commentInfoDialog.prototype._handleReplyCancelEdition = function(event) {
-  event.preventDefault(); // avoid to reload the page
+  event.preventDefault(); // avoid reloading the page
   var targetData = this._getTargetData(event);
   var replyId = targetData.replyId;
   this._getEditFormDialog(replyId).remove(); // remove the edit dialog
@@ -182,7 +187,7 @@ commentInfoDialog.prototype._showOrHideInfoReplyDialog = function(replyId, displ
 };
 
 commentInfoDialog.prototype.toggleReplyWindow = function(commentId, event) {
-  var $repliesContainer = utils.getPadOuter().find('#replies-container');
+  var $repliesContainer = utils.getPadOuter().find('#' + REPLY_CONTAINER_ID);
   $repliesContainer.toggle(); // hide or display
 
   var repliesContainerIsVisible = $repliesContainer.is(':visible');
@@ -252,7 +257,7 @@ commentInfoDialog.prototype._buildRepliesData = function(commentData) {
   var hasReplies = Object.keys(replies).length;
   if (!hasReplies) return;
 
-  // we add the field initials and the date that was created into the original
+  // we add the fields initials and the date that was created into the original
   // reply data
   return _(replies).map(function(reply) {
     var initials = self._buildAuthorInitials(reply.name);
@@ -266,12 +271,14 @@ commentInfoDialog.prototype._buildRepliesData = function(commentData) {
 };
 
 commentInfoDialog.prototype._buildReplyWindow = function(dialog, commentData) {
-  dialog.widget.find('#replies-container').remove(); // remove any previous reply window
+  dialog.widget.find('#' + REPLY_CONTAINER_ID).remove(); // remove any previous reply window
   var repliesData = { replies: this._buildRepliesData(commentData) };
   var $repliesWindow = $('#replies-info-template').tmpl(repliesData);
 
-  // reply container is hidden by default
-  var replyWindowContainer = '<div id="replies-container" style="display: none;">' + $repliesWindow.html() + '</div>';
+  // reply container is hidden by default. We add a style inline to avoid adding
+  // an additional class. So we can control the visibility using only $.toggle
+  var defaultStyle = '" style="display: none;"';
+  var replyWindowContainer = '<div id="' + REPLY_CONTAINER_ID + defaultStyle + '>' + $repliesWindow.html() + '</div>';
   dialog.widget.append(replyWindowContainer);
   commentL10n.localize(dialog.widget);
 };
