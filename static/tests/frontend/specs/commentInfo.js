@@ -45,8 +45,10 @@ describe('ep_comments_page - show comment info', function() {
       apiUtils.simulateCallToShowCommentInfo(commentId);
     });
 
-    // TODO: to implement it
-    xit('does not show replies button', function(done) {
+    it('does not show replies button', function(done) {
+      var $replyButton = helper.padOuter$('.button--show_replies');
+      var isReplyButtonVisible = $replyButton.is(':visible');
+      expect(isReplyButtonVisible).to.be(false)
       done();
     });
   });

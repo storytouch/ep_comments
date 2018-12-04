@@ -237,6 +237,11 @@ commentInfoDialog.prototype._removeComment = function(commentId) {
 
 commentInfoDialog.prototype._updateReplyButtonText = function(dialog, commentData) {
   var repliesLength = commentData.repliesLength;
+
+  // does not show button if there is not replies
+  var hasReplies = repliesLength > 0;
+  dialog.widget.find(SHOW_REPLIES_BUTTON_CLASS).toggle(hasReplies);
+
   var repliesLengthValue = '{ "repliesLength": "' + repliesLength + '"}';
   dialog.widget.find(SHOW_REPLIES_BUTTON_CLASS).attr('data-l10n-args', repliesLengthValue);
 };
