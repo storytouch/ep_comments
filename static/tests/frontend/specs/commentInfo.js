@@ -90,7 +90,7 @@ describe('ep_comments_page - show comment info', function() {
           var $replyButton = helper.padOuter$('.button--show_replies');
           var hasRepliesButton = $replyButton.is(':visible');
           var displayLengthOfReplies = $replyButton.text();
-          var messageOfShowRepliesButton = 'show replies ' + LENGTH_OF_COMMENT_ON_SECOND_LINE;
+          var messageOfShowRepliesButton = 'show replies (' + LENGTH_OF_COMMENT_ON_SECOND_LINE + ')';
           expect(hasRepliesButton).to.be(true);
           expect(displayLengthOfReplies).to.be(messageOfShowRepliesButton);
           done();
@@ -139,8 +139,11 @@ describe('ep_comments_page - show comment info', function() {
         done();
       });
 
-      // TODO: to implement it!
-      xit('changes the text of the reply button to "hide replies"');
+      it('changes the text of the reply button to "hide replies"', function(done) {
+        var buttonText = helper.padOuter$('.button--show_replies').text();
+        expect(buttonText).to.be('hide replies');
+        done();
+      });
 
       context('and user clicks again on reply button', function() {
         before(function() {
@@ -150,6 +153,12 @@ describe('ep_comments_page - show comment info', function() {
         it('hides the replies window', function(done) {
           var repliesContainerIsVisible = utils.getReplyContainer().is(':visible');
           expect(repliesContainerIsVisible).to.be(false);
+          done();
+        });
+
+        it('changes the text of the reply button to "show replies"', function(done) {
+          var buttonText = helper.padOuter$('.button--show_replies').text();
+          expect(buttonText).to.be('show replies (2)');
           done();
         });
       });

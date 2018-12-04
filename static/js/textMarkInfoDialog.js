@@ -103,7 +103,7 @@ textMarkInfoDialog.prototype._buildButton = function(props) {
     class: 'button--' + key,
     click: function(e) {
       var textMarkId = self.textMarkIdBeingDisplayed;
-      action(textMarkId);
+      action(textMarkId, e);
     },
   };
 };

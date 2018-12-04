@@ -11,7 +11,8 @@ var DATE_FORMAT_OPTIONS = {
   hour: '2-digit',
   minute: '2-digit',
 };
-
+var SHOW_REPLIES_KEY = 'show_replies';
+var HIDE_REPLIES_KEY = 'hide_replies';
 var EDIT_COMMENT_FORM_ID = 'edit-comment';
 var INFO_TEMPLATE = {
   id: '#commment-info-template',
@@ -21,7 +22,9 @@ var EDIT_TEMPLATE = {
   id: '#edit-comment-template',
   mainComponentSelector: '#' + EDIT_COMMENT_FORM_ID,
 };
-var DIALOG_TITLE_KEY = 'ep_comments_page.comments_template.comment';
+
+var EP_COMMENT_L10N_PREFIX = 'ep_comments_page.comments_template.';
+var DIALOG_TITLE_KEY = EP_COMMENT_L10N_PREFIX + 'comment';
 var TARGET_TYPE = 'comment';
 var SHOW_REPLIES_BUTTON_CLASS = '.button--show_replies';
 var REPLY_CONTAINER_ID = '#replies-container';
@@ -178,14 +181,18 @@ commentInfoDialog.prototype._showOrHideInfoReplyDialog = function(replyId, displ
   $infoReplyDialog.toggle(displayElement); // when displayElement is true, it shows the element
 };
 
-// TODO: implement change of the button name here
-// maybe we should use $.toggle here. We could avoid adding
-// a css file
-commentInfoDialog.prototype.toggleReplyWindow = function() {
-  utils
-    .getPadOuter()
-    .find('#replies-container')
-    .toggleClass('hide');
+commentInfoDialog.prototype.toggleReplyWindow = function(commentId, event) {
+  var $repliesContainer = utils.getPadOuter().find('#replies-container');
+  $repliesContainer.toggle(); // hide or display
+
+  var repliesContainerIsVisible = $repliesContainer.is(':visible');
+  var buttonL10nKey = repliesContainerIsVisible ? HIDE_REPLIES_KEY : SHOW_REPLIES_KEY;
+
+  // here we [1] update button text, and [2] force the translation
+  var $showOrHideRepliesButton = $(event.currentTarget);
+  var l10nIdValue = EP_COMMENT_L10N_PREFIX + buttonL10nKey;
+  $showOrHideRepliesButton.attr('data-l10n-id', l10nIdValue); // [1]
+  commentL10n.localize($showOrHideRepliesButton); // [2]
 };
 
 commentInfoDialog.prototype.showCommentInfoForId = function(commentId, owner) {
@@ -257,7 +264,9 @@ commentInfoDialog.prototype._buildReplyWindow = function(dialog, commentData) {
   dialog.widget.find('#replies-container').remove(); // remove any previous reply window
   var repliesData = { replies: this._buildRepliesData(commentData) };
   var $repliesWindow = $('#replies-info-template').tmpl(repliesData);
-  var replyWindowContainer = '<div id="replies-container" class="hide">' + $repliesWindow.html() + '</div>';
+
+  // reply container is hidden by default
+  var replyWindowContainer = '<div id="replies-container" style="display: none;">' + $repliesWindow.html() + '</div>';
   dialog.widget.append(replyWindowContainer);
   commentL10n.localize(dialog.widget);
 };
