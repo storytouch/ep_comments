@@ -1,3 +1,5 @@
+var _ = require('ep_etherpad-lite/static/js/underscore');
+
 var textMarkInfoDialog = require('./textMarkInfoDialog');
 var utils = require('./utils');
 var commentL10n = require('./commentL10n');
@@ -232,19 +234,45 @@ commentInfoDialog.prototype._updateReplyButtonText = function(dialog, commentDat
   dialog.widget.find(SHOW_REPLIES_BUTTON_CLASS).attr('data-l10n-args', repliesLengthValue);
 };
 
+commentInfoDialog.prototype._buildRepliesData = function(commentData) {
+  var self = this;
+  var replies = commentData.replies;
+  var hasReplies = Object.keys(replies).length;
+  if (!hasReplies) return;
+
+  // we add the field initials and the date that was created into the original
+  // reply data
+  return _(replies).map(function(reply) {
+    var initials = self._buildAuthorInitials(reply.name);
+    var prettyDate = self._buildPrettyDate(reply.timestamp);
+
+    return Object.assign(reply, {
+      initials: initials,
+      prettyDate: prettyDate,
+    });
+  });
+};
+
 commentInfoDialog.prototype._buildReplyWindow = function(dialog, commentData) {
   dialog.widget.find('#replies-container').remove(); // remove any previous reply window
-  var $repliesWindow = $('#replies-info-template').tmpl(commentData);
+  var repliesData = { replies: this._buildRepliesData(commentData) };
+  var $repliesWindow = $('#replies-info-template').tmpl(repliesData);
   var replyWindowContainer = '<div id="replies-container" class="hide">' + $repliesWindow.html() + '</div>';
   dialog.widget.append(replyWindowContainer);
   commentL10n.localize(dialog.widget);
 };
 
-// [1] the format is something like '12/3/2018, 2:48 PM'
+// this function receives a date in timestamp and returns in a format like "12/3/2018, 2:48 PM"
+commentInfoDialog.prototype._buildPrettyDate = function(timestamp) {
+  return new Date(timestamp).toLocaleString(undefined, DATE_FORMAT_OPTIONS);
+};
+
 commentInfoDialog.prototype._addDateFieldToComment = function(dialog, commentData) {
   dialog.widget.find('.' + COMMENT_DATE_CLASS).remove(); // remove any previous occurrence of comment date
-  var date = new Date(commentData.timestamp).toLocaleString(undefined, DATE_FORMAT_OPTIONS); // [1]
-  dialog.widget.find(COMMENT_INFO_BUTTON_CONTAINER).append('<span class="' + COMMENT_DATE_CLASS + '">' + date + '</span>');
+  var prettyDate = this._buildPrettyDate(commentData.timestamp);
+  dialog.widget
+    .find(COMMENT_INFO_BUTTON_CONTAINER)
+    .append('<span class="' + COMMENT_DATE_CLASS + '">' + prettyDate + '</span>');
 };
 
 commentInfoDialog.prototype.addAdditionalElementsOnInfoDialog = function(infoDialog, commentData) {

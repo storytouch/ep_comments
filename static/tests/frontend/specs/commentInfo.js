@@ -6,6 +6,12 @@ describe('ep_comments_page - show comment info', function() {
   var LENGTH_OF_COMMENT_ON_SECOND_LINE = 2;
   var FIRST_REPLY_TEXT = 'first reply';
   var SECOND_REPLY_TEXT = 'second reply';
+  var REPLY_FIELDS = {
+    text: '.reply-description-body',
+    author: '.author',
+    initials: '.initials',
+    date: '.reply-date',
+  };
 
   before(function(done) {
     utils.createPad(this, function() {
@@ -18,11 +24,12 @@ describe('ep_comments_page - show comment info', function() {
     this.timeout(60000);
   });
 
-  var getReplyText = function(index) {
-    return utils.getReplyContainer()
+  var getReplyField = function(index, field) {
+    return utils
+      .getReplyContainer()
       .children()
       .eq(index)
-      .find('.reply-description')
+      .find(REPLY_FIELDS[field])
       .text()
       .trim();
   };
@@ -30,7 +37,8 @@ describe('ep_comments_page - show comment info', function() {
   var getTextOfDescriptionHeader = function(field) {
     var commentDescriptionHeader = helper.padOuter$('.comment-description-header');
     return commentDescriptionHeader.find('.' + field).text();
-  }
+  };
+
   context('when comment does not have replies', function() {
     before(function() {
       var commentId = utils.getCommentIdOfLine(COMMENT_LINE);
@@ -66,8 +74,10 @@ describe('ep_comments_page - show comment info', function() {
 
     // this regex tests the format something like '12/3/2018, 2:48 PM'
     it('displays the date that comment was created', function(done) {
-      var dateField =  helper.padOuter$('.comment-date').text();
-      expect(dateField).to.match(/((0[1-9]|[12]\d|3[01])\/([1-9]|1[0-2])\/[12]\d{3})(, ([0-9]|1[0-2]):[0-9][0-9] (A|P)M)/);
+      var dateField = helper.padOuter$('.comment-date').text();
+      expect(dateField).to.match(
+        /((0[1-9]|[12]\d|3[01])\/([1-9]|1[0-2])\/[12]\d{3})(, ([0-9]|1[0-2]):[0-9][0-9] (A|P)M)/
+      );
       done();
     });
 
@@ -101,11 +111,31 @@ describe('ep_comments_page - show comment info', function() {
         done();
       });
 
-      it('renders replies content', function(done) {
-        var firstReplyText = getReplyText(0);
-        var secondReplyText = getReplyText(1);
+      it('renders replies content text', function(done) {
+        var firstReplyText = getReplyField(0, 'text');
+        var secondReplyText = getReplyField(1, 'text');
         expect(firstReplyText).to.be(FIRST_REPLY_TEXT);
         expect(secondReplyText).to.be(SECOND_REPLY_TEXT);
+        done();
+      });
+
+      it('renders the replies author', function(done) {
+        var replyAuthor = getReplyField(0, 'author');
+        expect(replyAuthor).to.be('John');
+        done();
+      });
+
+      it('renders the replies author initials', function(done) {
+        var replyAuthorInitials = getReplyField(0, 'initials');
+        expect(replyAuthorInitials).to.be('JO');
+        done();
+      });
+
+      it('renders the replies date', function(done) {
+        var replyDate = getReplyField(0, 'date');
+        expect(replyDate).to.match(
+          /((0[1-9]|[12]\d|3[01])\/([1-9]|1[0-2])\/[12]\d{3})(, ([0-9]|1[0-2]):[0-9][0-9] (A|P)M)/
+        );
         done();
       });
 

@@ -29,6 +29,10 @@
     {{each replies}}
       <div class="replyId-${replyId}">
         <div class="reply-description">
+          <div class="reply-description-header">
+            <div class="initials">${initials}</div>
+            <div class="author">${name}</div>
+          </div>
           <div class="reply-description-body">${text}</div>
         </div>
 
@@ -48,6 +52,7 @@
             data-comment-id=${commentId}
             data-reply-id=${replyId}
             data-l10n-id="ep_comments_page.comments_template.delete" />
+          <span class="reply-date">${prettyDate}</span>
           </div>
       </div>
     {{/each}}
