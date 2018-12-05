@@ -3,7 +3,6 @@ describe('ep_comments_page - show comment info', function() {
   var apiUtils = ep_comments_page_test_helper.apiUtils;
 
   // this regex tests the format of something like '12/3/2018, 2:48 PM'
-  // as we use localeDate, tests that use this regex may fail if the browser uses a locale different of 'en-US'
   var DATE_TIME_REGEX = /((0[1-9]|[12]\d|3[01])\/([1-9]|1[0-2])\/[12]\d{3})(, ([0-9]|1[0-2]):[0-9][0-9] (A|P)M)/;
   var COMMENT_LINE = 0;
   var COMMENT_AND_REPLIES_LINE = 1;
@@ -18,34 +17,17 @@ describe('ep_comments_page - show comment info', function() {
   };
 
   before(function(done) {
-    utils.createPad(this, function() {
-      utils.addCommentToLine(COMMENT_LINE, 'comment text', function() {
-        utils.addCommentAndReplyToLine(COMMENT_AND_REPLIES_LINE, 'second comment', FIRST_REPLY_TEXT, function() {
-          utils.addCommentReplyToLine(COMMENT_AND_REPLIES_LINE, SECOND_REPLY_TEXT, function() {
-            var commentId = utils.getCommentIdOfLine(COMMENT_AND_REPLIES_LINE);
-            apiUtils.simulateCallToShowCommentInfo(commentId);
-            done();
-          });
-        });
-      });
+    utils.createPadWithCommentAndReplies({}, this, function(){
+      setLocaleToAmericanEnglish(); // force to use en-US locale
+
+      // show info dialog
+      var commentId = utils.getCommentIdOfLine(COMMENT_AND_REPLIES_LINE);
+      apiUtils.simulateCallToShowCommentInfo(commentId);
+      done();
     });
     this.timeout(60000);
   });
 
-  var getReplyField = function(index, field) {
-    return utils
-      .getReplyContainer()
-      .children()
-      .eq(index)
-      .find(REPLY_FIELDS[field])
-      .text()
-      .trim();
-  };
-
-  var getTextOfDescriptionHeader = function(field) {
-    var commentDescriptionHeader = helper.padOuter$('.comment-description-header');
-    return commentDescriptionHeader.find('.' + field).text();
-  };
 
   it('displays the comment creator initials', function(done) {
     expect(getTextOfDescriptionHeader('initials')).to.be('JO');
@@ -169,4 +151,25 @@ describe('ep_comments_page - show comment info', function() {
       });
     });
   });
+
+  var setLocaleToAmericanEnglish = function() {
+    var thisPlugin = helper.padChrome$.window.pad.plugins.ep_comments_page;
+    thisPlugin.commentInfoDialog.userLocale= 'en-US';
+  }
+
+  var getReplyField = function(index, field) {
+    return utils
+      .getReplyContainer()
+      .children()
+      .eq(index)
+      .find(REPLY_FIELDS[field])
+      .text()
+      .trim();
+  };
+
+  var getTextOfDescriptionHeader = function(field) {
+    var commentDescriptionHeader = helper.padOuter$('.comment-description-header');
+    return commentDescriptionHeader.find('.' + field).text();
+  };
+
 });

@@ -20,6 +20,11 @@ var DO_NOTHING = function() {};
   saveTextMark: function that saves the object text mark
   removeTextMark: function that deletes the text mark
   infoDialogCustomButtons: array of objects with additional buttons to show on info dialog window (optional)
+    {
+      buttonName: string,
+      handler: function(textMarkId, event),
+      buttonL10nArgs: object e.g. '{"key": "value"}'
+    }
   addAdditionalElementsOnInfoDialog: function the add custom elements on the info dialog window (optional)
 */
 
@@ -161,7 +166,7 @@ textMarkInfoDialog.prototype._showTextMarkInfoDialog = function(
 
   this._keepCurrentRepSelection(function() {
     var dialog = self.infoDialog;
-    self._fillTextMarkContentOnInfoDialog(self.addAdditionalElementsOnInfoDialog);
+    self._fillTextMarkContentOnInfoDialog();
     selectTextUsedAsReferenceForDialogPosition(dialog);
     dialog.open(null, DO_NOTHING);
   });
@@ -193,8 +198,8 @@ textMarkInfoDialog.prototype._getCurrentRepSelection = function() {
   return currentRep;
 };
 
-textMarkInfoDialog.prototype._fillTextMarkContentOnInfoDialog = function(addAditionalContentIfNecessary) {
-  this._fillTextMarkContent(this.infoDialog, this.infoTemplate.id, this.infoTemplate.mainComponentSelector, addAditionalContentIfNecessary);
+textMarkInfoDialog.prototype._fillTextMarkContentOnInfoDialog = function() {
+  this._fillTextMarkContent(this.infoDialog, this.infoTemplate.id, this.infoTemplate.mainComponentSelector, this.addAdditionalElementsOnInfoDialog);
 };
 
 textMarkInfoDialog.prototype._fillTextMarkContentOnEditDialog = function() {

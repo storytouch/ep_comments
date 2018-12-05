@@ -9,7 +9,7 @@ var commentDataManager = function(socket) {
   this.thisPlugin = pad.plugins.ep_comments_page;
   this.socket = socket;
   this.comments = {};
-  this.commentsStillOnText = {};
+  this.commentsStillOnText = [];
 
   linesChangedListener.onLineChanged('.comment, heading', this.triggerDataChanged.bind(this));
 
@@ -29,11 +29,11 @@ commentDataManager.prototype.getComments = function() {
 
 // we only return the comment data if this comment is still present on text
 commentDataManager.prototype.getDataOfCommentIfStillPresentOnText = function(commentId) {
-  var comment = this.commentsStillOnText.filter(function(comment){
+  var comment = this.commentsStillOnText.find(function(comment){
     return comment.commentId === commentId;
   });
 
-  return comment.length ? comment[0] : {};
+  return Object.keys(comment).length ? comment : {};
 }
 
 commentDataManager.prototype.getRepliesOfComment = function(commentId) {

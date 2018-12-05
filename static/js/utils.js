@@ -58,23 +58,22 @@ exports.getRepliesIndexedByReplyId = function(comments) {
 
 exports.getUserInfo = function() {
   var userName = clientVars.userName || '';
-  var userNames = userName.trim().split(' ');
-  var thereIsALastName = userNames.length > 1;
-
-  // fallback in case userNames is empty
-  if (userNames[0] === '') {
-    userNames = ['  '];
-  }
-
-  var firstInitial = userNames[0][0];
-  var lastInitial = thereIsALastName ? userNames[userNames.length - 1][0] : userNames[0][1];
-  var userInitials = firstInitial + lastInitial;
-
   return {
-    initials: userInitials.toUpperCase(),
+    initials: exports.buildUserInitials(userName),
     name: userName,
   }
 }
+
+exports.buildUserInitials = function(name) {
+  var names = name.trim().split(' ');
+  var thereIsALastName = names.length > 1;
+
+  var firstInitial = names[0][0];
+  var lastInitial = thereIsALastName ? names[names.length - 1][0] : names[0][1];
+  var userInitials = (firstInitial || '') + (lastInitial || '');
+
+  return userInitials.toUpperCase();
+};
 
 exports.openSocketConnectionToRoute = function(routePath) {
   // Required for instances running on weird ports

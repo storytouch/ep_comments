@@ -47,6 +47,27 @@ ep_comments_page_test_helper.utils = {
     }, 1000);
   },
 
+  createPadWithCommentAndReplies: function(props, test, cb) {
+    // as we use the same config for more than one test, we provide a default setting
+    var commentLine = props.commentLine || 0;
+    var firstCommentText = props.firstCommentText || 'comment text';
+    var secondCommentText = props.secondCommentText || 'second comment';
+    var commentAndRepliesLine = props.commentAndRepliesLine || 1;
+    var firstReplyText = props.firstReplyText || 'first reply';
+    var secondReplyText = props.secondReplyText || 'second reply';
+
+    var self = this;
+    self.createPad(test, function() {
+      self.addCommentToLine(commentLine, firstCommentText, function() {
+        self.addCommentAndReplyToLine(commentAndRepliesLine, secondCommentText, firstReplyText, function() {
+          self.addCommentReplyToLine(commentAndRepliesLine, secondReplyText, function() {
+            cb();
+          });
+        });
+      });
+    });
+  },
+
   _createOrResetPadText: function(done, scriptContent, lastLineText) {
     var self = this;
     var smUtils = ep_script_scene_marks_test_helper.utils;
@@ -373,7 +394,7 @@ ep_comments_page_test_helper.utils = {
   // time to be processed (e.g. edit a field). That's why we have to use a
   // "timeout". We ensure when we open the window again we have the most recent
   // data
-  closeCommentWindowAndClickOnShowReplies: function(commentLine, cb) {
+  reloadCommentWindowAndClickOnShowReplies: function(commentLine, cb) {
     var self = this;
     var apiUtils = ep_comments_page_test_helper.apiUtils;
     setTimeout(function() {

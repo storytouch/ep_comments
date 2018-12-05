@@ -61,6 +61,7 @@ var commentInfoDialog = function(ace) {
       },
     ],
   });
+  this.userLocale = window.navigator.language; // expose to be able to change it on tests
   this.showCommentInfoForId = this.showCommentInfoForId;
   this.addListenerOfReplyButtons();
 };
@@ -146,8 +147,7 @@ commentInfoDialog.prototype._handleReplyEdition = function(event) {
 
 commentInfoDialog.prototype._getTextOfInfoReplyDialog = function(replyId) {
   var $replyContainer = this._getReplyInfoDialog(replyId);
-  var $infoReplyDialog = $replyContainer.children();
-  return $infoReplyDialog.find(REPLY_DESCRIPTION_BODY_CLASS).text();
+  return $replyContainer.find(REPLY_DESCRIPTION_BODY_CLASS).text();
 };
 
 commentInfoDialog.prototype._buildEditFormAndAddOnReplyContainer = function(commentAndReplyIds) {
@@ -173,7 +173,6 @@ commentInfoDialog.prototype._removeReplySectionFromReplyWindow = function(replyI
 };
 
 commentInfoDialog.prototype._handleReplyCancelEdition = function(event) {
-  event.preventDefault(); // avoid reloading the page
   var targetData = this._getTargetData(event);
   var replyId = targetData.replyId;
   this._getEditFormDialog(replyId).remove(); // remove the edit dialog
@@ -204,21 +203,13 @@ commentInfoDialog.prototype.showCommentInfoForId = function(commentId, owner) {
   this.textMarkInfoDialog.showTextMarkInfoDialogForId(commentId, owner);
 };
 
-commentInfoDialog.prototype._buildAuthorInitials = function(name) {
-  var names = name.trim().split(' ');
-  var thereIsALastName = names.length > 1;
-
-  var firstInitial = names[0][0];
-  var lastInitial = thereIsALastName ? names[names.length - 1][0] : names[0][1];
-  var userInitials = (firstInitial || '') + (lastInitial || '');
-
-  return userInitials.toUpperCase();
-};
-
 commentInfoDialog.prototype._buildCommentData = function(commentId) {
   var comment = this.thisPlugin.commentDataManager.getDataOfCommentIfStillPresentOnText(commentId);
+  var hasComment = Object.keys(comment).length;
+  if(!hasComment) return {};
+
   var repliesLength = Object.keys(comment.replies).length;
-  var initials = this._buildAuthorInitials(comment.name);
+  var initials = utils.buildUserInitials(comment.name);
   return {
     initials: initials,
     author: comment.name,
@@ -241,7 +232,8 @@ commentInfoDialog.prototype._removeComment = function(commentId) {
 };
 
 commentInfoDialog.prototype._updateReplyButtonText = function(dialog, commentData) {
-  var repliesLength = commentData.repliesLength;
+  var hasCommentData = Object.keys(commentData).length;
+  var repliesLength = hasCommentData ? commentData.repliesLength : 0;
 
   // does not show button if there is not replies
   var hasReplies = repliesLength > 0;
@@ -254,13 +246,11 @@ commentInfoDialog.prototype._updateReplyButtonText = function(dialog, commentDat
 commentInfoDialog.prototype._buildRepliesData = function(commentData) {
   var self = this;
   var replies = commentData.replies;
-  var hasReplies = Object.keys(replies).length;
-  if (!hasReplies) return;
 
   // we add the fields initials and the date that was created into the original
   // reply data
   return _(replies).map(function(reply) {
-    var initials = self._buildAuthorInitials(reply.name);
+    var initials = utils.buildUserInitials(reply.name);
     var prettyDate = self._buildPrettyDate(reply.timestamp);
 
     return Object.assign(reply, {
@@ -272,20 +262,23 @@ commentInfoDialog.prototype._buildRepliesData = function(commentData) {
 
 commentInfoDialog.prototype._buildReplyWindow = function(dialog, commentData) {
   dialog.widget.find('#' + REPLY_CONTAINER_ID).remove(); // remove any previous reply window
-  var repliesData = { replies: this._buildRepliesData(commentData) };
-  var $repliesWindow = $('#replies-info-template').tmpl(repliesData);
+  var hasReplies = Object.keys(commentData).length && Object.keys(commentData.replies).length;
+  if(hasReplies) {
+    var repliesData = { replies: this._buildRepliesData(commentData) };
+    var $repliesWindow = $('#replies-info-template').tmpl(repliesData);
 
-  // reply container is hidden by default. We add a style inline to avoid adding
-  // an additional class. So we can control the visibility using only $.toggle
-  var defaultStyle = '" style="display: none;"';
-  var replyWindowContainer = '<div id="' + REPLY_CONTAINER_ID + defaultStyle + '>' + $repliesWindow.html() + '</div>';
-  dialog.widget.append(replyWindowContainer);
-  commentL10n.localize(dialog.widget);
+    // reply container is hidden by default. We add a style inline to avoid adding
+    // an additional class. So we can control the visibility using only $.toggle
+    var defaultStyle = '" style="display: none;"';
+    var replyWindowContainer = '<div id="' + REPLY_CONTAINER_ID + defaultStyle + '>' + $repliesWindow.html() + '</div>';
+    dialog.widget.append(replyWindowContainer);
+    commentL10n.localize(dialog.widget);
+  }
 };
 
 // this function receives a date in timestamp and returns in a format like "12/3/2018, 2:48 PM"
 commentInfoDialog.prototype._buildPrettyDate = function(timestamp) {
-  return new Date(timestamp).toLocaleString(undefined, DATE_FORMAT_OPTIONS);
+  return new Date(timestamp).toLocaleString(this.userLocale, DATE_FORMAT_OPTIONS);
 };
 
 commentInfoDialog.prototype._addDateFieldToComment = function(dialog, commentData) {
