@@ -39,6 +39,9 @@ var COMMENT_DATE_CLASS = 'comment-date';
 var COMMENT_INFO_BUTTON_CONTAINER = '.ui-dialog-buttonset';
 var REPLY_DESCRIPTION_BODY_CLASS = '.comment-reply-body';
 var REPLY_ID_CLASS_PREFIX = '.replyId-';
+var ADD_REPLY_COLLAPSE_CLASS = 'new-reply--collapsed'
+var ADD_REPLY = '.reply-content--input';
+var ADD_REPLY_CANCEL = '.add-reply-button--cancel';
 
 var commentInfoDialog = function(ace) {
   this.thisPlugin = pad.plugins.ep_comments_page;
@@ -72,6 +75,10 @@ commentInfoDialog.prototype.addListenerOfReplyButtons = function() {
   $commentWindow.on('click', REPLY_BUTTON_EDIT, this._handleReplyEdition.bind(this));
   $commentWindow.on('click', REPLY_BUTTON_SAVE, this._handleReplySave.bind(this));
   $commentWindow.on('click', REPLY_BUTTON_CANCEL, this._handleReplyCancelEdition.bind(this));
+
+  // add reply dialog listeners
+  $commentWindow.on('click', ADD_REPLY, this._displayAddReplyForm.bind(this));
+  $commentWindow.on('click', ADD_REPLY_CANCEL, this._handleReplyCancelAddition.bind(this));
 };
 
 commentInfoDialog.prototype._getTargetData = function(e) {
@@ -179,6 +186,22 @@ commentInfoDialog.prototype._handleReplyCancelEdition = function(event) {
   this._showOrHideInfoReplyDialog(replyId, true); // show the info reply dialog that was hidden
 };
 
+commentInfoDialog.prototype._displayAddReplyForm = function(event) {
+  var $textArea = $(event.currentTarget);
+  $textArea.parents('.new-reply').removeClass(ADD_REPLY_COLLAPSE_CLASS);
+}
+
+commentInfoDialog.prototype._handleReplyCancelAddition = function(event) {
+  var commentId = this._getTargetData(event).commentId;
+  var formId = '#newReply--' + commentId;
+  var $addReplyForm = utils.getPadOuter().find(formId);
+  $addReplyForm.addClass(ADD_REPLY_COLLAPSE_CLASS); // collapse form
+
+  // reset textarea text
+  var $textArea = $addReplyForm.find('textarea');
+  $textArea.val('');
+}
+
 commentInfoDialog.prototype._showOrHideInfoReplyDialog = function(replyId, displayElement) {
   var $replyContainer = this._getReplyInfoDialog(replyId);
   var $infoReplyDialog = $replyContainer.children();
@@ -211,6 +234,7 @@ commentInfoDialog.prototype._buildCommentData = function(commentId) {
   var repliesLength = Object.keys(comment.replies).length;
   var initials = utils.buildUserInitials(comment.name);
   return {
+    commentId: comment.commentId,
     initials: initials,
     author: comment.name,
     sceneNumber: comment.scene,
@@ -289,10 +313,18 @@ commentInfoDialog.prototype._addDateFieldToComment = function(dialog, commentDat
     .append('<div class="' + COMMENT_DATE_CLASS + '">' + '<span>' + prettyDate + '</span>' + '</div>');
 };
 
+commentInfoDialog.prototype._addAnswerCommentField = function(dialog, commentData) {
+  var addReplyFormId = '#newReply-' + commentData.commentId;
+  dialog.widget.find(addReplyFormId).remove(); // remove previous forms
+  var $newReplyWindow = $('#new-reply-template').tmpl(commentData);
+  dialog.widget.append($newReplyWindow);
+}
+
 commentInfoDialog.prototype.addAdditionalElementsOnInfoDialog = function(infoDialog, commentData) {
   this._updateReplyButtonText(infoDialog, commentData);
   this._addDateFieldToComment(infoDialog, commentData);
   this._buildReplyWindow(infoDialog, commentData);
+  this._addAnswerCommentField(infoDialog, commentData);
 };
 
 exports.init = function(ace) {

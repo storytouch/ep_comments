@@ -21,6 +21,11 @@
   font-weight: 300; /* Roboto Light */
 }
 
+/* when the new reply dialog is collapsed it shows an one line textarea */
+.ui-dialog .new-reply--collapsed textarea {
+  min-height: 0;
+}
+
 .ui-dialog input:focus,
 .ui-dialog textarea:focus {
   border: 1px solid #19BBDA; /* color A */
