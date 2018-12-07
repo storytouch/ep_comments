@@ -39,9 +39,11 @@ var COMMENT_DATE_CLASS = 'comment-date';
 var COMMENT_INFO_BUTTON_CONTAINER = '.ui-dialog-buttonset';
 var REPLY_DESCRIPTION_BODY_CLASS = '.comment-reply-body';
 var REPLY_ID_CLASS_PREFIX = '.replyId-';
-var ADD_REPLY_COLLAPSE_CLASS = 'new-reply--collapsed'
+var ADD_REPLY_COLLAPSE_CLASS = 'new-reply--collapsed';
 var ADD_REPLY = '.reply-content--input';
 var ADD_REPLY_CANCEL = '.add-reply-button--cancel';
+var ADD_REPLY_SAVE = '.add-reply-button--save';
+var ADD_REPLY_FORM_ID_PREFIX = '#newReply--';
 
 var commentInfoDialog = function(ace) {
   this.thisPlugin = pad.plugins.ep_comments_page;
@@ -59,7 +61,7 @@ var commentInfoDialog = function(ace) {
     infoDialogCustomButtons: [
       {
         buttonName: 'show_replies',
-        handler: this.toggleReplyWindow,
+        handler: this.toggleReplyWindow.bind(this),
         buttonL10nArgs: '{"repliesLength": "0"}',
       },
     ],
@@ -79,6 +81,7 @@ commentInfoDialog.prototype.addListenerOfReplyButtons = function() {
   // add reply dialog listeners
   $commentWindow.on('click', ADD_REPLY, this._displayAddReplyForm.bind(this));
   $commentWindow.on('click', ADD_REPLY_CANCEL, this._handleReplyCancelAddition.bind(this));
+  $commentWindow.on('click', ADD_REPLY_SAVE, this._handleReplySaveAddition.bind(this));
 };
 
 commentInfoDialog.prototype._getTargetData = function(e) {
@@ -189,18 +192,53 @@ commentInfoDialog.prototype._handleReplyCancelEdition = function(event) {
 commentInfoDialog.prototype._displayAddReplyForm = function(event) {
   var $textArea = $(event.currentTarget);
   $textArea.parents('.new-reply').removeClass(ADD_REPLY_COLLAPSE_CLASS);
-}
+};
+
+commentInfoDialog.prototype._getAddReplyFormId = function(commentId) {
+  return ADD_REPLY_FORM_ID_PREFIX + commentId;
+};
+
+commentInfoDialog.prototype._getAddReplyForm = function(commentId) {
+  var formId = this._getAddReplyFormId(commentId);
+  var $addReplyForm = utils.getPadOuter().find(formId);
+  return $addReplyForm;
+};
+
+commentInfoDialog.prototype._resetAddReplyForm = function(commentId) {
+  var $addReplyForm = this._getAddReplyForm(commentId);
+  var $textArea = $addReplyForm.find('textarea');
+  $textArea.val('');
+  $addReplyForm.addClass(ADD_REPLY_COLLAPSE_CLASS); // collapse form
+};
 
 commentInfoDialog.prototype._handleReplyCancelAddition = function(event) {
   var commentId = this._getTargetData(event).commentId;
-  var formId = '#newReply--' + commentId;
-  var $addReplyForm = utils.getPadOuter().find(formId);
-  $addReplyForm.addClass(ADD_REPLY_COLLAPSE_CLASS); // collapse form
+  this._resetAddReplyForm(commentId);
+};
 
-  // reset textarea text
+commentInfoDialog.prototype._getTextOfAddReplyForm = function($addReplyForm) {
   var $textArea = $addReplyForm.find('textarea');
-  $textArea.val('');
+  var replyText = $textArea.val();
+  return replyText;
 }
+
+commentInfoDialog.prototype._handleReplySaveAddition = function(event) {
+  event.preventDefault(); // avoid reloading
+  var commentId = this._getTargetData(event).commentId;
+  var $addReplyForm = this._getAddReplyForm(commentId);
+  var replyText = this._getTextOfAddReplyForm($addReplyForm);
+  var self = this;
+
+  this.thisPlugin.api.onReplyCreate(commentId, replyText, function() {
+    var $infoDialog = $addReplyForm.parents('.ui-dialog--comment');
+    var commentData = self._buildCommentData(commentId);
+    self._createReplyInterface($infoDialog, commentData);
+
+    // TODO: when it exists previous replies and they're hidden. It should not
+    // display the reply window
+    self.toggleReplyWindow(commentId, true);
+  });
+};
 
 commentInfoDialog.prototype._showOrHideInfoReplyDialog = function(replyId, displayElement) {
   var $replyContainer = this._getReplyInfoDialog(replyId);
@@ -208,18 +246,27 @@ commentInfoDialog.prototype._showOrHideInfoReplyDialog = function(replyId, displ
   $infoReplyDialog.toggle(displayElement); // when displayElement is true, it shows the element
 };
 
-commentInfoDialog.prototype.toggleReplyWindow = function(commentId, event) {
-  var $repliesContainer = utils.getPadOuter().find('#' + REPLY_CONTAINER_ID);
-  $repliesContainer.toggle(); // hide or display
-
-  var repliesContainerIsVisible = $repliesContainer.is(':visible');
+// [1] update button text, and [2] force the translation
+commentInfoDialog.prototype._updateShowOrHideRepliesButton = function($toggleRepliesButton, repliesContainerIsVisible) {
   var buttonL10nKey = repliesContainerIsVisible ? HIDE_REPLIES_KEY : SHOW_REPLIES_KEY;
-
-  // here we [1] update button text, and [2] force the translation
-  var $showOrHideRepliesButton = $(event.currentTarget);
   var l10nIdValue = EP_COMMENT_L10N_PREFIX + buttonL10nKey;
-  $showOrHideRepliesButton.attr('data-l10n-id', l10nIdValue); // [1]
-  commentL10n.localize($showOrHideRepliesButton); // [2]
+  $toggleRepliesButton.attr('data-l10n-id', l10nIdValue); // [1]
+  commentL10n.localize($toggleRepliesButton); // [2]
+};
+
+/*
+ [1] "shouldMakeReplyWindowVisible" is optional.
+ [2] When this argument is passed we force the replyContainer display/hide
+ (true/false). Not that, jQuery uses a strict comparison "===" in the $.toggle
+ implementation. So, when this varialbe is "undefined" it toggles the
+ visibility based on the $element previous state
+ */
+commentInfoDialog.prototype.toggleReplyWindow = function(commentId, shouldMakeReplyWindowVisible) { // [1]
+  var $repliesContainer = utils.getPadOuter().find('#' + REPLY_CONTAINER_ID);
+  $repliesContainer.toggle(shouldMakeReplyWindowVisible); // [2]
+  var $showOrHideRepliesButton = $repliesContainer.parent().find('.button--show_replies');
+  var repliesContainerIsVisible = $repliesContainer.is(':visible');
+  this._updateShowOrHideRepliesButton($showOrHideRepliesButton, repliesContainerIsVisible);
 };
 
 commentInfoDialog.prototype.showCommentInfoForId = function(commentId, owner) {
@@ -229,7 +276,7 @@ commentInfoDialog.prototype.showCommentInfoForId = function(commentId, owner) {
 commentInfoDialog.prototype._buildCommentData = function(commentId) {
   var comment = this.thisPlugin.commentDataManager.getDataOfCommentIfStillPresentOnText(commentId);
   var hasComment = Object.keys(comment).length;
-  if(!hasComment) return {};
+  if (!hasComment) return {};
 
   var repliesLength = Object.keys(comment.replies).length;
   var initials = utils.buildUserInitials(comment.name);
@@ -255,16 +302,16 @@ commentInfoDialog.prototype._removeComment = function(commentId) {
   this.thisPlugin.api.onCommentDeletion(commentId);
 };
 
-commentInfoDialog.prototype._updateReplyButtonText = function(dialog, commentData) {
+commentInfoDialog.prototype._updateReplyButtonText = function($infoDialog, commentData) {
   var hasCommentData = Object.keys(commentData).length;
   var repliesLength = hasCommentData ? commentData.repliesLength : 0;
 
   // does not show button if there is not replies
   var hasReplies = repliesLength > 0;
-  dialog.widget.find(SHOW_REPLIES_BUTTON_CLASS).toggle(hasReplies);
+  $infoDialog.find(SHOW_REPLIES_BUTTON_CLASS).toggle(hasReplies);
 
   var repliesLengthValue = '{ "repliesLength": "' + repliesLength + '"}';
-  dialog.widget.find(SHOW_REPLIES_BUTTON_CLASS).attr('data-l10n-args', repliesLengthValue);
+  $infoDialog.find(SHOW_REPLIES_BUTTON_CLASS).attr('data-l10n-args', repliesLengthValue);
 };
 
 commentInfoDialog.prototype._buildRepliesData = function(commentData) {
@@ -284,10 +331,10 @@ commentInfoDialog.prototype._buildRepliesData = function(commentData) {
   });
 };
 
-commentInfoDialog.prototype._buildReplyWindow = function(dialog, commentData) {
-  dialog.widget.find('#' + REPLY_CONTAINER_ID).remove(); // remove any previous reply window
+commentInfoDialog.prototype._buildReplyWindow = function($infoDialog, commentData) {
+  $infoDialog.find('#' + REPLY_CONTAINER_ID).remove(); // remove any previous reply window
   var hasReplies = Object.keys(commentData).length && Object.keys(commentData.replies).length;
-  if(hasReplies) {
+  if (hasReplies) {
     var repliesData = { replies: this._buildRepliesData(commentData) };
     var $repliesWindow = $('#replies-info-template').tmpl(repliesData);
 
@@ -295,8 +342,8 @@ commentInfoDialog.prototype._buildReplyWindow = function(dialog, commentData) {
     // an additional class. So we can control the visibility using only $.toggle
     var defaultStyle = '" style="display: none;"';
     var replyWindowContainer = '<div id="' + REPLY_CONTAINER_ID + defaultStyle + '>' + $repliesWindow.html() + '</div>';
-    dialog.widget.append(replyWindowContainer);
-    commentL10n.localize(dialog.widget);
+    $infoDialog.append(replyWindowContainer);
+    commentL10n.localize($infoDialog);
   }
 };
 
@@ -305,26 +352,31 @@ commentInfoDialog.prototype._buildPrettyDate = function(timestamp) {
   return new Date(timestamp).toLocaleString(this.userLocale, DATE_FORMAT_OPTIONS);
 };
 
-commentInfoDialog.prototype._addDateFieldToComment = function(dialog, commentData) {
-  dialog.widget.find('.' + COMMENT_DATE_CLASS).remove(); // remove any previous occurrence of comment date
+commentInfoDialog.prototype._addDateFieldToComment = function($infoDialog, commentData) {
+  $infoDialog.find('.' + COMMENT_DATE_CLASS).remove(); // remove any previous occurrence of comment date
   var prettyDate = this._buildPrettyDate(commentData.timestamp);
-  dialog.widget
+  $infoDialog
     .find(COMMENT_INFO_BUTTON_CONTAINER)
     .append('<div class="' + COMMENT_DATE_CLASS + '">' + '<span>' + prettyDate + '</span>' + '</div>');
 };
 
-commentInfoDialog.prototype._addAnswerCommentField = function(dialog, commentData) {
-  var addReplyFormId = '#newReply-' + commentData.commentId;
-  dialog.widget.find(addReplyFormId).remove(); // remove previous forms
+commentInfoDialog.prototype._addAnswerCommentField = function($infoDialog, commentData) {
+  var addReplyFormId = this._getAddReplyFormId(commentData.commentId);
+  $infoDialog.find(addReplyFormId).remove(); // remove previous forms
   var $newReplyWindow = $('#new-reply-template').tmpl(commentData);
-  dialog.widget.append($newReplyWindow);
-}
+  $infoDialog.append($newReplyWindow);
+};
+
+commentInfoDialog.prototype._createReplyInterface = function($infoDialog, commentData) {
+  this._updateReplyButtonText($infoDialog, commentData);
+  this._buildReplyWindow($infoDialog, commentData);
+  this._addAnswerCommentField($infoDialog, commentData);
+};
 
 commentInfoDialog.prototype.addAdditionalElementsOnInfoDialog = function(infoDialog, commentData) {
-  this._updateReplyButtonText(infoDialog, commentData);
-  this._addDateFieldToComment(infoDialog, commentData);
-  this._buildReplyWindow(infoDialog, commentData);
-  this._addAnswerCommentField(infoDialog, commentData);
+  var $infoDialog = infoDialog.widget;
+  this._createReplyInterface($infoDialog, commentData);
+  this._addDateFieldToComment($infoDialog, commentData);
 };
 
 exports.init = function(ace) {

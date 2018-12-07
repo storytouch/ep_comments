@@ -93,7 +93,7 @@ ep_comments.prototype.init = function(){
 
   utils.getPadInner().find('#innerdocbody').addClass('comments');
 
-  this.api.setHandleReplyCreation(function(commentId, text) {
+  this.api.setHandleReplyCreation(function(commentId, text, cb) {
     var data = self.getCommentData();
     data.commentId = commentId;
     data.reply = text;
@@ -101,6 +101,7 @@ ep_comments.prototype.init = function(){
     self.socket.emit('addCommentReply', data, function(replyId, reply) {
       commentSaveOrDelete.saveReplyOnCommentText(replyId, commentId, self.ace);
       self.commentDataManager.addReply(replyId, reply);
+      if (cb) cb();
     });
   });
 
