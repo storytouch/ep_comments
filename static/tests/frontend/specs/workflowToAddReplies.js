@@ -60,14 +60,7 @@ describe('ep_comments_page - workflow to add reply', function() {
       before(function(done) {
         addTextToAddReplyField(replyText, function() {
           clickOnSaveReplyButton();
-
-          // wait to save reply
-          helper
-            .waitFor(function() {
-              var repliesLength = helper.padOuter$('#replies-container').children();
-              return repliesLength;
-            })
-            .done(done);
+          waitToReplyCreation(1, done); // wait to save reply
         });
       });
 
@@ -98,15 +91,81 @@ describe('ep_comments_page - workflow to add reply', function() {
 
       context('and comment already has replies', function() {
         context('and reply window is visible', function() {
-          xit('adds reply at the end of window', function(done) {});
+          var secondReplyText = 'second reply';
+          before(function(done) {
+            addTextToAddReplyField(secondReplyText, function() {
+              clickOnSaveReplyButton();
+              waitToReplyCreation(2, done); // wait to save reply
+            });
+          });
+
+          it('adds reply at the end of window', function(done) {
+            var $replies = helper.padOuter$('#replies-container').children();
+            var $lastReply = $replies.last();
+            var lastReplyText = $lastReply.find('.reply-description-body').text();
+            expect(lastReplyText).to.be(secondReplyText);
+            done();
+          });
+
+          it('keeps the replies visible', function(done) {
+            var $replies = helper.padOuter$('#replies-container').children();
+            var areRepliesVisible = $replies.is(':visible');
+            expect(areRepliesVisible).to.be(true);
+            done();
+          });
         });
 
         context('and reply window is not visible', function() {
-          xit('updates the button length', function(done) {});
+          var newRepliesLength = 3;
+          var thirdReplyText = 'third reply';
+          before(function(done) {
+            clickOnShowHideReplies(); // hide replies
+            addTextToAddReplyField(thirdReplyText, function() {
+              // add a new reply
+              clickOnSaveReplyButton();
+              waitToReplyCreation(newRepliesLength, done); // wait to save reply
+            });
+          });
+
+          it('saves the reply', function(done) {
+            var $replies = helper.padOuter$('#replies-container').children();
+            var $lastReply = $replies.last();
+            var lastReplyText = $lastReply.find('.reply-description-body').text();
+            expect(lastReplyText).to.be(thirdReplyText);
+            done();
+          });
+
+          it('keeps the replies not visible', function(done) {
+            var $replies = helper.padOuter$('#replies-container').children();
+            var areRepliesVisible = $replies.is(':visible');
+            expect(areRepliesVisible).to.be(false);
+            done();
+          });
+
+          it('updates the replies length on the show/hide replies button text ', function(done) {
+            var $replyButton = helper.padOuter$('.button--show_replies');
+            var replyButtonText = $replyButton.text();
+            var messageOfShowRepliesButton = 'show replies (' + newRepliesLength + ')'; // e.g. show replies (3)
+            expect(replyButtonText).to.be(messageOfShowRepliesButton);
+            done();
+          });
         });
       });
     });
   });
+
+  var waitToReplyCreation = function(lengthOfNewReplies, cb) {
+    helper
+      .waitFor(function() {
+        var repliesLength = helper.padOuter$('#replies-container').children().length;
+        return repliesLength === lengthOfNewReplies;
+      })
+      .done(cb);
+  };
+
+  var clickOnShowHideReplies = function() {
+    helper.padOuter$('.button--show_replies').click();
+  };
 
   var getTextArea = function() {
     return helper.padOuter$('.reply-content--input');

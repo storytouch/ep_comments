@@ -225,6 +225,7 @@ commentInfoDialog.prototype._getTextOfAddReplyForm = function($addReplyForm) {
 commentInfoDialog.prototype._handleReplySaveAddition = function(event) {
   event.preventDefault(); // avoid reloading
   var commentId = this._getTargetData(event).commentId;
+  var showReplyDialogAfterAddition = this._shouldForceShowReplyDialogAfterAddition();
   var $addReplyForm = this._getAddReplyForm(commentId);
   var replyText = this._getTextOfAddReplyForm($addReplyForm);
   var self = this;
@@ -234,11 +235,18 @@ commentInfoDialog.prototype._handleReplySaveAddition = function(event) {
     var commentData = self._buildCommentData(commentId);
     self._createReplyInterface($infoDialog, commentData);
 
-    // TODO: when it exists previous replies and they're hidden. It should not
-    // display the reply window
-    self.toggleReplyWindow(commentId, true);
+    self.toggleReplyWindow(commentId, showReplyDialogAfterAddition);
   });
 };
+
+// we only show the reply dialog after addition either when it was previously
+// visible or when it adds the first comment reply
+commentInfoDialog.prototype._shouldForceShowReplyDialogAfterAddition = function() {
+  var $repliesContainer = utils.getPadOuter().find('#' + REPLY_CONTAINER_ID);
+  var hasReplyContainer = $repliesContainer.length;
+  var replyContainerIsVisible = $repliesContainer.is(':visible');
+  return replyContainerIsVisible || !hasReplyContainer;
+}
 
 commentInfoDialog.prototype._showOrHideInfoReplyDialog = function(replyId, displayElement) {
   var $replyContainer = this._getReplyInfoDialog(replyId);
