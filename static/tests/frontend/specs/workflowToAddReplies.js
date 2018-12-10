@@ -76,13 +76,13 @@ describe('ep_comments_page - workflow to add reply', function() {
         });
 
         it('saves the reply', function(done) {
-          var newReplyText = helper.padOuter$('.reply-description-body').text();
+          var newReplyText = helper.padOuter$('.comment-reply-body').text();
           expect(newReplyText).to.be(replyText);
           done();
         });
 
         it('shows the reply', function(done) {
-          var $newReply = helper.padOuter$('.reply-description-body');
+          var $newReply = helper.padOuter$('.comment-reply-body');
           var isNewReplyVisible = $newReply.is(':visible');
           expect(isNewReplyVisible).to.be(true);
           done();
@@ -102,7 +102,7 @@ describe('ep_comments_page - workflow to add reply', function() {
           it('adds reply at the end of window', function(done) {
             var $replies = helper.padOuter$('#replies-container').children();
             var $lastReply = $replies.last();
-            var lastReplyText = $lastReply.find('.reply-description-body').text();
+            var lastReplyText = $lastReply.find('.comment-reply-body').text();
             expect(lastReplyText).to.be(secondReplyText);
             done();
           });
@@ -130,7 +130,7 @@ describe('ep_comments_page - workflow to add reply', function() {
           it('saves the reply', function(done) {
             var $replies = helper.padOuter$('#replies-container').children();
             var $lastReply = $replies.last();
-            var lastReplyText = $lastReply.find('.reply-description-body').text();
+            var lastReplyText = $lastReply.find('.comment-reply-body').text();
             expect(lastReplyText).to.be(thirdReplyText);
             done();
           });
