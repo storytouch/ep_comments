@@ -28,31 +28,33 @@
   <div>
     {{each replies}}
       <div class="replyId-${replyId}">
-        <div class="reply-description">
-          <div class="reply-description-header">
-            <div class="initials">${initials}</div>
-            <div class="author">${name}</div>
+        <div class="comment-reply ui-dialog-content">
+          <div class="comment-author">
+            <authoricon>${initials}</authoricon>
+            <authorname>${name}</authorname>
           </div>
-          <div class="reply-description-body">${text}</div>
+          <div class="comment-description-body comment-reply-body">${text}</div>
         </div>
-
-        <div class="buttons-row reply-buttons">
-          <input
-            class="reply-button--edit"
-            type="submit"
-            value="Edit"
-            data-comment-id=${commentId}
-            data-reply-id=${replyId}
-            data-l10n-id="ep_comments_page.comments_template.edit"
-          />
-          <input
-            class="reply-button--delete"
-            type="submit"
-            value="Delete"
-            data-comment-id=${commentId}
-            data-reply-id=${replyId}
-            data-l10n-id="ep_comments_page.comments_template.delete" />
-          <span class="reply-date">${prettyDate}</span>
+        <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
+            <div class="ui-dialog-buttonset">
+              <button
+                class="reply-button--edit"
+                type="submit"
+                value="Edit"
+                data-comment-id=${commentId}
+                data-reply-id=${replyId}
+                data-l10n-id="ep_comments_page.comments_template.edit"
+              />
+              <button
+                class="reply-button--delete"
+                type="submit"
+                value="Delete"
+                data-comment-id=${commentId}
+                data-reply-id=${replyId}
+                data-l10n-id="ep_comments_page.comments_template.delete"
+              />
+              <div class="comment-date"><span>${prettyDate}</span></div>
+            </div>
           </div>
       </div>
     {{/each}}
@@ -62,30 +64,30 @@
 <script id="edit-reply-template" type="text/html">
   <div>
     <form class="for-reply" id="edit-reply-${replyId}">
-      <div class="comment-description">
+      <div class="comment-description reply-description editing ">
         <textarea
           id="reply-description"
           placeholder="describe the reply"
           data-l10n-id="ep_comments_page.edit_reply_template.description.placeholder"
         >${text}</textarea>
-      </div>
-      <div class="buttons-row comment-buttons">
-        <input
-          class="button button--cancel reply-button--cancel"
-          type="submit"
-          value="Cancel"
-          data-comment-id=${commentId}
-          data-reply-id=${replyId}
-          data-l10n-id="ep_comments_page.comments_template.cancel"
-        />
-        <input
-          class="button button--save reply-button--save"
-          type="submit"
-          value="Save"
-          data-comment-id=${commentId}
-          data-reply-id=${replyId}
-          data-l10n-id="ep_comments_page.comments_template.save"
-        />
+        <div class="buttons-row comment-buttons">
+          <input
+            class="button button--save reply-button--save"
+            type="submit"
+            value="Save"
+            data-comment-id=${commentId}
+            data-reply-id=${replyId}
+            data-l10n-id="ep_comments_page.comments_template.save"
+          />
+          <input
+            class="button button--cancel reply-button--cancel"
+            type="submit"
+            value="Cancel"
+            data-comment-id=${commentId}
+            data-reply-id=${replyId}
+            data-l10n-id="ep_comments_page.comments_template.cancel"
+          />
+        </div>
       </div>
     </form>
   </div>
@@ -94,17 +96,16 @@
 <script id="commment-info-template" type="text/html">
   <div>
     <div id="text-mark-info">
-      <div class="comment-description">
-        <div class="comment-description-header">
-          <div class="initials">${initials}</div>
-          <div class="author">${author}</div>
-          <div
-            data-l10n-id="ep_comments_page.comments_template.scene"
-            data-l10n-args='{"sceneNumber": "${sceneNumber}"}'
-            class="scene"></div>
-        </div>
-        <div class="comment-description-body">${description}</div>
+      <div class="comment-author">
+        <authoricon>${initials}</authoricon>
+        <authorname>${author}</authorname>
+        <div
+          data-l10n-id="ep_comments_page.comments_template.scene"
+          data-l10n-args='{"sceneNumber": "${sceneNumber}"}'
+          class="scene-number"
+        ></div>
       </div>
+      <div class="comment-description-body">${description}</div>
     </div>
   </div>
 </script>
@@ -112,20 +113,32 @@
 <script id="edit-comment-template" type="text/html">
   <div>
     <form class="for-comment" id="${formId}">
-      <div class="comment-description">
+      <div class="comment-author">
+        <authoricon>${initials}</authoricon>
+        <authorname>${author}</authorname>
+      </div>
+      <div class="comment-description editing">
         <textarea
           id="comment-description"
           placeholder="describe the comment"
           data-l10n-id="ep_comments_page.comments_template.comment.placeholder"
         >${description}</textarea>
-      </div>
-      <div class="buttons-row comment-buttons">
-        <input
-          class="button button--save comment-button--save"
-          type="submit"
-          value="Save"
-          data-l10n-id="ep_comments_page.comments_template.save"
-        />
+        <div class="buttons-row comment-buttons">
+          <input
+            class="button button--save comment-button--save"
+            type="submit"
+            value="Save"
+            data-l10n-id="ep_comments_page.comments_template.save"
+          />
+          <input
+            class="button button--cancel comment-button--cancel"
+            type="submit"
+            value="Cancel"
+            data-comment-id=${commentId}
+            data-reply-id=${replyId}
+            data-l10n-id="ep_comments_page.comments_template.cancel"
+          />
+        </div>
       </div>
     </form>
   </div>

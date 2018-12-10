@@ -164,13 +164,13 @@ describe('ep_comments_page - workflow to edit reply', function() {
 
   var isReplyInfoFormVisible = function(replyIndex) {
     return getReplyInfoDialogue(replyIndex)
-      .find('.reply-description')
+      .find('.comment-reply-body')
       .is(':visible');
   };
 
   var getReplyInfoText = function(replyIndex) {
     return getReplyInfoDialogue(replyIndex)
-      .find('.reply-description-body')
+      .find('.comment-reply-body')
       .text();
   };
 

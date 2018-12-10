@@ -37,7 +37,7 @@ var COMMENT_ID_DATA_ATTR = 'comment-id';
 var REPLY_ID_DATA_ATTR = 'reply-id';
 var COMMENT_DATE_CLASS = 'comment-date';
 var COMMENT_INFO_BUTTON_CONTAINER = '.ui-dialog-buttonset';
-var REPLY_DESCRIPTION_BODY_CLASS = '.reply-description-body';
+var REPLY_DESCRIPTION_BODY_CLASS = '.comment-reply-body';
 var REPLY_ID_CLASS_PREFIX = '.replyId-';
 
 var commentInfoDialog = function(ace) {
@@ -286,7 +286,7 @@ commentInfoDialog.prototype._addDateFieldToComment = function(dialog, commentDat
   var prettyDate = this._buildPrettyDate(commentData.timestamp);
   dialog.widget
     .find(COMMENT_INFO_BUTTON_CONTAINER)
-    .append('<span class="' + COMMENT_DATE_CLASS + '">' + prettyDate + '</span>');
+    .append('<div class="' + COMMENT_DATE_CLASS + '">' + '<span>' + prettyDate + '</span>' + '</div>');
 };
 
 commentInfoDialog.prototype.addAdditionalElementsOnInfoDialog = function(infoDialog, commentData) {

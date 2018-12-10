@@ -44,10 +44,12 @@
 .ui-dialog input.button {
   border-radius: 0;
   -webkit-border-radius: 0;
+  cursor: pointer;
 }
 
-/* button Save */
-.ui-dialog input.button--save {
+/* buttons Save and Cancel*/
+.ui-dialog input.button--save,
+.ui-dialog input.button--cancel {
   float: right;
   padding: 2px 6px 3px;
 
@@ -57,6 +59,11 @@
   text-transform: lowercase;
 
   border: none;
+}
+
+/* separate cancel button from save button */
+.ui-dialog input.button--cancel {
+  margin-right: 10px;
 }
 
 .ui-dialog input.button:disabled {

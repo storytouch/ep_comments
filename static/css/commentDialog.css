@@ -1,0 +1,72 @@
+/* indentation of replies */
+#replies-container {
+  margin-left: 10px;
+}
+
+.scene-number,
+.ui-dialog-buttons .ui-dialog-buttonpane .ui-dialog-buttonset {
+  color: #808286; /* $COLOR_130 */
+  font-size: 9px;
+  font-weight: 300;
+}
+
+/* margin of comment textarea while it's being edited */
+.comment-description.editing {
+  margin-top: 10px;
+}
+
+/* margin of reply textarea while it's being edited */
+.reply-description.editing {
+  margin-right: 10px;
+}
+
+.comment-description-body {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 300;
+  color: #000000; /* $COLOR_0 */
+
+  margin-top: 5px; /* margin of comment while it's not being edited */
+}
+
+.ui-dialog-buttonset button:hover,
+.ui-dialog-buttonset button:focus,
+.ui-dialog-buttonset button {
+  color: #19BBDA; /* $COLOR_A */
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.ui-dialog-buttonset button:hover {
+  text-decoration: underline;
+}
+
+/* override some default styles to adjust TO dialog to have buttons on the footer */
+.ui-dialog-buttonpane {
+  margin-top: 0;
+}
+
+.ui-dialog-buttons .ui-dialog-buttonpane .ui-dialog-buttonset {
+  float: left;
+  width: 100%;
+  display: inline-flex;
+}
+
+.ui-dialog-buttons .ui-dialog-buttonpane .ui-dialog-buttonset button {
+  margin: 0;
+  font-size: 10px;
+  padding: 5px;
+}
+
+.ui-dialog-buttons .ui-dialog-buttonpane .ui-dialog-buttonset .comment-date {
+  width: 100%;
+  padding: 5px 0;
+}
+
+.ui-dialog-buttons .ui-dialog-buttonpane .ui-dialog-buttonset .comment-date span {
+  float: right;
+  padding: .4em 0;
+}
+
+

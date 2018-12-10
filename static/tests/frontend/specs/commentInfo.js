@@ -10,10 +10,10 @@ describe('ep_comments_page - show comment info', function() {
   var FIRST_REPLY_TEXT = 'first reply';
   var SECOND_REPLY_TEXT = 'second reply';
   var REPLY_FIELDS = {
-    text: '.reply-description-body',
-    author: '.author',
-    initials: '.initials',
-    date: '.reply-date',
+    text: '.comment-reply-body',
+    author: 'authorname',
+    initials: 'authoricon',
+    date: '.comment-date',
   };
 
   before(function(done) {
@@ -30,17 +30,17 @@ describe('ep_comments_page - show comment info', function() {
 
 
   it('displays the comment creator initials', function(done) {
-    expect(getTextOfDescriptionHeader('initials')).to.be('JO');
+    expect(getTextOfDescriptionHeader('authoricon')).to.be('JO');
     done();
   });
 
   it('displays the comment creator', function(done) {
-    expect(getTextOfDescriptionHeader('author')).to.be('John');
+    expect(getTextOfDescriptionHeader('authorname')).to.be('John');
     done();
   });
 
   it('displays the scene position', function(done) {
-    expect(getTextOfDescriptionHeader('scene')).to.be('SCENE 0');
+    expect(getTextOfDescriptionHeader('.scene-number')).to.be('SCENE 0');
     done();
   });
 
@@ -168,8 +168,8 @@ describe('ep_comments_page - show comment info', function() {
   };
 
   var getTextOfDescriptionHeader = function(field) {
-    var commentDescriptionHeader = helper.padOuter$('.comment-description-header');
-    return commentDescriptionHeader.find('.' + field).text();
+    var commentDescriptionHeader = helper.padOuter$('#text-mark-info');
+    return commentDescriptionHeader.find(field).text();
   };
 
 });
