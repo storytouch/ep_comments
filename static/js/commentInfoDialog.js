@@ -233,7 +233,7 @@ commentInfoDialog.prototype._handleReplySaveAddition = function(event) {
   this.thisPlugin.api.onReplyCreate(commentId, replyText, function() {
     var $infoDialog = $addReplyForm.parents('.ui-dialog--comment');
     var commentData = self._buildCommentData(commentId);
-    self._createReplyInterface($infoDialog, commentData);
+    self._createOrRecreateReplyDialog($infoDialog, commentData);
 
     self.toggleReplyWindow(commentId, showReplyDialogAfterAddition);
   });
@@ -255,7 +255,7 @@ commentInfoDialog.prototype._showOrHideInfoReplyDialog = function(replyId, displ
 };
 
 // [1] update button text, and [2] force the translation
-commentInfoDialog.prototype._updateShowOrHideRepliesButton = function($toggleRepliesButton, repliesContainerIsVisible) {
+commentInfoDialog.prototype._updateToggleRepliesButton = function($toggleRepliesButton, repliesContainerIsVisible) {
   var buttonL10nKey = repliesContainerIsVisible ? HIDE_REPLIES_KEY : SHOW_REPLIES_KEY;
   var l10nIdValue = EP_COMMENT_L10N_PREFIX + buttonL10nKey;
   $toggleRepliesButton.attr('data-l10n-id', l10nIdValue); // [1]
@@ -272,9 +272,9 @@ commentInfoDialog.prototype._updateShowOrHideRepliesButton = function($toggleRep
 commentInfoDialog.prototype.toggleReplyWindow = function(commentId, shouldMakeReplyWindowVisible) { // [1]
   var $repliesContainer = utils.getPadOuter().find('#' + REPLY_CONTAINER_ID);
   $repliesContainer.toggle(shouldMakeReplyWindowVisible); // [2]
-  var $showOrHideRepliesButton = $repliesContainer.parent().find('.button--show_replies');
+  var $toggleReplyButton = $repliesContainer.parent().find('.button--show_replies');
   var repliesContainerIsVisible = $repliesContainer.is(':visible');
-  this._updateShowOrHideRepliesButton($showOrHideRepliesButton, repliesContainerIsVisible);
+  this._updateToggleRepliesButton($toggleReplyButton, repliesContainerIsVisible);
 };
 
 commentInfoDialog.prototype.showCommentInfoForId = function(commentId, owner) {
@@ -375,7 +375,7 @@ commentInfoDialog.prototype._addAnswerCommentField = function($infoDialog, comme
   $infoDialog.append($newReplyWindow);
 };
 
-commentInfoDialog.prototype._createReplyInterface = function($infoDialog, commentData) {
+commentInfoDialog.prototype._createOrRecreateReplyDialog = function($infoDialog, commentData) {
   this._updateReplyButtonText($infoDialog, commentData);
   this._buildReplyWindow($infoDialog, commentData);
   this._addAnswerCommentField($infoDialog, commentData);
@@ -383,7 +383,7 @@ commentInfoDialog.prototype._createReplyInterface = function($infoDialog, commen
 
 commentInfoDialog.prototype.addAdditionalElementsOnInfoDialog = function(infoDialog, commentData) {
   var $infoDialog = infoDialog.widget;
-  this._createReplyInterface($infoDialog, commentData);
+  this._createOrRecreateReplyDialog($infoDialog, commentData);
   this._addDateFieldToComment($infoDialog, commentData);
 };
 
