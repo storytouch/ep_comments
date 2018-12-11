@@ -220,7 +220,7 @@ commentInfoDialog.prototype._getTextOfAddReplyForm = function($addReplyForm) {
   var $textArea = $addReplyForm.find('textarea');
   var replyText = $textArea.val();
   return replyText;
-}
+};
 
 commentInfoDialog.prototype._handleReplySaveAddition = function(event) {
   event.preventDefault(); // avoid reloading
@@ -235,7 +235,7 @@ commentInfoDialog.prototype._handleReplySaveAddition = function(event) {
     var commentData = self._buildCommentData(commentId);
     self._createOrRecreateReplyDialog($infoDialog, commentData);
 
-    self.toggleReplyWindow(commentId, showReplyDialogAfterAddition);
+    self.toggleReplyWindow(commentId, event, showReplyDialogAfterAddition);
   });
 };
 
@@ -246,7 +246,7 @@ commentInfoDialog.prototype._shouldForceShowReplyDialogAfterAddition = function(
   var hasReplyContainer = $repliesContainer.length;
   var replyContainerIsVisible = $repliesContainer.is(':visible');
   return replyContainerIsVisible || !hasReplyContainer;
-}
+};
 
 commentInfoDialog.prototype._showOrHideInfoReplyDialog = function(replyId, displayElement) {
   var $replyContainer = this._getReplyInfoDialog(replyId);
@@ -262,19 +262,22 @@ commentInfoDialog.prototype._updateToggleRepliesButton = function($toggleReplies
   commentL10n.localize($toggleRepliesButton); // [2]
 };
 
-/*
- [1] "shouldMakeReplyWindowVisible" is optional.
- [2] When this argument is passed we force the replyContainer display/hide
- (true/false). Not that, jQuery uses a strict comparison "===" in the $.toggle
- implementation. So, when this varialbe is "undefined" it toggles the
- visibility based on the $element previous state
- */
-commentInfoDialog.prototype.toggleReplyWindow = function(commentId, shouldMakeReplyWindowVisible) { // [1]
+// [1] "shouldMakeReplyWindowVisible" is optional.
+commentInfoDialog.prototype.toggleReplyWindow = function(commentId, event, shouldMakeReplyWindowVisible) { // [1]
   var $repliesContainer = utils.getPadOuter().find('#' + REPLY_CONTAINER_ID);
-  $repliesContainer.toggle(shouldMakeReplyWindowVisible); // [2]
+  $repliesContainer.toggleClass('hidden');
+
+  // in some scenarios, e.g. when user adds the first reply we have to force
+  // dialog to be visible after the addition
+  var forceVisibilityState = shouldMakeReplyWindowVisible !== undefined; 
+  if (forceVisibilityState) {
+    $repliesContainer.toggleClass('hidden', !shouldMakeReplyWindowVisible);
+  }
+
   var $toggleReplyButton = $repliesContainer.parent().find('.button--show_replies');
-  var repliesContainerIsVisible = $repliesContainer.is(':visible');
-  this._updateToggleRepliesButton($toggleReplyButton, repliesContainerIsVisible);
+  var replyContainerIsVisible = !$repliesContainer.hasClass('hidden');
+
+  this._updateToggleRepliesButton($toggleReplyButton, replyContainerIsVisible);
 };
 
 commentInfoDialog.prototype.showCommentInfoForId = function(commentId, owner) {
@@ -313,13 +316,16 @@ commentInfoDialog.prototype._removeComment = function(commentId) {
 commentInfoDialog.prototype._updateReplyButtonText = function($infoDialog, commentData) {
   var hasCommentData = Object.keys(commentData).length;
   var repliesLength = hasCommentData ? commentData.repliesLength : 0;
+  var $toggleRepliesButton = $infoDialog.find(SHOW_REPLIES_BUTTON_CLASS);
 
   // does not show button if there is not replies
   var hasReplies = repliesLength > 0;
-  $infoDialog.find(SHOW_REPLIES_BUTTON_CLASS).toggle(hasReplies);
+  $toggleRepliesButton.toggle(hasReplies);
 
+  var l10nIdValue = EP_COMMENT_L10N_PREFIX + SHOW_REPLIES_KEY;
+  $toggleRepliesButton.attr('data-l10n-id', l10nIdValue);
   var repliesLengthValue = '{ "repliesLength": "' + repliesLength + '"}';
-  $infoDialog.find(SHOW_REPLIES_BUTTON_CLASS).attr('data-l10n-args', repliesLengthValue);
+  $toggleRepliesButton.attr('data-l10n-args', repliesLengthValue);
 };
 
 commentInfoDialog.prototype._buildRepliesData = function(commentData) {
@@ -346,9 +352,8 @@ commentInfoDialog.prototype._buildReplyWindow = function($infoDialog, commentDat
     var repliesData = { replies: this._buildRepliesData(commentData) };
     var $repliesWindow = $('#replies-info-template').tmpl(repliesData);
 
-    // reply container is hidden by default. We add a style inline to avoid adding
-    // an additional class. So we can control the visibility using only $.toggle
-    var defaultStyle = '" style="display: none;"';
+    // reply container is hidden by default
+    var defaultStyle = '" class="hidden"';
     var replyWindowContainer = '<div id="' + REPLY_CONTAINER_ID + defaultStyle + '>' + $repliesWindow.html() + '</div>';
     $infoDialog.append(replyWindowContainer);
     commentL10n.localize($infoDialog);

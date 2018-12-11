@@ -1,3 +1,7 @@
+#replies-container.hidden {
+  display: none;
+}
+
 /* indentation of replies */
 #replies-container {
   margin-left: 10px;
