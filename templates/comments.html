@@ -150,17 +150,17 @@
       <textarea class="reply-content--input" autofocus placeholder="write here your reply" data-l10n-id="ep_comments_page.edit_reply_template.description.placeholder"></textarea>
     </div>
     <div class="buttons-row comment-buttons">
+      <input class="button button--save add-reply-button--save"
+        type="submit"
+        value="Save"
+        data-l10n-id="ep_comments_page.comments_template.save.value"
+        data-comment-id=${commentId}
+      />
       <input
         class="button button--cancel add-reply-button--cancel"
         type="button"
         value="Cancel"
         data-l10n-id="ep_comments_page.comments_template.cancel"
-        data-comment-id=${commentId}
-      />
-      <input class="button button--save add-reply-button--save"
-        type="submit"
-        value="Save"
-        data-l10n-id="ep_comments_page.comments_template.save.value"
         data-comment-id=${commentId}
       />
     </div>

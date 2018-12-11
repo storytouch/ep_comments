@@ -72,3 +72,16 @@
 .new-reply--collapsed > .buttons-row{
   display: none;
 }
+
+.new-reply--collapsed textarea.reply-content--input {
+  height: 25px;
+}
+
+.new-reply {
+  margin: 0 10px 10px 10px;
+}
+
+.new-reply > .buttons-row {
+  margin: 10px 0;
+  height: 20px;
+}
