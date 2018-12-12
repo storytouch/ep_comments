@@ -95,7 +95,8 @@ describe('ep_comments_page - workflow to add reply', function() {
           before(function(done) {
             addTextToAddReplyField(secondReplyText, function() {
               clickOnSaveReplyButton();
-              waitToReplyCreation(2, done); // wait to save reply
+              var newRepliesLength = getRepliesLength() + 1;
+              waitToReplyCreation(newRepliesLength, done); // wait to save reply
             });
           });
 
@@ -116,9 +117,11 @@ describe('ep_comments_page - workflow to add reply', function() {
         });
 
         context('and reply window is not visible', function() {
-          var newRepliesLength = 3;
+          var newRepliesLength;
           var thirdReplyText = 'third reply';
           before(function(done) {
+            var originalReplyLength = getRepliesLength();
+            newRepliesLength = originalReplyLength + 1;
             clickOnShowHideReplies(); // hide replies
             addTextToAddReplyField(thirdReplyText, function() {
               // add a new reply
@@ -154,11 +157,14 @@ describe('ep_comments_page - workflow to add reply', function() {
     });
   });
 
+  var getRepliesLength = function() {
+    return helper.padOuter$('#replies-container').children().length;
+  };
+
   var waitToReplyCreation = function(lengthOfNewReplies, cb) {
     helper
       .waitFor(function() {
-        var repliesLength = helper.padOuter$('#replies-container').children().length;
-        return repliesLength === lengthOfNewReplies;
+        return getRepliesLength() === lengthOfNewReplies;
       })
       .done(cb);
   };

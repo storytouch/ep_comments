@@ -255,29 +255,30 @@ commentInfoDialog.prototype._showOrHideInfoReplyDialog = function(replyId, displ
 };
 
 // [1] update button text, and [2] force the translation
-commentInfoDialog.prototype._updateToggleRepliesButton = function($toggleRepliesButton, repliesContainerIsVisible) {
+commentInfoDialog.prototype._updateToggleRepliesButton = function($repliesContainer) {
+  var $toggleRepliesButton = $repliesContainer.parent().find('.button--show_replies');
+  var repliesContainerIsVisible = !$repliesContainer.hasClass('hidden');
   var buttonL10nKey = repliesContainerIsVisible ? HIDE_REPLIES_KEY : SHOW_REPLIES_KEY;
   var l10nIdValue = EP_COMMENT_L10N_PREFIX + buttonL10nKey;
   $toggleRepliesButton.attr('data-l10n-id', l10nIdValue); // [1]
   commentL10n.localize($toggleRepliesButton); // [2]
 };
 
-// [1] "shouldMakeReplyWindowVisible" is optional.
+/*
+ [1] "shouldMakeReplyWindowVisible" is optional.
+ [2] When user adds a first comment reply or when adds a reply and the reply
+ window is visible, we force the reply window gets visible after the operation
+ [3] The general case, just toggle the reply window visibility
+ */
 commentInfoDialog.prototype.toggleReplyWindow = function(commentId, event, shouldMakeReplyWindowVisible) { // [1]
   var $repliesContainer = utils.getPadOuter().find('#' + REPLY_CONTAINER_ID);
-  $repliesContainer.toggleClass('hidden');
-
-  // in some scenarios, e.g. when user adds the first reply we have to force
-  // dialog to be visible after the addition
-  var forceVisibilityState = shouldMakeReplyWindowVisible !== undefined; 
+  var forceVisibilityState = shouldMakeReplyWindowVisible !== undefined;
   if (forceVisibilityState) {
-    $repliesContainer.toggleClass('hidden', !shouldMakeReplyWindowVisible);
+    $repliesContainer.toggleClass('hidden', !shouldMakeReplyWindowVisible); // [2]
+  } else {
+    $repliesContainer.toggleClass('hidden'); // [3]
   }
-
-  var $toggleReplyButton = $repliesContainer.parent().find('.button--show_replies');
-  var replyContainerIsVisible = !$repliesContainer.hasClass('hidden');
-
-  this._updateToggleRepliesButton($toggleReplyButton, replyContainerIsVisible);
+  this._updateToggleRepliesButton($repliesContainer);
 };
 
 commentInfoDialog.prototype.showCommentInfoForId = function(commentId, owner) {
@@ -373,7 +374,7 @@ commentInfoDialog.prototype._addDateFieldToComment = function($infoDialog, comme
     .append('<div class="' + COMMENT_DATE_CLASS + '">' + '<span>' + prettyDate + '</span>' + '</div>');
 };
 
-commentInfoDialog.prototype._addAnswerCommentField = function($infoDialog, commentData) {
+commentInfoDialog.prototype._addReplyCommentField = function($infoDialog, commentData) {
   var addReplyFormId = this._getAddReplyFormId(commentData.commentId);
   $infoDialog.find(addReplyFormId).remove(); // remove previous forms
   var $newReplyWindow = $('#new-reply-template').tmpl(commentData);
@@ -383,7 +384,7 @@ commentInfoDialog.prototype._addAnswerCommentField = function($infoDialog, comme
 commentInfoDialog.prototype._createOrRecreateReplyDialog = function($infoDialog, commentData) {
   this._updateReplyButtonText($infoDialog, commentData);
   this._buildReplyWindow($infoDialog, commentData);
-  this._addAnswerCommentField($infoDialog, commentData);
+  this._addReplyCommentField($infoDialog, commentData);
 };
 
 commentInfoDialog.prototype.addAdditionalElementsOnInfoDialog = function(infoDialog, commentData) {
