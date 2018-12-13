@@ -28,6 +28,16 @@ describe('ep_comments_page - workflow to remove reply', function() {
       done();
     });
 
+    // before removing we had 2 replies
+    it('updates the show/hide replies button', function(done) {
+      utils.clickOnShowReplyButton(); // hide the replies
+      var $replyButton = helper.padOuter$('.button--show_replies');
+      var replyButtonText = $replyButton.text();
+      var messageOfShowRepliesButton = 'show replies (1)';
+      expect(replyButtonText).to.be(messageOfShowRepliesButton);
+      done();
+    });
+
     // as the comment info window get a fresh comment data every time is
     // opened, we close, open again to check if the reply removed is not on the
     // window anymore
@@ -47,5 +57,4 @@ describe('ep_comments_page - workflow to remove reply', function() {
       .find('.reply-button--delete')
       .click();
   };
-
 });

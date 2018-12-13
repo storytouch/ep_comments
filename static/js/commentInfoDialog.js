@@ -138,8 +138,25 @@ commentInfoDialog.prototype._getReplyInfoDialog = function(replyId) {
 
 commentInfoDialog.prototype._handleReplyRemoval = function(event) {
   var targetData = this._getTargetData(event);
-  this._removeReplySectionFromReplyWindow(targetData.replyId);
-  this.thisPlugin.api.onReplyDeletion(targetData.replyId, targetData.commentId);
+  var commentId = targetData.commentId;
+  var replyId = targetData.replyId;
+  var newCommentData = this._removeReplyFromCommentDataObject(commentId, replyId); // update UI data
+
+  // update the UI
+  var $infoDialog = this._getAddReplyForm(commentId).parents('.ui-dialog--comment');
+  this._createOrRecreateReplyDialog($infoDialog, newCommentData);
+  this._toggleReplyWindow(true);
+
+  this.thisPlugin.api.onReplyDeletion(replyId, commentId); // remove from text
+};
+
+commentInfoDialog.prototype._removeReplyFromCommentDataObject = function(commentId, replyId) {
+  var commentData = this._buildCommentData(commentId);
+  var replies = commentData.replies;
+  var newReplies = _(replies).omit(replyId);
+  commentData.replies = newReplies || {};
+  commentData.repliesLength = commentData.repliesLength - 1;
+  return commentData;
 };
 
 // we use the same container to display the info and the edit dialog. The edit
@@ -171,15 +188,6 @@ commentInfoDialog.prototype._buildEditFormAndAddOnReplyContainer = function(comm
   var $replyContainer = this._getReplyInfoDialog(replyId);
   $replyContainer.append($editReplyWindow);
   $replyContainer.find('#reply-description').focus(); // change focus to the description field
-};
-
-commentInfoDialog.prototype._removeReplySectionFromReplyWindow = function(replyId) {
-  var classOfReplySection = REPLY_ID_CLASS_PREFIX + replyId;
-  utils
-    .getPadOuter()
-    .find('#' + REPLY_CONTAINER_ID)
-    .find(classOfReplySection)
-    .remove();
 };
 
 commentInfoDialog.prototype._handleReplyCancelEdition = function(event) {
@@ -235,7 +243,7 @@ commentInfoDialog.prototype._handleReplySaveAddition = function(event) {
     var commentData = self._buildCommentData(commentId);
     self._createOrRecreateReplyDialog($infoDialog, commentData);
 
-    self.toggleReplyWindow(commentId, event, showReplyDialogAfterAddition);
+    self._toggleReplyWindow(showReplyDialogAfterAddition);
   });
 };
 
@@ -264,13 +272,19 @@ commentInfoDialog.prototype._updateToggleRepliesButton = function($repliesContai
   commentL10n.localize($toggleRepliesButton); // [2]
 };
 
+// alias of this.toggleReplyWindow
+commentInfoDialog.prototype._toggleReplyWindow = function(shouldMakeReplyWindowVisible) {
+  this.toggleReplyWindow(undefined, undefined, shouldMakeReplyWindowVisible);
+};
+
 /*
  [1] "shouldMakeReplyWindowVisible" is optional.
  [2] When user adds a first comment reply or when adds a reply and the reply
  window is visible, we force the reply window gets visible after the operation
  [3] The general case, just toggle the reply window visibility
  */
-commentInfoDialog.prototype.toggleReplyWindow = function(commentId, event, shouldMakeReplyWindowVisible) { // [1]
+commentInfoDialog.prototype.toggleReplyWindow = function(commentId, event, shouldMakeReplyWindowVisible) {
+  // [1]
   var $repliesContainer = utils.getPadOuter().find('#' + REPLY_CONTAINER_ID);
   var forceVisibilityState = shouldMakeReplyWindowVisible !== undefined;
   if (forceVisibilityState) {

@@ -3,7 +3,7 @@ describe('ep_comments_page - show comment info', function() {
   var apiUtils = ep_comments_page_test_helper.apiUtils;
 
   // this regex tests the format of something like '12/3/2018, 2:48 PM'
-  var DATE_TIME_REGEX = /((0[1-9]|[12]\d|3[01])\/([1-9]|1[0-2])\/[12]\d{3})(, ([0-9]|1[0-2]):[0-9][0-9] (A|P)M)/;
+  var DATE_TIME_REGEX = /(([1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/([12]\d{3})(, ([0-9]|1[0-2]):[0-9][0-9] (A|P)M))/;
   var COMMENT_LINE = 0;
   var COMMENT_AND_REPLIES_LINE = 1;
   var LENGTH_OF_COMMENT_ON_SECOND_LINE = 2;
@@ -45,7 +45,7 @@ describe('ep_comments_page - show comment info', function() {
   });
 
   it('displays the date that comment was created', function(done) {
-    var dateField = helper.padOuter$('.comment-date').text();
+    var dateField = helper.padOuter$('.comment-date').first().text();
     expect(dateField).to.match(DATE_TIME_REGEX);
     done();
   });
