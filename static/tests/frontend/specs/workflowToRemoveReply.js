@@ -17,7 +17,7 @@ describe('ep_comments_page - workflow to remove reply', function() {
           return utils.isCommentInfoWindowVisible();
         })
         .done(function() {
-          utils.clickOnShowReplyButton();
+          utils.toggleShowHideReplyButton();
           clickOnRemoveReply(0);
           done();
         });
@@ -30,7 +30,7 @@ describe('ep_comments_page - workflow to remove reply', function() {
 
     // before removing we had 2 replies
     it('updates the show/hide replies button', function(done) {
-      utils.clickOnShowReplyButton(); // hide the replies
+      utils.toggleShowHideReplyButton(); // hide the replies
       var $replyButton = helper.padOuter$('.button--show_replies');
       var replyButtonText = $replyButton.text();
       var messageOfShowRepliesButton = 'show replies (1)';

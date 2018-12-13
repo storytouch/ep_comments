@@ -377,7 +377,7 @@ ep_comments_page_test_helper.utils = {
       .done(done);
   },
 
-  clickOnShowReplyButton: function() {
+  toggleShowHideReplyButton: function() {
     var $replyButton = helper.padOuter$('.button--show_replies');
     $replyButton.click();
   },
@@ -411,7 +411,7 @@ ep_comments_page_test_helper.utils = {
         })
         .done(function() {
           // show reply window
-          self.clickOnShowReplyButton();
+          self.toggleShowHideReplyButton();
           cb();
         });
     }, 500);

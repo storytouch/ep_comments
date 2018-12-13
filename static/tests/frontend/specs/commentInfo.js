@@ -88,7 +88,7 @@ describe('ep_comments_page - show comment info', function() {
 
     context('and user clicks on replies button', function() {
       before(function() {
-        utils.clickOnShowReplyButton();
+        utils.toggleShowHideReplyButton();
       });
 
       it('renders the replies', function(done) {
@@ -134,7 +134,7 @@ describe('ep_comments_page - show comment info', function() {
 
       context('and user clicks again on reply button', function() {
         before(function() {
-          utils.clickOnShowReplyButton();
+          utils.toggleShowHideReplyButton();
         });
 
         it('hides the replies window', function(done) {

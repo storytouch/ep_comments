@@ -19,7 +19,7 @@ describe('ep_comments_page - workflow to edit reply', function() {
           return utils.isCommentInfoWindowVisible();
         })
         .done(function() {
-          utils.clickOnShowReplyButton();
+          utils.toggleShowHideReplyButton();
           clickOnEditReply(replyIndex);
           done();
         });
