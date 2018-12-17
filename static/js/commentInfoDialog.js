@@ -389,8 +389,7 @@ commentInfoDialog.prototype._addDateFieldToComment = function($infoDialog, comme
 };
 
 commentInfoDialog.prototype._addReplyCommentField = function($infoDialog, commentData) {
-  var addReplyFormId = this._getAddReplyFormId(commentData.commentId);
-  $infoDialog.find(addReplyFormId).remove(); // remove previous forms
+  $infoDialog.find('form.new-reply').remove(); // remove previous forms
   var $newReplyWindow = $('#new-reply-template').tmpl(commentData);
   $infoDialog.append($newReplyWindow);
 };
