@@ -16,11 +16,11 @@ var HIDE_REPLIES_KEY = 'hide_replies';
 var EDIT_COMMENT_FORM_ID = 'edit-comment';
 var INFO_TEMPLATE = {
   id: '#commment-info-template',
-  mainComponentSelector: '#text-mark-info',
+  mainComponentSelector: 'text-mark-info',
 };
 var EDIT_TEMPLATE = {
   id: '#edit-comment-template',
-  mainComponentSelector: '#' + EDIT_COMMENT_FORM_ID,
+  mainComponentSelector: EDIT_COMMENT_FORM_ID,
   descriptionFieldId: '#comment-description',
 };
 
@@ -55,7 +55,6 @@ var commentInfoDialog = function(ace) {
     editTemplate: EDIT_TEMPLATE,
     dialogTitleKey: DIALOG_TITLE_KEY,
     targetType: TARGET_TYPE,
-    editTextMarkFormId: EDIT_COMMENT_FORM_ID,
     saveTextMark: this._saveComment.bind(this),
     removeTextMark: this._removeComment.bind(this),
     addAdditionalElementsOnInfoDialog: this.addAdditionalElementsOnInfoDialog.bind(this),

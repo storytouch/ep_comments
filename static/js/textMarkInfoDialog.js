@@ -25,7 +25,6 @@ var DO_NOTHING = function() {};
     }
   dialogTitleKey: string with L10n key used on window title
   targetType: string used on dialog config.
-  editTextMarkFormId: string with 'id' of the text mark form
   saveTextMark: function that saves the object text mark
   removeTextMark: function that deletes the text mark
   infoDialogCustomButtons: array of objects with additional buttons to show on info dialog window (optional)
@@ -43,7 +42,6 @@ var textMarkInfoDialog = function(props) {
   this.infoTemplate = props.infoTemplate;
   this.editTemplate = props.editTemplate;
   this.dialogTitleKey = props.dialogTitleKey;
-  this.editTextMarkFormId = props.editTextMarkFormId; // better refactor it!
   this.saveTextMark = props.saveTextMark;
   this.removeTextMark = props.removeTextMark;
   this.infoDialogCustomButtons = props.infoDialogCustomButtons || [];
@@ -56,7 +54,7 @@ var textMarkInfoDialog = function(props) {
 
 textMarkInfoDialog.prototype._createInfoDialog = function(ace) {
   // $content will be filled with data later, when dialog is opened
-  var infoDialogId = this.infoTemplate.mainComponentSelector.slice(1); // from '#something' we get 'something'
+  var infoDialogId = this.infoTemplate.mainComponentSelector;
   var $emptyContent = $('<div><div id="' + infoDialogId + '"></div></div>');
   var infoDialogButtons = this._buildInfoDialogButtons();
   var configs = {
@@ -91,7 +89,7 @@ textMarkInfoDialog.prototype._buildInfoDialogButtons = function() {
 
 textMarkInfoDialog.prototype._createEditDialog = function(ace) {
   // $content will be filled with data later, when dialog is opened
-  var $emptyContent = $(`<div><div id="${this.editTextMarkFormId}"></div></div>`);
+  var $emptyContent = $(`<div><div id="${this.editTemplate.mainComponentSelector}"></div></div>`);
   var configs = {
     $content: $emptyContent,
     dialogTitleL10nKey: this.dialogTitleKey,
