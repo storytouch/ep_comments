@@ -12,8 +12,17 @@ var DO_NOTHING = function() {};
   values of 'props'.
   ace: object reference to context.ace
   buildTextMarkData: function that builds the object that is displayed on the window
-  infoTemplate: object with strings id and mainComponentSelector of info template
-  editTemplate: object with strings id and mainComponentSelector of edit template
+  infoTemplate: object with info window selectors
+    {
+      id: string,
+      mainComponentSelector: string,
+    }
+  editTemplate: object with edit window selectors
+    {
+      id: string,
+      mainComponentSelector: string,
+      descriptionFieldId: string,
+    }
   dialogTitleKey: string with L10n key used on window title
   targetType: string used on dialog config.
   editTextMarkFormId: string with 'id' of the text mark form
@@ -38,7 +47,7 @@ var textMarkInfoDialog = function(props) {
   this.saveTextMark = props.saveTextMark;
   this.removeTextMark = props.removeTextMark;
   this.infoDialogCustomButtons = props.infoDialogCustomButtons || [];
-  this.addAdditionalElementsOnInfoDialog = props.addAdditionalElementsOnInfoDialog || function(){};
+  this.addAdditionalElementsOnInfoDialog = props.addAdditionalElementsOnInfoDialog || function() {};
   this.textMarkIdBeingDisplayed = undefined;
   this.targetType = props.targetType;
   this.infoDialog = this._createInfoDialog(ace);
@@ -47,7 +56,8 @@ var textMarkInfoDialog = function(props) {
 
 textMarkInfoDialog.prototype._createInfoDialog = function(ace) {
   // $content will be filled with data later, when dialog is opened
-  var $emptyContent = $('<div><div id="text-mark-info"></div></div>');
+  var infoDialogId = this.infoTemplate.mainComponentSelector.slice(1); // from '#something' we get 'something'
+  var $emptyContent = $('<div><div id="' + infoDialogId + '"></div></div>');
   var infoDialogButtons = this._buildInfoDialogButtons();
   var configs = {
     $content: $emptyContent,
@@ -100,7 +110,7 @@ textMarkInfoDialog.prototype._buildButton = function(props) {
   var self = this;
   var key = props.buttonName;
   var action = props.handler;
-  var l10nArgs = props.buttonL10nArgs || '{}'
+  var l10nArgs = props.buttonL10nArgs || '{}';
   return {
     text: key,
     'data-l10n-id': 'ep_comments_page.comments_template.' + key,
@@ -140,11 +150,18 @@ textMarkInfoDialog.prototype._closeInfoDialogAndShowEditDialog = function() {
   this._fillTextMarkContentOnEditDialog();
   this.editDialog.open();
   this.infoDialog.close();
+  this._placeFocusOnDescription();
 };
 
-// TODO: check if this method is used on other place
-textMarkInfoDialog.prototype.getCurrentOwner = function() {
-  return this.currentOwner;
+textMarkInfoDialog.prototype._placeFocusOnDescription = function() {
+  var descriptionFieldId = this.editTemplate.descriptionFieldId;
+  var $descriptionField = this.editDialog.widget.find(descriptionFieldId);
+  $descriptionField.focus();
+
+  // make sure caret is at the end of the text.
+  // Source: https://css-tricks.com/snippets/jquery/mover-cursor-to-end-of-textarea/
+  var descriptionText = $descriptionField.val();
+  $descriptionField.val('').val(descriptionText);
 };
 
 textMarkInfoDialog.prototype.showTextMarkInfoDialogForId = function(textMarkId, owner) {
@@ -199,7 +216,12 @@ textMarkInfoDialog.prototype._getCurrentRepSelection = function() {
 };
 
 textMarkInfoDialog.prototype._fillTextMarkContentOnInfoDialog = function() {
-  this._fillTextMarkContent(this.infoDialog, this.infoTemplate.id, this.infoTemplate.mainComponentSelector, this.addAdditionalElementsOnInfoDialog);
+  this._fillTextMarkContent(
+    this.infoDialog,
+    this.infoTemplate.id,
+    this.infoTemplate.mainComponentSelector,
+    this.addAdditionalElementsOnInfoDialog
+  );
 };
 
 textMarkInfoDialog.prototype._fillTextMarkContentOnEditDialog = function() {
@@ -210,7 +232,12 @@ textMarkInfoDialog.prototype._buildTextMarkInfoDataToShowOnTemplate = function(t
   return this.buildTextMarkData(textMarkId);
 };
 
-textMarkInfoDialog.prototype._fillTextMarkContent = function(dialog, templateSelector, mainComponentSelector, addAditionalContentIfNecessary) {
+textMarkInfoDialog.prototype._fillTextMarkContent = function(
+  dialog,
+  templateSelector,
+  mainComponentSelector,
+  addAditionalContentIfNecessary
+) {
   // fill content with most up-to-date data
   var textMarkId = this.textMarkIdBeingDisplayed;
   var textMarkInfoDataToFillTemplate = this._buildTextMarkInfoDataToShowOnTemplate(textMarkId);

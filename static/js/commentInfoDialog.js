@@ -21,6 +21,7 @@ var INFO_TEMPLATE = {
 var EDIT_TEMPLATE = {
   id: '#edit-comment-template',
   mainComponentSelector: '#' + EDIT_COMMENT_FORM_ID,
+  descriptionFieldId: '#comment-description',
 };
 
 var EP_COMMENT_L10N_PREFIX = 'ep_comments_page.comments_template.';
