@@ -44,7 +44,7 @@ var ADD_REPLY_COLLAPSE_CLASS = 'new-reply--collapsed';
 var ADD_REPLY = '.reply-content--input';
 var ADD_REPLY_CANCEL = '.add-reply-button--cancel';
 var ADD_REPLY_SAVE = '.add-reply-button--save';
-var ADD_REPLY_FORM_ID_PREFIX = '#newReply--';
+var ADD_REPLY_FORM_ID = '#newReply';
 
 var commentInfoDialog = function(ace) {
   this.thisPlugin = pad.plugins.ep_comments_page;
@@ -143,7 +143,7 @@ commentInfoDialog.prototype._handleReplyRemoval = function(event) {
   var newCommentData = this._removeReplyFromCommentDataObject(commentId, replyId); // update UI data
 
   // update the UI
-  var $infoDialog = this._getAddReplyForm(commentId).parents('.ui-dialog--comment');
+  var $infoDialog = this._getAddReplyForm().parents('.ui-dialog--comment');
   this._createOrRecreateReplyDialog($infoDialog, newCommentData);
   this._toggleReplyWindow(true);
 
@@ -202,26 +202,20 @@ commentInfoDialog.prototype._displayAddReplyForm = function(event) {
   $textArea.parents('.new-reply').removeClass(ADD_REPLY_COLLAPSE_CLASS);
 };
 
-commentInfoDialog.prototype._getAddReplyFormId = function(commentId) {
-  return ADD_REPLY_FORM_ID_PREFIX + commentId;
-};
-
-commentInfoDialog.prototype._getAddReplyForm = function(commentId) {
-  var formId = this._getAddReplyFormId(commentId);
-  var $addReplyForm = utils.getPadOuter().find(formId);
+commentInfoDialog.prototype._getAddReplyForm = function() {
+  var $addReplyForm = utils.getPadOuter().find(ADD_REPLY_FORM_ID);
   return $addReplyForm;
 };
 
-commentInfoDialog.prototype._resetAddReplyForm = function(commentId) {
-  var $addReplyForm = this._getAddReplyForm(commentId);
+commentInfoDialog.prototype._resetAddReplyForm = function() {
+  var $addReplyForm = this._getAddReplyForm();
   var $textArea = $addReplyForm.find('textarea');
   $textArea.val('');
   $addReplyForm.addClass(ADD_REPLY_COLLAPSE_CLASS); // collapse form
 };
 
-commentInfoDialog.prototype._handleReplyCancelAddition = function(event) {
-  var commentId = this._getTargetData(event).commentId;
-  this._resetAddReplyForm(commentId);
+commentInfoDialog.prototype._handleReplyCancelAddition = function() {
+  this._resetAddReplyForm();
 };
 
 commentInfoDialog.prototype._getTextOfAddReplyForm = function($addReplyForm) {
@@ -234,7 +228,7 @@ commentInfoDialog.prototype._handleReplySaveAddition = function(event) {
   event.preventDefault(); // avoid reloading
   var commentId = this._getTargetData(event).commentId;
   var showReplyDialogAfterAddition = this._shouldForceShowReplyDialogAfterAddition();
-  var $addReplyForm = this._getAddReplyForm(commentId);
+  var $addReplyForm = this._getAddReplyForm();
   var replyText = this._getTextOfAddReplyForm($addReplyForm);
   var self = this;
 
