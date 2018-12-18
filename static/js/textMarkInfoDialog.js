@@ -265,6 +265,18 @@ textMarkInfoDialog.prototype._selectTextOfRepPosition = function(getRepPosition,
   });
 };
 
+textMarkInfoDialog.prototype.eventTargetIsATextMarkInfoDialog = function(e) {
+  return this._elementIsATextMarkInfoDialog(e.target);
+};
+
+textMarkInfoDialog.prototype._elementIsATextMarkInfoDialog = function(element) {
+  var infoDialog = this.infoDialog.widget.get(0);
+  var editDialog = this.editDialog.widget.get(0);
+  var elementIsInsideInfoDialog = $(element).closest(infoDialog).length !== 0;
+  var elementIsInsideEditDialog = $(element).closest(editDialog).length !== 0;
+  return elementIsInsideInfoDialog || elementIsInsideEditDialog;
+};
+
 exports.init = function(props) {
   return new textMarkInfoDialog(props);
 };

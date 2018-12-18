@@ -12,6 +12,7 @@ var TIME_TO_UPDATE_ICON_POSITION = 1000;
 
 var commentIcons = function(ace) {
   this.thisPlugin = pad.plugins.ep_comments_page;
+  this.commentInfoDialog = this.thisPlugin.commentInfoDialog;
   this._insertContainer(); // create the container
 
   // allow this time to be changed if we need to speed things up
@@ -231,16 +232,26 @@ commentIcons.prototype._addListenersToUpdateIconStyle = function() {
 commentIcons.prototype._addListenersToDeactivateComment = function() {
   var self = this;
 
+  var handleClick = function(e) {
+    self._deactivateCommentIfNotOnSelectedElements(e);
+    self._closeCommentInfoDialogIfClickOutside(e);
+  }
+
   // we need to add listeners to the different iframes of the page
-  $(document).on("touchstart click", function(e){
-    self._deactivateCommentIfNotOnSelectedElements(e);
-  });
-  utils.getPadOuter().find('html').on("touchstart click", function(e){
-    self._deactivateCommentIfNotOnSelectedElements(e);
-  });
-  utils.getPadInner().find('html').on("touchstart click", function(e){
-    self._deactivateCommentIfNotOnSelectedElements(e);
-  });
+  $(document).on('touchstart click', handleClick);
+  utils.getPadOuter().find('html').on('touchstart click', handleClick);
+  utils.getPadInner().find('html').on('touchstart click', handleClick);
+}
+
+commentIcons.prototype._closeCommentInfoDialogIfClickOutside = function(e) {
+  if (this._eventTargetIsCommentInfoDialog(e)) return;
+
+  // All clear, can close the dialog
+  this.commentInfoDialog.hideCommentInfoDialog();
+}
+
+commentIcons.prototype._eventTargetIsCommentInfoDialog = function(e) {
+  return this.commentInfoDialog.eventTargetIsACommentInfoDialog(e);
 }
 
 // Close comment if event target was on a comment icon

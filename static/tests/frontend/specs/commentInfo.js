@@ -17,7 +17,7 @@ describe('ep_comments_page - show comment info', function() {
   };
 
   before(function(done) {
-    utils.createPadWithCommentAndReplies({}, this, function(){
+    utils.createPadWithCommentAndReplies({}, this, function() {
       setLocaleToAmericanEnglish(); // force to use en-US locale
 
       // show info dialog
@@ -27,7 +27,6 @@ describe('ep_comments_page - show comment info', function() {
     });
     this.timeout(60000);
   });
-
 
   it('displays the comment creator initials', function(done) {
     expect(getTextOfDescriptionHeader('authoricon')).to.be('JO');
@@ -45,7 +44,10 @@ describe('ep_comments_page - show comment info', function() {
   });
 
   it('displays the date that comment was created', function(done) {
-    var dateField = helper.padOuter$('.comment-date').first().text();
+    var dateField = helper
+      .padOuter$('.comment-date')
+      .first()
+      .text();
     expect(dateField).to.match(DATE_TIME_REGEX);
     done();
   });
@@ -152,10 +154,28 @@ describe('ep_comments_page - show comment info', function() {
     });
   });
 
+  context('when user clicks outside', function() {
+    before(function() {
+      helper.padOuter$('#outerdocbody').click();
+    });
+
+    after(function(done) {
+      var commentId = utils.getCommentIdOfLine(COMMENT_AND_REPLIES_LINE);
+      apiUtils.simulateCallToShowCommentInfo(commentId);
+      done();
+    });
+
+    it('closes the comment dialog', function(done) {
+      var isCommentDialogVisible = helper.padOuter$('.ui-dialog--comment').is(':visible');
+      expect(isCommentDialogVisible).to.be(false);
+      done();
+    });
+  });
+
   var setLocaleToAmericanEnglish = function() {
     var thisPlugin = helper.padChrome$.window.pad.plugins.ep_comments_page;
-    thisPlugin.commentInfoDialog.userLocale= 'en-US';
-  }
+    thisPlugin.commentInfoDialog.userLocale = 'en-US';
+  };
 
   var getReplyField = function(index, field) {
     return utils
@@ -171,5 +191,4 @@ describe('ep_comments_page - show comment info', function() {
     var commentDescriptionHeader = helper.padOuter$('#text-mark-info');
     return commentDescriptionHeader.find(field).text();
   };
-
 });

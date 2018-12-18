@@ -52,8 +52,8 @@ function ep_comments(ace, socket){
   this.thisPlugin           = pad.plugins.ep_comments_page;
   this.api                  = this.thisPlugin.api;
   this.commentDataManager   = this.thisPlugin.commentDataManager;
-  this.commentIcons         = this.thisPlugin.commentIcons;
   this.commentInfoDialog    = this.thisPlugin.commentInfoDialog;
+  this.commentIcons         = this.thisPlugin.commentIcons;
   this.fakeIdsMapper        = this.thisPlugin.fakeIdsMapper;
   this.init();
 }
@@ -356,8 +356,8 @@ var hooks = {
 
     thisPlugin.lineChangeEventTriggerer = lineChangeEventTriggerer.init(ace);
     thisPlugin.commentDataManager       = commentDataManager.init(socket);
-    thisPlugin.commentIcons             = commentIcons.init(ace);
     thisPlugin.commentInfoDialog        = commentInfoDialog.init(ace);
+    thisPlugin.commentIcons             = commentIcons.init(ace);
     var comments                        = new ep_comments(ace, socket);
     thisPlugin.commentHandler           = comments;
   },
