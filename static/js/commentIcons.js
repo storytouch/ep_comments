@@ -269,7 +269,7 @@ commentIcons.prototype._deactivateCommentIfNotOnSelectedElements = function(e) {
 
 // Indicates if event was on one of the elements that does not close comment (any of the comment icons)
 commentIcons.prototype._shouldNotCloseComment = function(e) {
-  return $(e.target).closest('.comment-icon').length !== 0;
+  return $(e.target).closest('.comment-icon').length !== 0 || this._eventTargetIsCommentInfoDialog(e);
 }
 
 // Search on the page for an opened comment
