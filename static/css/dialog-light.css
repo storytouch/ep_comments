@@ -45,3 +45,6 @@ overwrite autofill default:
   border: 1px solid #EAEBED; /* color 235 */ /* [3] */
 }
 
+.theme-light .ui-dialog .comment-description-body {
+  color: #000000; /* $COLOR_0 */
+}

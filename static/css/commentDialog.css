@@ -27,7 +27,6 @@
 .comment-description-body {
   font-family: 'Roboto', sans-serif;
   font-weight: 300;
-  color: #000000; /* $COLOR_0 */
 
   margin-top: 5px; /* margin of comment while it's not being edited */
 }
