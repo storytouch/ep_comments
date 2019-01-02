@@ -29,6 +29,8 @@
   font-weight: 300;
 
   margin-top: 5px; /* margin of comment while it's not being edited */
+  white-space: normal;
+  word-break: break-word;
 }
 
 .ui-dialog-buttonset button:hover,
