@@ -20,7 +20,8 @@
 }
 
 /* form fields */
-.theme-light .ui-dialog input {
+.theme-light .ui-dialog input,
+.theme-light .ui-dialog textarea {
   color: #64666A; /* color 100 */
 }
 .theme-light .ui-dialog textarea::placeholder {
