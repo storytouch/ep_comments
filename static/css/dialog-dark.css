@@ -20,7 +20,8 @@
 }
 
 /* form fields */
-.theme-dark .ui-dialog input {
+.theme-dark .ui-dialog input,
+.theme-dark .ui-dialog textarea {
   color: #A0A2A6; /* color 160 */
 }
 .theme-dark .ui-dialog textarea::placeholder {
@@ -45,3 +46,6 @@ overwrite autofill default:
   border: 1px solid #414246; /* color 65 */ /* [3] */
 }
 
+.theme-dark .ui-dialog .comment-description-body {
+  color: #A0A2A6; /* color 160 */
+}
