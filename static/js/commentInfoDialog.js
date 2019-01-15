@@ -5,6 +5,9 @@ var textMarkInfoDialog = require('./textMarkInfoDialog');
 var utils = require('./utils');
 var commentL10n = require('./commentL10n');
 
+// make sure $.tmpl is loaded
+require('./lib/jquery.tmpl.min');
+
 var DATE_FORMAT_OPTIONS = {
   day: 'numeric',
   month: 'numeric',

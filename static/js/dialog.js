@@ -3,6 +3,10 @@ var utils = require('./utils');
 var commentL10n = require('./commentL10n');
 var preTextMarker = require('./preTextMarker');
 
+// make sure jqueryui/dialog and $.tmpl are loaded
+require('./lib/jquery.tmpl.min');
+require('./lib/jquery-ui.min');
+
 var DO_NOTHING = function(){};
 
 /*

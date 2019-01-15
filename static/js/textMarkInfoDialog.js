@@ -4,6 +4,9 @@ var _ = require('ep_etherpad-lite/static/js/underscore');
 var utils = require('./utils');
 var dialog = require('./dialog');
 
+// make sure $.tmpl is loaded
+require('./lib/jquery.tmpl.min');
+
 var NON_SCROLLABLE_EVENT = 'selectTextMarks';
 exports.NON_SCROLLABLE_EVENT = NON_SCROLLABLE_EVENT;
 

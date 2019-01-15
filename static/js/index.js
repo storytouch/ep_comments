@@ -3,9 +3,6 @@ var _ = require('ep_etherpad-lite/static/js/underscore');
 var padcookie = require('ep_etherpad-lite/static/js/pad_cookie').padcookie;
 var browser = require('ep_etherpad-lite/static/js/browser');
 
-require('./lib/jquery.tmpl.min');
-require('./lib/jquery-ui.min');
-
 var shared = require('./shared');
 var shortcuts = require('./shortcuts');
 var commentIcons = require('./commentIcons');
