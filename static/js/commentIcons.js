@@ -1,4 +1,5 @@
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
+var _ = require('ep_etherpad-lite/static/js/underscore');
 
 var linesChangedListener  = require('./linesChangedListener');
 var textHighlighter       = require('./textHighlighter');
