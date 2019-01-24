@@ -1,6 +1,8 @@
 var ep_comments_page_test_helper = ep_comments_page_test_helper || {};
 ep_comments_page_test_helper.utils = {
   padId: undefined,
+  AUTHOR_NAME: 'John',
+  AUTHOR_INITIALS: 'JO',
 
   undo: function() { ep_script_elements_test_helper.utils.undo() },
   redo: function() { ep_script_elements_test_helper.utils.redo() },
@@ -17,6 +19,9 @@ ep_comments_page_test_helper.utils = {
 
       // use a shorter timeout, so tests don't take too long to build icons
       self.speedUpIconCreation();
+
+      // set user data, so all comments/replies are saved with a fixed author
+      helper.padChrome$.window.pad.myUserInfo.name = self.AUTHOR_NAME;
 
       // wait for all helper libs to be loaded
       helper.waitFor(function() {
@@ -304,7 +309,10 @@ ep_comments_page_test_helper.utils = {
     $settingsButton.click();
 
     // select the language
-    var $language = chrome$('#languagemenu');
+    // Bug fix: Etherpad uses the window.$ to bind the 'change' event, so
+    // we need to use the same jQuery instance to trigger the language change.
+    // Use `chrome$.window.$` instead of `chrome$`
+    var $language = chrome$.window.$('#languagemenu');
     $language.val(lang);
     $language.change();
 

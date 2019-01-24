@@ -1,6 +1,8 @@
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var utils = require('./utils');
 var dialog = require('./dialog');
+// make sure $.tmpl is loaded
+require('./lib/jquery.tmpl.min');
 
 var newCommentDialog;
 

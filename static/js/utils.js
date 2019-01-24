@@ -1,3 +1,4 @@
+var _ = require('ep_etherpad-lite/static/js/underscore');
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var smUtils = require('ep_script_scene_marks/static/js/utils');
 

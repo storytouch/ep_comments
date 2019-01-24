@@ -1,8 +1,12 @@
+var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var _ = require('ep_etherpad-lite/static/js/underscore');
 
 var textMarkInfoDialog = require('./textMarkInfoDialog');
 var utils = require('./utils');
 var commentL10n = require('./commentL10n');
+
+// make sure $.tmpl is loaded
+require('./lib/jquery.tmpl.min');
 
 var DATE_FORMAT_OPTIONS = {
   day: 'numeric',

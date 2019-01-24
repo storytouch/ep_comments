@@ -49,7 +49,7 @@ describe('ep_comments_page - api - activate comment', function() {
     context('but comment is out of viewport', function() {
       before(function() {
         // make sure comment is not visible on viewport
-        helper.padOuter$('#outerdocbody').scrollTop(0);
+        helper.padOuter$('#outerdocbody').parent().scrollTop(0);
 
         commentId = utils.getCommentIdOfLine(LINE_OF_COMMENT_OUT_OF_VIEWPORT);
         apiUtils.simulateCallToActivateComment(commentId);

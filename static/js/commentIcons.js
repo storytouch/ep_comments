@@ -1,4 +1,5 @@
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
+var _ = require('ep_etherpad-lite/static/js/underscore');
 
 var linesChangedListener  = require('./linesChangedListener');
 var textHighlighter       = require('./textHighlighter');
@@ -6,6 +7,9 @@ var textMarkIconsPosition = require('./textMarkIconsPosition');
 var shared                = require('./shared');
 var utils                 = require('./utils');
 var textMarkSMVisibility  = require('./textMarkSMVisibility');
+
+// make sure $.tmpl is loaded
+require('./lib/jquery.tmpl.min');
 
 var COMMENT_HIGHLIGHT_COLOR = '#FFFACD';
 var TIME_TO_UPDATE_ICON_POSITION = 1000;
