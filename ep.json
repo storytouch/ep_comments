@@ -10,7 +10,7 @@
         "collectContentPre": "ep_comments_page/static/js/index",
         "acePaste": "ep_comments_page/static/js/index",
         "aceAttribsToClasses": "ep_comments_page/static/js/index",
-        "aceEditorCSS": "ep_comments_page/static/js/index",
+        "aceEditorCSS": "ep_comments_page/static/js/aceEditorCSS",
         "aceEditEvent": "ep_comments_page/static/js/index",
         "aceRegisterNonScrollableEditEvents": "ep_comments_page/static/js/index",
         "aceInitialized": "ep_comments_page/static/js/index"

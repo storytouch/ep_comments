@@ -20,23 +20,6 @@ var sceneMarkVisibility = require('ep_script_scene_marks/static/js/sceneMarkVisi
 var commentInfoDialog = require('./commentInfoDialog');
 var textMarkInfoDialog = require('./textMarkInfoDialog');
 
-var cssFiles = [
-  '//fonts.googleapis.com/css?family=Roboto:300,400', // light, regular
-  'ep_comments_page/static/css/lib/jquery-ui.min.css',
-  'ep_comments_page/static/css/lib/jquery-ui.structure.min.css',
-  'ep_comments_page/static/css/lib/jquery-ui.theme.min.css',
-  'ep_comments_page/static/css/dialog.css',
-  'ep_comments_page/static/css/dialog-light.css',
-  'ep_comments_page/static/css/dialog-dark.css',
-  'ep_comments_page/static/css/comment.css',
-  'ep_comments_page/static/css/commentIcon.css',
-  'ep_comments_page/static/css/commentModal.css',
-  'ep_comments_page/static/css/jquery-ui-custom.css',
-  'ep_comments_page/static/css/jquery-ui-custom-light.css',
-  'ep_comments_page/static/css/jquery-ui-custom-dark.css',
-  'ep_comments_page/static/css/commentDialog.css',
-];
-
 var COMMENT_PREFIX_KEY = 'comment-c-';
 var REPLY_PREFIX_KEY = 'comment-reply-';
 
@@ -390,17 +373,12 @@ var hooks = {
     return preTextMarker.processAceAttribsToClasses(context);
   },
 
-  aceEditorCSS: function(){
-    return cssFiles;
-  },
-
   aceKeyEvent: function(hook, context) {
     return shortcuts.processAceKeyEvent(context);
   }
 
 };
 
-exports.aceEditorCSS          = hooks.aceEditorCSS;
 exports.postAceInit           = hooks.postAceInit;
 exports.aceAttribsToClasses   = hooks.aceAttribsToClasses;
 exports.aceEditEvent          = hooks.aceEditEvent;
