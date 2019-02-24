@@ -91,6 +91,11 @@ describe('ep_comments_page - workflow to edit reply', function() {
             done();
           });
 
+          it('keeps the main window visible', function(done) {
+            expect(utils.isCommentInfoWindowVisible()).to.be(true);
+            done();
+          });
+
           // every time we open the comment info we get a fresh comment data. So
           // to make sure the reply was saved, we close the dialogue and open it
           // again
@@ -115,6 +120,11 @@ describe('ep_comments_page - workflow to edit reply', function() {
 
         it('displays the info dialog', function(done) {
           expect(isReplyInfoFormVisible(replyIndex)).to.be(true);
+          done();
+        });
+
+        it('keeps the main window visible', function(done) {
+          expect(utils.isCommentInfoWindowVisible()).to.be(true);
           done();
         });
       });

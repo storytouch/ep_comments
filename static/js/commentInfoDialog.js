@@ -405,18 +405,13 @@ commentInfoDialog.prototype.addAdditionalElementsOnInfoDialog = function(infoDia
 };
 
 commentInfoDialog.prototype.eventTargetIsACommentInfoDialog = function(e) {
-  return this.textMarkInfoDialog.eventTargetIsATextMarkInfoDialog(e) || this._eventTargetIsReplyFormButton(e);
+  return this.textMarkInfoDialog.eventTargetIsATextMarkInfoDialog(e) || this._eventTargetIsInsideAReply(e);
 };
 
-// although these two buttons (cancel and save) is on the comment info dialog
-// initially, they are removed as soon the user clicks on it. This is a problem
-// if we try to check for their parent using $.closest, for example
-commentInfoDialog.prototype._eventTargetIsReplyFormButton = function(e) {
-  var elementClasses = e.target.classList;
-  var targetClasses = _.map(elementClasses, function(className) {
-    return '.' + className;
-  });
-  return targetClasses.includes(REPLY_BUTTON_SAVE) || targetClasses.includes(REPLY_BUTTON_CANCEL);
+commentInfoDialog.prototype._eventTargetIsInsideAReply = function(e) {
+  // all buttons on reply-related templates are placed inside a
+  // '.reply-comment-buttons' element
+  return $(e.target).closest('.reply-comment-buttons').length !== 0;
 };
 
 commentInfoDialog.prototype.hideCommentInfoDialog = function() {

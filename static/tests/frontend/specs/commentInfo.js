@@ -20,10 +20,16 @@ describe('ep_comments_page - show comment info', function() {
     utils.createPadWithCommentAndReplies({}, this, function() {
       setLocaleToAmericanEnglish(); // force to use en-US locale
 
-      // show info dialog
-      var commentId = utils.getCommentIdOfLine(COMMENT_AND_REPLIES_LINE);
-      apiUtils.simulateCallToShowCommentInfo(commentId);
-      done();
+      // wait for New Comment modal to be closed
+      var $commentForm = helper.padOuter$('#newComment');
+      helper.waitFor(function() {
+        return !$commentForm.is(':visible');
+      }).done(function() {
+        // show info dialog
+        var commentId = utils.getCommentIdOfLine(COMMENT_AND_REPLIES_LINE);
+        apiUtils.simulateCallToShowCommentInfo(commentId);
+        done();
+      });
     });
     this.timeout(60000);
   });

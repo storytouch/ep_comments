@@ -38,6 +38,11 @@ describe('ep_comments_page - workflow to remove reply', function() {
       done();
     });
 
+    it('keeps the main window visible', function(done) {
+      expect(utils.isCommentInfoWindowVisible()).to.be(true);
+      done();
+    });
+
     // as the comment info window get a fresh comment data every time is
     // opened, we close, open again to check if the reply removed is not on the
     // window anymore

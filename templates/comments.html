@@ -33,7 +33,7 @@
           <div class="comment-description-body comment-reply-body">${text}</div>
         </div>
         <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
-            <div class="ui-dialog-buttonset">
+            <div class="ui-dialog-buttonset reply-comment-buttons">
               <button
                 class="reply-button--edit"
                 type="submit"
@@ -67,7 +67,7 @@
           placeholder="describe the reply"
           data-l10n-id="ep_comments_page.edit_reply_template.description.placeholder"
         >${text}</textarea>
-        <div class="buttons-row comment-buttons">
+        <div class="buttons-row reply-comment-buttons">
           <input
             class="button button--save reply-button--save"
             type="submit"
@@ -146,7 +146,7 @@
     <div class="reply-text">
       <textarea class="reply-content--input" autofocus placeholder="write here your reply" data-l10n-id="ep_comments_page.edit_reply_template.description.placeholder"></textarea>
     </div>
-    <div class="buttons-row comment-buttons">
+    <div class="buttons-row reply-comment-buttons">
       <input class="button button--save add-reply-button--save"
         type="submit"
         value="Save"
