@@ -258,6 +258,7 @@ ep_comments.prototype.buildComment = function(commentData, commentId){
   data.padId = clientVars.padId;
   data.commentId = commentId;
   data.text = commentData.text;
+  data.author = commentData.author;
   data.name = commentData.name;
   data.timestamp = parseInt(commentData.timestamp);
 
@@ -292,6 +293,7 @@ ep_comments.prototype.buildCommentReply = function(replyData){
   data.text = replyData.text;
   data.replyId = replyData.replyId;
   data.name = replyData.name;
+  data.author = replyData.author;
   data.timestamp = parseInt(replyData.timestamp);
 
   return data;

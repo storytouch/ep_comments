@@ -48,6 +48,7 @@ commentDataManager.prototype.addComments = function(comments) {
 }
 commentDataManager.prototype.addComment = function(commentId, commentData) {
   commentData.commentId     = commentId;
+  commentData.author        = commentData.author;
   commentData.date          = commentData.timestamp;
   commentData.formattedDate = new Date(commentData.timestamp).toISOString();
   commentData.replies       = {};
@@ -67,6 +68,7 @@ commentDataManager.prototype.addReplyWithoutTriggeringDataChangedEvent = functio
 
 commentDataManager.prototype.addReply = function(replyId, replyData, doNotTriggerDataChanged) {
   replyData.replyId       = replyId;
+  replyData.author        = replyData.author;
   replyData.date          = replyData.timestamp;
   replyData.formattedDate = new Date(replyData.timestamp).toISOString();
 

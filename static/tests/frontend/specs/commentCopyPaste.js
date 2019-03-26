@@ -68,13 +68,25 @@ describe('ep_comments_page - Comment copy and paste', function() {
       }).done(done);
     });
 
-    it('creates the comment text field with the same text of the one copied', function(done) {
+    it('saves the same author of the original comment', function(done) {
+      var author = helperFunctions.getAuthorOfCommentFromLine(LINE_WITH_PASTED_COMMENT);
+      expect(author).to.be(helper.padChrome$.window.pad.myUserInfo.userId);
+      done();
+    });
+
+    it('saves the same text of the original comment', function(done) {
       var commentPastedText = helperFunctions.getTextOfCommentFromLine(LINE_WITH_PASTED_COMMENT);
       expect(commentPastedText).to.be(COMMENT_TEXT);
       done();
     });
 
-    it('creates the comment reply text field with the same text of the one copied', function(done) {
+    it('saves the same author of the original comment reply', function(done) {
+      var author = helperFunctions.getAuthorOfCommentReplyFromLine(LINE_WITH_PASTED_COMMENT);
+      expect(author).to.be(helper.padChrome$.window.pad.myUserInfo.userId);
+      done();
+    });
+
+    it('saves the same text of the original comment reply', function(done) {
       var commentReplyText = helperFunctions.getTextOfCommentReplyFromLine(LINE_WITH_PASTED_COMMENT);
       expect(commentReplyText).to.be(REPLY_TEXT);
       done();
@@ -276,16 +288,28 @@ describe('ep_comments_page - Comment copy and paste', function() {
 
 var ep_comments_page_test_helper = ep_comments_page_test_helper || {};
 ep_comments_page_test_helper.copyAndPaste = {
-  getTextOfCommentFromLine: function(lineNumber) {
+  _getDataOfCommentFromLine: function(lineNumber) {
     var utils = ep_comments_page_test_helper.utils;
-    var commentData = utils.getCommentDataOfLine(lineNumber);
-    return commentData.text;
+    return utils.getCommentDataOfLine(lineNumber);
   },
-  getTextOfCommentReplyFromLine: function(lineNumber) {
+  getAuthorOfCommentFromLine: function(lineNumber) {
+    return this._getDataOfCommentFromLine(lineNumber).author;
+  },
+  getTextOfCommentFromLine: function(lineNumber) {
+    return this._getDataOfCommentFromLine(lineNumber).text;
+  },
+
+  _getDataOfCommentReplyFromLine: function(lineNumber) {
     var utils = ep_comments_page_test_helper.utils;
     var commentData = utils.getCommentDataOfLine(lineNumber);
     var replyIds = Object.keys(commentData.replies);
-    return commentData.replies[replyIds[0]].text;
+    return commentData.replies[replyIds[0]];
+  },
+  getAuthorOfCommentReplyFromLine: function(lineNumber) {
+    return this._getDataOfCommentReplyFromLine(lineNumber).author;
+  },
+  getTextOfCommentReplyFromLine: function(lineNumber) {
+    return this._getDataOfCommentReplyFromLine(lineNumber).text;
   },
 
   performActionAndWaitForDataToBeSent: function(action, done) {

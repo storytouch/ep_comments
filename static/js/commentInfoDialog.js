@@ -307,7 +307,7 @@ commentInfoDialog.prototype._buildCommentData = function(commentId) {
   return {
     commentId: comment.commentId,
     initials: initials,
-    author: comment.name,
+    author: comment.name, // TODO get this value from db/AuthorManager
     sceneNumber: comment.scene,
     timestamp: comment.timestamp,
     formId: EDIT_COMMENT_FORM_ID,
@@ -348,7 +348,7 @@ commentInfoDialog.prototype._buildRepliesData = function(commentData) {
   // we add the fields initials and the date that was created into the original
   // reply data
   return _(replies).map(function(reply) {
-    var initials = utils.buildUserInitials(reply.name);
+    var initials = utils.buildUserInitials(reply.name);// TODO get this value from db/AuthorManager
     var prettyDate = self._buildPrettyDate(reply.timestamp);
 
     return Object.assign(reply, {
