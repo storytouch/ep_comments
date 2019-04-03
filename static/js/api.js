@@ -120,6 +120,7 @@ commentApi.prototype.triggerCommentDeactivation = function() {
         name: 'Author Name',
         text: 'the comment text',
         timestamp: 1501599806477,
+        modelName: 'Comment',
         replies: [
           {
             replyId: 'cr-dfksfu2df',
@@ -127,6 +128,7 @@ commentApi.prototype.triggerCommentDeactivation = function() {
             name: 'Other Author Name',
             text: 'the reply text',
             timestamp: 1621599806477,
+            modelName: 'Comment Reply',
           },
           (...)
         ]
@@ -136,12 +138,23 @@ commentApi.prototype.triggerCommentDeactivation = function() {
   }
 */
 commentApi.prototype.triggerDataChanged = function(commentsData) {
+  this._injectModeNameOn(commentsData);
   var message = {
     type: NEW_DATA_MESSAGE_TYPE,
     values: commentsData,
   };
 
   this._triggerEvent(message);
+};
+
+commentApi.prototype._injectModeNameOn = function(commentsData) {
+  _(commentsData).each(function(comment) {
+    comment.modelName = 'Comment';
+
+    _(comment.replies).each(function(reply) {
+      reply.modelName = 'Comment Reply';
+    });
+  });
 };
 
 commentApi.prototype._triggerEvent = function(message) {

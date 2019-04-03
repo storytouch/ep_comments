@@ -43,6 +43,7 @@ describe('ep_comments_page - api - create comment reply', function() {
         expect(reply.name).to.not.be(undefined);
         expect(reply.timestamp).to.not.be(undefined);
         expect(reply.replyId).to.not.be(undefined);
+        expect(reply.modelName).to.be('Comment Reply');
 
         done();
       });
