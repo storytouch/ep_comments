@@ -10,6 +10,7 @@ var       supertest = require('ep_etherpad-lite/node_modules/supertest'),
           codeToBe1 = utils.codeToBe1,
           codeToBe4 = utils.codeToBe4,
 commentsEndPointFor = utils.commentsEndPointFor,
+      updateComment = utils.updateComment,
                 api = supertest(appUrl);
 
 describe('get comments API', function() {
@@ -421,12 +422,6 @@ var validateCommentText = function(res, commentId, expectedCommentText) {
   if(comment_data.text !== expectedCommentText) {
     throw new Error("Wrong text. Expected: " + expectedCommentText + ", got: " + comment_data.text);
   }
-}
-
-var updateComment = function(commentData, socket, cb) {
-  socket.emit('updateCommentText', commentData, function(error){
-    cb(error);
-  });
 }
 
 var updateCommentAndGetListOfComments = function(commentData, socket, callbackValidator, done) {

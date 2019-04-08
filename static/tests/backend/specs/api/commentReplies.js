@@ -12,6 +12,7 @@ commentRepliesEndPointFor = utils.commentRepliesEndPointFor,
                 codeToBe0 = utils.codeToBe0,
                 codeToBe1 = utils.codeToBe1,
                 codeToBe4 = utils.codeToBe4,
+            updateComment = utils.updateComment,
                       api = supertest(appUrl);
 
 
@@ -276,6 +277,36 @@ describe('create comment reply API broadcast', function() {
   });
 });
 
+describe('update comment replies API', function() {
+  var replyId, padId;
+  beforeEach(function(done) {
+    createPadAndCommentReply(function(err, padId, replyId) {
+      replyId = replyId;
+      padId = padId;
+      done();
+    })
+  })
+
+  context('when a user that is not the comment reply author tries to update it', function() {
+    it('returns an error', function(done) {
+      var newText = 'anything';
+      var data = {
+        currentUser: 'a.notAuthor',
+        padId: padId,
+        commentId: replyId,
+        commentText: newText,
+      }
+      var socket = io.connect(appUrl + "/comment");
+      updateComment(data, socket, function(error){
+        if (error !== true) {
+          throw new Error("It should return an error");
+        }
+        done();
+      })
+    })
+  })
+})
+
 var listCommentRepliesEndPointFor = function(padID, apiKey) {
   var extraParams = "";
   if(apiKey) {
@@ -292,4 +323,15 @@ var repliesData = function(replies) {
 
 var replyData = function(commentId) {
   return { commentId: commentId, name: 'The Author', text: 'The Comment Text' };
+}
+
+var createPadAndCommentReply = function(cb) {
+  createPad(function(err, padId) {
+    if (err) throw err;
+    createComment(padId, {}, function(err, commentId) {
+      createCommentReply(padId, commentId, {}, function(err, replyId) {
+        cb(err, padId, replyId);
+      });
+    });
+  });
 }

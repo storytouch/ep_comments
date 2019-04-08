@@ -112,6 +112,7 @@ commentDataManager.prototype._onReplyEdition = function(commentId, replyId, repl
     padId: clientVars.padId,
     commentId: replyId,
     commentText: replyText,
+    currentUser: clientVars.userId,
   }
 
   this.socket.emit('updateCommentText', data, function(err) {

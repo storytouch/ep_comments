@@ -125,6 +125,12 @@ var createCommentReply = function(pad, comment, replyData, done) {
   );
 }
 
+var updateComment = function(commentData, socket, cb) {
+  socket.emit('updateCommentText', commentData, function(error){
+    cb(error);
+  });
+}
+
 /* ********** Available functions/values: ********** */
 exports.apiVersion = apiVersion;
 exports.api  = api;
@@ -139,3 +145,4 @@ exports.codeToBe1 = codeToBe1;
 exports.codeToBe4 = codeToBe4;
 exports.commentsEndPointFor = commentsEndPointFor;
 exports.commentRepliesEndPointFor = commentRepliesEndPointFor;
+exports.updateComment = updateComment;
