@@ -190,9 +190,9 @@ exports.copyCommentReplies = function(originalPadId, newPadID, callback){
   });
 };
 
-exports.changeCommentText = function(padId, commentId, commentText, callback){
+exports.changeCommentText = function(padId, commentId, commentText, currentUser, callback){
   var commentTextIsNotEmpty = (commentText || '').length > 0;
-  if(commentTextIsNotEmpty && commentId){
+  if(commentTextIsNotEmpty && commentId && currentUser){
     // Given a comment we update the comment text
     // We need to change readOnly PadIds to Normal PadIds
     padId = utils.getReadWritePadId(padId);
@@ -207,14 +207,19 @@ exports.changeCommentText = function(padId, commentId, commentText, callback){
     db.get(prefix + padId, function(err, comments){
       if(ERR(err, callback)) return;
       var targetComment = comments[commentId];
-      if (targetComment) {
+      var currentUserIsAuthor = targetComment && (targetComment.author === currentUser);
+      if (targetComment && currentUserIsAuthor) {
         //update the comment text
         targetComment.text = commentText;
 
         //save the comment updated back
         db.set(prefix + padId, comments, callback);
       }else{
-        console.log('Error on updating comment with id ' + commentId + '. Comment does not exist');
+        var errorMessage = 'Comment does not exist';
+        if (targetComment && !currentUserIsAuthor) {
+          errorMessage = 'User can not update comment';
+        }
+        console.log('Error on updating comment with id ' + commentId + '.' + errorMessage);
         callback(true)
       }
     });

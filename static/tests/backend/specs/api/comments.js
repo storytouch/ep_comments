@@ -259,7 +259,7 @@ describe('update comments API broadcast', function(){
       padID = newPadID;
       socket = io.connect(appUrl + "/comment");
 
-      createComment(padID, {}, function(err, commentId) {
+      createComment(padID, {author: "a.authorid"}, function(err, commentId) {
         if(err) throw err;
         if(!commentId) throw new Error("Comment should had been created");
         commentIdToEdit = commentId;
@@ -271,6 +271,7 @@ describe('update comments API broadcast', function(){
   it('updates the text of the comment', function(done){
     var newText = 'comment updated!';
     var data = {
+      currentUser: "a.authorid",
       padId: padID,
       commentId: commentIdToEdit,
       commentText: newText,
@@ -314,6 +315,24 @@ describe('update comments API broadcast', function(){
       })
     })
   });
+
+  context('when a user that is not the comment owner tries to update it', function() {
+    it('returns an error', function(done) {
+      var newText = 'anything';
+      var data = {
+        currentUser: 'a.notAuthor',
+        padId: padID,
+        commentId: commentIdToEdit,
+        commentText: newText,
+      }
+      updateComment(data, socket, function(error){
+        if (error !== true) {
+          throw new Error("It should return an error");
+        }
+        done();
+      })
+    })
+  })
 })
 
 describe('bulk adding comments API', function(){

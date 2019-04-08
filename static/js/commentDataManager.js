@@ -90,6 +90,7 @@ commentDataManager.prototype._onCommentEdition = function(commentId, commentText
     padId: clientVars.padId,
     commentId: commentId,
     commentText: commentText,
+    currentUser: clientVars.userId,
   }
 
   this.socket.emit('updateCommentText', data, function(err) {

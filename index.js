@@ -92,7 +92,8 @@ exports.socketio = function (hook_name, args, cb){
       var padId = data.padId;
       var commentId = data.commentId;
       var commentText = data.commentText;
-      commentManager.changeCommentText(padId, commentId, commentText, function(err) {
+      var currentUser = data.currentUser;
+      commentManager.changeCommentText(padId, commentId, commentText, currentUser, function(err) {
         if(!err){
           socket.broadcast.to(padId).emit('textCommentUpdated', commentId, commentText);
         }
