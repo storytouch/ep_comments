@@ -5,24 +5,23 @@ describe('ep_comments_page - workflow to edit reply', function() {
   var FIRST_REPLY_TEXT = 'first reply';
 
   before(function(done) {
-    utils.createPadWithCommentAndReplies({}, this, done);
+    utils.createPadWithCommentAndReplies({}, this, function() {
+      openCommentWindowAndToggleReplyWindow(COMMENT_AND_REPLIES_LINE, done);
+    });
     this.timeout(60000);
+  });
+
+  it('shows the edit reply button on their own replies', function(done) {
+    // we only test the first edit reply button because all of them are from
+    // this user
+    expect(isReplyEditButtonVisible(0)).to.be(true);
+    done();
   });
 
   context('when user click on "edit" on reply', function() {
     var replyIndex = 0;
-    before(function(done) {
-      var commentId = utils.getCommentIdOfLine(COMMENT_AND_REPLIES_LINE);
-      apiUtils.simulateCallToShowCommentInfo(commentId);
-      helper
-        .waitFor(function() {
-          return utils.isCommentInfoWindowVisible();
-        })
-        .done(function() {
-          utils.toggleShowHideReplyButton();
-          clickOnEditReply(replyIndex);
-          done();
-        });
+    before(function() {
+      clickOnEditReply(replyIndex);
     });
 
     it('hides the info dialog', function(done) {
@@ -131,6 +130,22 @@ describe('ep_comments_page - workflow to edit reply', function() {
     });
   });
 
+  context('when other user opens a reply window', function() {
+    before(function(done) {
+      var multipleUsers = ep_script_copy_cut_paste_test_helper.multipleUsers;
+      multipleUsers.openSamePadOnWithAnotherUser(function() {
+        multipleUsers.startActingLikeOtherUser();
+        openCommentWindowAndToggleReplyWindow(COMMENT_AND_REPLIES_LINE, done);
+      });
+      this.timeout(10000);
+    });
+
+    it('does not show the edit reply button on replies of others', function(done) {
+      expect(isReplyEditButtonVisible(0)).to.be(false);
+      done();
+    });
+  });
+
   var clickOnEditReply = function(index) {
     return utils
       .getReplyContainer()
@@ -139,6 +154,19 @@ describe('ep_comments_page - workflow to edit reply', function() {
       .find('.reply-button--edit')
       .click();
   };
+
+  var openCommentWindowAndToggleReplyWindow = function(commentLine, cb) {
+    var commentId = utils.getCommentIdOfLine(commentLine);
+    apiUtils.simulateCallToShowCommentInfo(commentId);
+    helper
+      .waitFor(function() {
+        return utils.isCommentInfoWindowVisible();
+      })
+      .done(function() {
+        utils.toggleShowHideReplyButton();
+        cb();
+      });
+  }
 
   var addTextToReplyEditFieldAndPressButton = function(replyIndex, newReplyText, action) {
     var $replyInfo = helper
@@ -184,4 +212,9 @@ describe('ep_comments_page - workflow to edit reply', function() {
       .text();
   };
 
+  var isReplyEditButtonVisible = function(replyIndex) {
+    var $replyEditButton = helper.padOuter$('.ui-dialog--comment .reply-button--edit').eq(replyIndex);
+    var isReplyButtonVisible = $replyEditButton.is(':visible');
+    return isReplyButtonVisible;
+  };
 });

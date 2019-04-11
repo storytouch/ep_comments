@@ -95,7 +95,16 @@
   display: none;
 }
 
-/* only the show the comment edit button to the comment owner */
+/* only show the comment edit button to the comment owner */
 .ui-dialog--comment.comment-owner .button--edit {
+  display: inline-flex;
+}
+
+.reply-button--edit {
+  display: none;
+}
+
+/* only show reply edit button to the reply owner */
+.reply-owner-true .reply-button--edit {
   display: inline-flex;
 }

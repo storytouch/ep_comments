@@ -356,6 +356,7 @@ commentInfoDialog.prototype._buildRepliesData = function(commentData) {
     return Object.assign(reply, {
       initials: initials,
       prettyDate: prettyDate,
+      isOwner: clientVars.userId === reply.author,
     });
   });
 };

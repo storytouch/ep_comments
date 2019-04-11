@@ -24,7 +24,7 @@
 <script id="replies-info-template" type="text/html">
   <div>
     {{each replies}}
-      <div class="replyId-${replyId}">
+      <div class="replyId-${replyId} reply-owner-${isOwner}">
         <div class="comment-reply ui-dialog-content">
           <div class="comment-author">
             <authoricon>${initials}</authoricon>
