@@ -49,6 +49,7 @@ var ADD_REPLY = '.reply-content--input';
 var ADD_REPLY_CANCEL = '.add-reply-button--cancel';
 var ADD_REPLY_SAVE = '.add-reply-button--save';
 var ADD_REPLY_FORM_ID = '#newReply';
+var COMMENT_OWNER_CLASS = 'comment-owner';
 
 var commentInfoDialog = function(ace) {
   this.thisPlugin = pad.plugins.ep_comments_page;
@@ -308,6 +309,7 @@ commentInfoDialog.prototype._buildCommentData = function(commentId) {
     commentId: comment.commentId,
     initials: initials,
     author: comment.name, // TODO get this value from db/AuthorManager
+    isOwner: comment.author === clientVars.userId,
     sceneNumber: comment.scene,
     timestamp: comment.timestamp,
     formId: EDIT_COMMENT_FORM_ID,
@@ -398,10 +400,15 @@ commentInfoDialog.prototype._createOrRecreateReplyDialog = function($infoDialog,
   this._addReplyCommentField($infoDialog, commentData);
 };
 
+commentInfoDialog.prototype._showEditButtonIfCurrentUserIsCommentOwner = function($infoDialog, commentData) {
+  $infoDialog.toggleClass(COMMENT_OWNER_CLASS, commentData.isOwner);
+}
+
 commentInfoDialog.prototype.addAdditionalElementsOnInfoDialog = function(infoDialog, commentData) {
   var $infoDialog = infoDialog.widget;
   this._createOrRecreateReplyDialog($infoDialog, commentData);
   this._addDateFieldToComment($infoDialog, commentData);
+  this._showEditButtonIfCurrentUserIsCommentOwner($infoDialog, commentData);
 };
 
 commentInfoDialog.prototype.eventTargetIsACommentInfoDialog = function(e) {

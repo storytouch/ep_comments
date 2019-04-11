@@ -90,3 +90,12 @@
   margin: 10px 0;
   height: 20px;
 }
+
+.ui-dialog--comment .button--edit {
+  display: none;
+}
+
+/* only the show the comment edit button to the comment owner */
+.ui-dialog--comment.comment-owner .button--edit {
+  display: inline-flex;
+}

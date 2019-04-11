@@ -75,6 +75,50 @@ describe('ep_comments_page - workflow to edit a comment', function() {
     });
   });
 
+  context('when other user opens the comment dialog', function() {
+    before(function(done) {
+      var multipleUsers = ep_script_copy_cut_paste_test_helper.multipleUsers;
+      multipleUsers.openSamePadOnWithAnotherUser(function() {
+        multipleUsers.startActingLikeOtherUser();
+        var commentId = originalCommentData.commentId;
+        apiUtils.simulateCallToShowCommentInfo(commentId);
+        done();
+      });
+      this.timeout(5000);
+    });
+
+    it('does not show the edit button', function(done) {
+      var $commentEditButton = helper.padOuter$('.ui-dialog--comment .button--edit');
+      var isCommentEditButtonVisible = $commentEditButton.is(':visible');
+      expect(isCommentEditButtonVisible).to.be(false);
+      done();
+    });
+
+    // this scenario tests if the backend validation works
+    context('and tries to edit a comment', function() {
+      var originalCommentText;
+      before(function() {
+        originalCommentText = utils.getCommentInfoDialog()
+          .find('.comment-description-body')
+          .text();
+        getCommentEditDialog()
+          .find('#comment-description')
+          .val('not allowed to change!');
+        getCommentEditDialog()
+          .find('.comment-button--save')
+          .click();
+      });
+
+      it('does not save it', function(done) {
+        var newDescription = utils.getCommentInfoDialog()
+          .find('.comment-description-body')
+          .text();
+        expect(newDescription.trim()).to.be(originalCommentText);
+        done();
+      })
+    });
+  })
+
   var epCommentsUtils = ep_comments_page_test_helper.utils;
 
   // assume dialogs are opened
