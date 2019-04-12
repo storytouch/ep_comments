@@ -215,10 +215,8 @@ exports.changeCommentText = function(padId, commentId, commentText, currentUser,
         //save the comment updated back
         db.set(prefix + padId, comments, callback);
       }else{
-        var errorMessage = 'Comment does not exist';
-        if (targetComment && !currentUserIsAuthor) {
-          errorMessage = 'User can not update comment';
-        }
+        var userIsNotAuthorOfComment = targetComment && !currentUserIsAuthor;
+        var errorMessage = userIsNotAuthorOfComment ? 'User can not update comment' : 'Comment does not exist';
         console.log('Error on updating comment with id ' + commentId + '.' + errorMessage);
         callback(true)
       }

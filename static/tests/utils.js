@@ -126,9 +126,7 @@ var createCommentReply = function(pad, comment, replyData, done) {
 }
 
 var updateComment = function(commentData, socket, cb) {
-  socket.emit('updateCommentText', commentData, function(error){
-    cb(error);
-  });
+  socket.emit('updateCommentText', commentData, cb);
 }
 
 /* ********** Available functions/values: ********** */
