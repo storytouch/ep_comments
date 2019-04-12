@@ -91,20 +91,14 @@
   height: 20px;
 }
 
-.ui-dialog--comment .button--edit {
-  display: none;
-}
-
-/* only show the comment edit button to the comment owner */
-.ui-dialog--comment.comment-owner .button--edit {
-  display: inline-flex;
-}
-
+/* hide commment/reply edit button by default */
+.ui-dialog--comment .button--edit,
 .reply-button--edit {
   display: none;
 }
 
-/* only show reply edit button to the reply owner */
+/* only show comment/reply edit button to the owner */
+.ui-dialog--comment.comment-owner .button--edit,
 .reply-owner-true .reply-button--edit {
   display: inline-flex;
 }
