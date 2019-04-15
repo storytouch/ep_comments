@@ -32,6 +32,12 @@ describe('ep_comments_page - api - "data changed" event', function() {
       done();
     });
 
+    it('sets the comment creator as the comment author', function(done) {
+      var comment = apiUtils.getLastDataSent()[0];
+      expect(comment.creator).to.be(comment.author);
+      done();
+    });
+
     context('and user reloads the pad', function() {
       before(function(done) {
         // create a reply too

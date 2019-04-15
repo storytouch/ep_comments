@@ -1,5 +1,5 @@
 describe('ep_comments_page - Comment copy and paste', function() {
-  var helperFunctions, originalCommentId, originalReplyId;
+  var helperFunctions, originalCommentId, originalReplyId, originalUser, otherUser;
   var utils = ep_comments_page_test_helper.utils;
   var apiUtils = ep_comments_page_test_helper.apiUtils;
 
@@ -24,7 +24,14 @@ describe('ep_comments_page - Comment copy and paste', function() {
         utils.addCommentAndReplyToLine(LINE_WITH_ORIGINAL_COMMENT, COMMENT_TEXT, REPLY_TEXT, function() {
           originalCommentId = utils.getCommentIdOfLine(LINE_WITH_ORIGINAL_COMMENT);
           originalReplyId = utils.getReplyIdOfLine(LINE_WITH_ORIGINAL_COMMENT);
-          done();
+
+          // reopen the same pad as a different user, so we can test if we're pasting
+          // comments with different authors and creators
+          originalUser = helper.padChrome$.window.pad.myUserInfo.userId;
+          helperFunctions.loadSamePadAsAnotherUser(function() {
+            otherUser = helper.padChrome$.window.pad.myUserInfo.userId;
+            done();
+          })
         });
       });
     });
@@ -70,7 +77,13 @@ describe('ep_comments_page - Comment copy and paste', function() {
 
     it('saves the same author of the original comment', function(done) {
       var author = helperFunctions.getAuthorOfCommentFromLine(LINE_WITH_PASTED_COMMENT);
-      expect(author).to.be(helper.padChrome$.window.pad.myUserInfo.userId);
+      expect(author).to.be(originalUser);
+      done();
+    });
+
+    it('saves the other user as the creator of the pasted comment', function(done) {
+      var creator = helperFunctions.getCreatorOfCommentFromLine(LINE_WITH_PASTED_COMMENT);
+      expect(creator).to.be(otherUser);
       done();
     });
 
@@ -82,7 +95,13 @@ describe('ep_comments_page - Comment copy and paste', function() {
 
     it('saves the same author of the original comment reply', function(done) {
       var author = helperFunctions.getAuthorOfCommentReplyFromLine(LINE_WITH_PASTED_COMMENT);
-      expect(author).to.be(helper.padChrome$.window.pad.myUserInfo.userId);
+      expect(author).to.be(originalUser);
+      done();
+    });
+
+    it('saves the other user as the creator of the pasted comment reply', function(done) {
+      var creator = helperFunctions.getCreatorOfCommentReplyFromLine(LINE_WITH_PASTED_COMMENT);
+      expect(creator).to.be(otherUser);
       done();
     });
 
@@ -295,6 +314,9 @@ ep_comments_page_test_helper.copyAndPaste = {
   getAuthorOfCommentFromLine: function(lineNumber) {
     return this._getDataOfCommentFromLine(lineNumber).author;
   },
+  getCreatorOfCommentFromLine: function(lineNumber) {
+    return this._getDataOfCommentFromLine(lineNumber).creator;
+  },
   getTextOfCommentFromLine: function(lineNumber) {
     return this._getDataOfCommentFromLine(lineNumber).text;
   },
@@ -308,6 +330,9 @@ ep_comments_page_test_helper.copyAndPaste = {
   getAuthorOfCommentReplyFromLine: function(lineNumber) {
     return this._getDataOfCommentReplyFromLine(lineNumber).author;
   },
+  getCreatorOfCommentReplyFromLine: function(lineNumber) {
+    return this._getDataOfCommentReplyFromLine(lineNumber).creator;
+  },
   getTextOfCommentReplyFromLine: function(lineNumber) {
     return this._getDataOfCommentReplyFromLine(lineNumber).text;
   },
@@ -318,5 +343,23 @@ ep_comments_page_test_helper.copyAndPaste = {
     action();
     // wait until all data is restored
     apiUtils.waitForDataToBeSent(done);
+  },
+
+  loadSamePadAsAnotherUser: function(done) {
+    var apiUtils = ep_comments_page_test_helper.apiUtils;
+    var multipleUsers = ep_script_copy_cut_paste_test_helper.multipleUsers;
+
+    // make sure all changes are saved on text before reloading the pad
+    setTimeout(function() {
+      apiUtils.resetData();
+      multipleUsers.loadSamePadAsAnotherUser(function() {
+        // wait until all data is loaded (on pad content and on API)
+        helper.waitFor(function() {
+          return helper.padInner$('.comment').length > 0;
+        }).done(function() {
+          apiUtils.waitForDataToBeSent(done);
+        });
+      });
+    }, 1000);
   }
 };

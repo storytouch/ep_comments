@@ -49,6 +49,12 @@ describe('ep_comments_page - api - create comment reply', function() {
       });
     });
 
+    it('sets the reply creator as the reply author', function(done) {
+      var reply = apiUtils.getReplyDataOnPosition(0, commentId);
+      expect(reply.creator).to.be(reply.author);
+      done();
+    });
+
     it('changes the comment icon to have replies', function(done) {
       helper.waitFor(function() {
         var $commentIcon = helper.padOuter$('#commentIcons #icon-' + commentId);

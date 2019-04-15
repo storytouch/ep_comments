@@ -65,6 +65,7 @@ exports.bulkAddComments = function(padId, data, callback)
 
           var comment = {
             "author": commentData.author || "empty",
+            "creator": commentData.creator || "empty",
             "name": commentData.name,
             "text": commentData.text,
             "timestamp": parseInt(commentData.timestamp) || new Date().getTime()
@@ -157,6 +158,7 @@ exports.bulkAddCommentReplies = function(padId, data, callback){
         "commentId"  : replyData.commentId,
         "text"       : replyData.reply               || replyData.text,
         "author"     : metadata.author               || replyData.author || "empty",
+        "creator"    : metadata.creator              || replyData.creator || "empty",
         "name"       : metadata.name                 || replyData.name,
         "timestamp"  : parseInt(replyData.timestamp) || new Date().getTime()
       };

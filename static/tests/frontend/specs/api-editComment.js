@@ -37,6 +37,7 @@ describe('ep_comments_page - api - edit comment', function() {
       var editedCommentData = apiUtils.getLastDataSent()[0];
 
       expect(editedCommentData.author).to.be(originalCommentData.author);
+      expect(editedCommentData.creator).to.be(originalCommentData.creator);
       expect(editedCommentData.commentId).to.be(originalCommentData.commentId);
       expect(editedCommentData.name).to.be(originalCommentData.name);
       expect(editedCommentData.timestamp).to.be(originalCommentData.timestamp);

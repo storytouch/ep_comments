@@ -140,8 +140,8 @@ ep_comments.prototype.init = function(){
     setItemIdOnSubItem: function(reply, newCommentId) { reply.commentId = newCommentId },
     getItemIdOfSubItem: function(reply) { return reply.commentId },
     getSubItemsOf: function(comment) { return comment.replies },
-    saveItemsData: this.saveCommentWithoutSelection.bind(this),
-    saveSubItemsData: this.saveRepliesWithoutSelection.bind(this),
+    saveItemsData: this.saveCommentsOnPaste.bind(this),
+    saveSubItemsData: this.saveRepliesOnPaste.bind(this),
   });
 };
 
@@ -186,6 +186,7 @@ ep_comments.prototype.getCommentData = function (){
   data.padId              = clientVars.padId;
   data.comment            = {};
   data.comment.author     = clientVars.userId;
+  data.comment.creator    = clientVars.userId;
   data.comment.name       = pad.myUserInfo.name;
   data.comment.timestamp  = new Date().getTime();
 
@@ -237,12 +238,12 @@ ep_comments.prototype.saveComment = function(data, preMarkedTextRepArr) {
 }
 
 // commentData = {c-newCommentId123: data:{author:..., date:..., ...}, c-newCommentId124: data:{...}}
-ep_comments.prototype.saveCommentWithoutSelection = function (commentData) {
+ep_comments.prototype.saveCommentsOnPaste = function(commentData) {
   var self = this;
   var padId = clientVars.padId;
   var data = self.buildComments(commentData);
 
-  self.socket.emit('bulkAddComment', padId, data, function (comments){
+  self.socket.emit('bulkAddComment', padId, data, function(comments){
     self.commentDataManager.addComments(comments);
     self.shouldCollectComment = true;
   });
@@ -259,6 +260,9 @@ ep_comments.prototype.buildComment = function(commentData, commentId){
   data.commentId = commentId;
   data.text = commentData.text;
   data.author = commentData.author;
+  // creator is the user that performed the paste, not the one that originally created
+  // the comment
+  data.creator = clientVars.userId;
   data.name = commentData.name;
   data.timestamp = parseInt(commentData.timestamp);
 
@@ -266,7 +270,7 @@ ep_comments.prototype.buildComment = function(commentData, commentId){
 }
 
 // commentReplyData = {cr-123:{commentReplyData1}, cr-234:{commentReplyData1}, ...}
-ep_comments.prototype.saveRepliesWithoutSelection = function(commentReplyData) {
+ep_comments.prototype.saveRepliesOnPaste = function(commentReplyData) {
   var self = this;
   var padId = clientVars.padId;
   var data = self.buildCommentReplies(commentReplyData);
@@ -294,6 +298,9 @@ ep_comments.prototype.buildCommentReply = function(replyData){
   data.replyId = replyData.replyId;
   data.name = replyData.name;
   data.author = replyData.author;
+  // creator is the user that performed the paste, not the one that originally created
+  // the reply
+  data.creator = clientVars.userId;
   data.timestamp = parseInt(replyData.timestamp);
 
   return data;

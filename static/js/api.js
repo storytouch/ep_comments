@@ -117,6 +117,7 @@ commentApi.prototype.triggerCommentDeactivation = function() {
       {
         commentId: 'c-b4WEFBNt7Bxu6Dhr',
         author: 'a.dG8CtEvWhEmR3cf5',
+        creator: 'a.EvWh7CtEmRG8EvWh',
         name: 'Author Name',
         text: 'the comment text',
         timestamp: 1501599806477,
@@ -125,6 +126,7 @@ commentApi.prototype.triggerCommentDeactivation = function() {
           {
             replyId: 'cr-dfksfu2df',
             author: 'a.aT8CtEvWhEmR3cf5',
+            creator: 'a.x7f57CtEmR3cEvWh',
             name: 'Other Author Name',
             text: 'the reply text',
             timestamp: 1621599806477,
