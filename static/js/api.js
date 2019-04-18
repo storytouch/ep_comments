@@ -2,7 +2,8 @@ var _ = require('ep_etherpad-lite/static/js/underscore');
 
 // messages sent to outside
 var COMMENT_ACTIVATED_MESSAGE_TYPE = 'comment_activated';
-var NEW_DATA_MESSAGE_TYPE = 'comments_data_changed';
+var DATA_CHANGED_MESSAGE_TYPE = 'comments_data_changed';
+var NEW_DATA_MESSAGE_TYPE = 'comments_set_changed';
 
 // messages coming from outside
 var DELETE_COMMENT_MESSAGE_TYPE = 'comment_delete';
@@ -94,6 +95,20 @@ commentApi.prototype.setHandleShowCommentInfo = function(fn) {
 
 /*
   message: {
+    type: 'comments_set_changed',
+    revision: 17,
+  }
+*/
+commentApi.prototype.triggerCommentsSetChanged = function() {
+  var message = {
+    type: NEW_DATA_MESSAGE_TYPE,
+    revision: pad.collabClient.getCurrentRevisionNumber(),
+  };
+  this._triggerEvent(message);
+};
+
+/*
+  message: {
     type: 'comment_activated',
     commentId: 'c-b4WEFBNt7Bxu6Dhr'
   }
@@ -140,16 +155,16 @@ commentApi.prototype.triggerCommentDeactivation = function() {
   }
 */
 commentApi.prototype.triggerDataChanged = function(commentsData) {
-  this._injectModeNameOn(commentsData);
+  this._injectModelNameOn(commentsData);
   var message = {
-    type: NEW_DATA_MESSAGE_TYPE,
+    type: DATA_CHANGED_MESSAGE_TYPE,
     values: commentsData,
   };
 
   this._triggerEvent(message);
 };
 
-commentApi.prototype._injectModeNameOn = function(commentsData) {
+commentApi.prototype._injectModelNameOn = function(commentsData) {
   _(commentsData).each(function(comment) {
     comment.modelName = 'Comment';
 

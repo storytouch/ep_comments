@@ -9,6 +9,7 @@ var commentIcons = require('./commentIcons');
 var newComment = require('./newComment');
 var preTextMarker = require('./preTextMarker');
 var commentDataManager = require('./commentDataManager');
+var commentsSetChangeHandler = require('./commentsSetChangeHandler');
 var commentL10n = require('./commentL10n');
 var copyPasteEvents = require('./copyPasteEvents');
 var lineChangeEventTriggerer = require('./lineChangeEventTriggerer');
@@ -33,11 +34,13 @@ function ep_comments(ace, socket){
   this.socket               = socket;
   this.shouldCollectComment = false;
   this.thisPlugin           = pad.plugins.ep_comments_page;
-  this.api                  = this.thisPlugin.api;
-  this.commentDataManager   = this.thisPlugin.commentDataManager;
-  this.commentInfoDialog    = this.thisPlugin.commentInfoDialog;
-  this.commentIcons         = this.thisPlugin.commentIcons;
-  this.fakeIdsMapper        = this.thisPlugin.fakeIdsMapper;
+
+  this.api                      = this.thisPlugin.api;
+  this.commentDataManager       = this.thisPlugin.commentDataManager;
+  this.commentsSetChangeHandler = this.thisPlugin.commentsSetChangeHandler;
+  this.commentInfoDialog        = this.thisPlugin.commentInfoDialog;
+  this.commentIcons             = this.thisPlugin.commentIcons;
+  this.fakeIdsMapper            = this.thisPlugin.fakeIdsMapper;
   this.init();
 }
 
@@ -57,6 +60,7 @@ ep_comments.prototype.init = function(){
 
       self.commentRepliesListen();
       self.commentListen();
+      self.commentsSetChangeHandler.initializeCommentsSet(comments);
     });
   });
 
@@ -94,6 +98,7 @@ ep_comments.prototype.init = function(){
 
     commentSaveOrDelete.deleteCommentAndItsReplies(commentId, replyIds, self.ace);
 
+    self.commentsSetChangeHandler.commentAddedOrRemoved();
     self.collectComments();
   });
   this.api.setHandleReplyDeletion(function(replyId, commentId) {
@@ -173,7 +178,9 @@ ep_comments.prototype.tryToCollectCommentsAndRetryIfNeeded = function(timeToWait
 
 // Collect Comments that are still on text
 ep_comments.prototype.collectComments = function(callback) {
-  this.commentDataManager.updateListOfCommentsStillOnText();
+  // TODO do we need to call triggerDataChanged or can we simply call
+  // updateListOfCommentsStillOnText here?
+  this.commentDataManager.triggerDataChanged();
   this.commentIcons.addIcons(this.commentDataManager.getComments());
 
   if(callback) callback();
@@ -233,6 +240,7 @@ ep_comments.prototype.saveComment = function(data, preMarkedTextRepArr) {
   self.socket.emit('addComment', data, function (commentId, comment){
     commentSaveOrDelete.saveCommentOnPreMarkedText(commentId, preMarkedTextRepArr, self.ace);
     self.commentDataManager.addComment(commentId, comment);
+    self.commentsSetChangeHandler.commentAddedOrRemoved();
     self.collectComments();
   });
 }
@@ -246,6 +254,7 @@ ep_comments.prototype.saveCommentsOnPaste = function(commentData) {
   self.socket.emit('bulkAddComment', padId, data, function(comments){
     self.commentDataManager.addComments(comments);
     self.shouldCollectComment = true;
+    self.commentsSetChangeHandler.commentAddedOrRemoved();
   });
 }
 
@@ -348,6 +357,7 @@ var hooks = {
 
     thisPlugin.lineChangeEventTriggerer = lineChangeEventTriggerer.init(ace);
     thisPlugin.commentDataManager       = commentDataManager.init(socket);
+    thisPlugin.commentsSetChangeHandler = commentsSetChangeHandler.init();
     thisPlugin.commentInfoDialog        = commentInfoDialog.init(ace);
     thisPlugin.commentIcons             = commentIcons.init(ace);
     var comments                        = new ep_comments(ace, socket);
@@ -509,4 +519,9 @@ exports.collectContentPre = function(hook, context){
 
 exports.acePaste = function(hook, context){
   copyPasteEvents.handlePaste(context.e);
+}
+
+exports.handleClientMessage_ACCEPT_COMMIT = function(hook, context) {
+  var thisPlugin = pad.plugins.ep_comments_page;
+  thisPlugin.commentHandler.commentsSetChangeHandler.thisAuthorChangedPad();
 }

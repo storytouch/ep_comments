@@ -5,6 +5,7 @@
       "pre": ["ep_etherpad-lite/webaccess", "ep_page_view/page_view"],
       "post": ["ep_etherpad-lite/static"],
       "client_hooks": {
+        "handleClientMessage_ACCEPT_COMMIT": "ep_comments_page/static/js/index",
         "postAceInit": "ep_comments_page/static/js/index",
         "aceKeyEvent": "ep_comments_page/static/js/index",
         "collectContentPre": "ep_comments_page/static/js/index",

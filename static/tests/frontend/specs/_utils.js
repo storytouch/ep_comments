@@ -190,6 +190,10 @@ ep_comments_page_test_helper.utils = {
     return style.getPropertyValue('background-color');
   },
 
+  getCurrentRevision: function() {
+    return helper.padChrome$.window.pad.collabClient.getCurrentRevisionNumber();
+  },
+
   // use ep_copy... to handle copy/cut/paste events
   copySelection: function() {
     ep_script_copy_cut_paste_test_helper.utils.copy();
