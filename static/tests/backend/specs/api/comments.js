@@ -1,6 +1,6 @@
 var       supertest = require('ep_etherpad-lite/node_modules/supertest'),
                  io = require('socket.io-client'),
-              utils = require('../../../utils'),
+              utils = require('../../utils'),
           createPad = utils.createPad,
          readOnlyId = utils.readOnlyId,
       createComment = utils.createComment,
@@ -11,6 +11,7 @@ var       supertest = require('ep_etherpad-lite/node_modules/supertest'),
           codeToBe4 = utils.codeToBe4,
 commentsEndPointFor = utils.commentsEndPointFor,
       updateComment = utils.updateComment,
+    expectValueToBe = utils.expectValueToBe,
                 api = supertest(appUrl);
 
 describe('get comments API', function() {
@@ -63,21 +64,29 @@ describe('get comments API', function() {
   });
 
   it('returns comment data', function(done){
-    var name       = "name";
-    var text       = "text";
-    var timestamp  = 1440671727068;
+    var author    = "author";
+    var creator   = "creator";
+    var name      = "name";
+    var text      = "text";
+    var timestamp = 1440671727068;
+
     var data = {
+      author: author,
+      creator: creator,
       name: name,
       text: text,
       timestamp: timestamp,
     };
+
     createComment(padID, data, function(err, commentId){
       api.get(listCommentsEndPointFor(padID, apiKey))
       .expect(function(res){
         var comment_data = res.body.data.comments[commentId];
-        if(comment_data.name != name)             throw new Error("Wrong name. Expected: "       + name       + ", got: " + comment_data.name);
-        if(comment_data.text != text)             throw new Error("Wrong text. Expected: "       + text       + ", got: " + comment_data.text);
-        if(comment_data.timestamp != timestamp)   throw new Error("Wrong timestamp. Expected: "  + timestamp  + ", got: " + comment_data.timestamp);
+        expectValueToBe('author', comment_data.author, author);
+        expectValueToBe('creator', comment_data.creator, creator);
+        expectValueToBe('name', comment_data.name, name);
+        expectValueToBe('text', comment_data.text, text);
+        expectValueToBe('timestamp', comment_data.timestamp, timestamp);
       })
       .end(done);
     })

@@ -1,7 +1,7 @@
 var             supertest = require('ep_etherpad-lite/node_modules/supertest'),
                        io = require('socket.io-client'),
                   request = require('request'),
-                    utils = require('../../../utils'),
+                    utils = require('../../utils'),
                 createPad = utils.createPad,
                readOnlyId = utils.readOnlyId,
             createComment = utils.createComment,
@@ -13,6 +13,7 @@ commentRepliesEndPointFor = utils.commentRepliesEndPointFor,
                 codeToBe1 = utils.codeToBe1,
                 codeToBe4 = utils.codeToBe4,
             updateComment = utils.updateComment,
+          expectValueToBe = utils.expectValueToBe,
                       api = supertest(appUrl);
 
 
@@ -63,23 +64,31 @@ describe('get comments replies', function(){
 
   it('returns comment replies data', function(done){
     createComment(padID, {}, function(err, comment){
-      var text       = "text";
-      var name       = "name";
-      var timestamp  = 1440671727068;
+      var author    = "author";
+      var creator   = "creator";
+      var text      = "text";
+      var name      = "name";
+      var timestamp = 1440671727068;
+
       var data = {
         commentId: comment,
         reply: text,
+        author: author,
+        creator: creator,
         name: name,
         timestamp: timestamp,
       };
+
       createCommentReply(padID, comment, data, function(err, replyId){
         api.get(listCommentRepliesEndPointFor(padID, apiKey))
         .expect(function(res){
           var comment_reply_data = res.body.data.replies[replyId];
-          if(comment_reply_data.commentId  != comment   )  throw new Error("Wrong commentId. Expected: "  + comment    + ", got: " + comment_reply_data.commentId)
-          if(comment_reply_data.text       != text )       throw new Error("Wrong text. Expected: "       + text       + ", got: " + comment_reply_data.text)
-          if(comment_reply_data.name       != name )       throw new Error("Wrong name. Expected: "       + name       + ", got: " + comment_reply_data.name)
-          if(comment_reply_data.timestamp  != timestamp )  throw new Error("Wrong timestamp. Expected: "  + timestamp  + ", got: " + comment_reply_data.timestamp)
+          expectValueToBe('commentId', comment_reply_data.commentId, comment);
+          expectValueToBe('text', comment_reply_data.text, text);
+          expectValueToBe('author', comment_reply_data.author, author);
+          expectValueToBe('creator', comment_reply_data.creator, creator);
+          expectValueToBe('name', comment_reply_data.name, name);
+          expectValueToBe('timestamp', comment_reply_data.timestamp, timestamp);
         }).end(done);
       })
     })

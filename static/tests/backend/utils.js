@@ -4,14 +4,13 @@ var apiVersion = 1;
 var supertest = require('ep_etherpad-lite/node_modules/supertest'),
            fs = require('fs'),
          path = require('path'),
-      //      io = require('socket.io-client'),
       request = require('request'),
           api = supertest(appUrl),
  randomString = require('ep_etherpad-lite/static/js/pad_utils').randomString;
 
 // Loads the APIKEY.txt content into a string, and returns it.
 var getApiKey = function() {
-  var etherpad_root = '/../../../ep_etherpad-lite/../..';
+  var etherpad_root = '/../../../../ep_etherpad-lite/../..';
   var filePath = path.join(__dirname, etherpad_root + '/APIKEY.txt');
   var apiKey = fs.readFileSync(filePath,  {encoding: 'utf-8'});
   return apiKey.replace(/\n$/, "");
@@ -129,6 +128,12 @@ var updateComment = function(commentData, socket, cb) {
   socket.emit('updateCommentText', commentData, cb);
 }
 
+var expectValueToBe = function(fieldName, actualValue, expectedValue) {
+  if (actualValue !== expectedValue) {
+    throw new Error("Wrong " + fieldName + ". Expected: " + name + ", got: " + actualValue);
+  }
+}
+
 /* ********** Available functions/values: ********** */
 exports.apiVersion = apiVersion;
 exports.api  = api;
@@ -144,3 +149,4 @@ exports.codeToBe4 = codeToBe4;
 exports.commentsEndPointFor = commentsEndPointFor;
 exports.commentRepliesEndPointFor = commentRepliesEndPointFor;
 exports.updateComment = updateComment;
+exports.expectValueToBe = expectValueToBe;
