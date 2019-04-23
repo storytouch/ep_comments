@@ -7,9 +7,9 @@ var commentsSetChangeHandler = function() {
   this.commentDataManager = thisPlugin.commentDataManager;
 
   this.lastCommentIdsSent = [];
-  this.padHasMyChanges = false;
+  this.thisAuthorChangedPadSinceLasteApiCall = false;
 
-  linesChangedListener.onLineChanged('.comment', this._handlePossibleCommentsAddedOrRemovedFromTect.bind(this));
+  linesChangedListener.onLineChanged('.comment', this._handlePossibleCommentsAddedOrRemovedFromText.bind(this));
 };
 
 commentsSetChangeHandler.prototype.initializeCommentsSet = function(comments) {
@@ -17,7 +17,7 @@ commentsSetChangeHandler.prototype.initializeCommentsSet = function(comments) {
 }
 
 commentsSetChangeHandler.prototype.thisAuthorChangedPad = function() {
-  this.padHasMyChanges = true;
+  this.thisAuthorChangedPadSinceLasteApiCall = true;
 }
 
 commentsSetChangeHandler.prototype.commentAddedOrRemoved = function() {
@@ -27,17 +27,17 @@ commentsSetChangeHandler.prototype.commentAddedOrRemoved = function() {
   this.lastCommentIdsSent = this.commentDataManager.getCommentIdsStillOnText();
 
   // reset flag, so changes in the future won't be considered as mine
-  this.padHasMyChanges = false;
+  this.thisAuthorChangedPadSinceLasteApiCall = false;
 }
 
 // a line with a comment was edited, but we need to check if a comment was added
 // or removed from text.
 // Ignore changes made by other users -- we are only interested on changes of
-//  current user
-commentsSetChangeHandler.prototype._handlePossibleCommentsAddedOrRemovedFromTect = function() {
+// current user
+commentsSetChangeHandler.prototype._handlePossibleCommentsAddedOrRemovedFromText = function() {
   var currentCommentIds = this.commentDataManager.getCommentIdsStillOnText();
 
-  if (this.padHasMyChanges && !this._sameComments(currentCommentIds, this.lastCommentIdsSent)) {
+  if (this.thisAuthorChangedPadSinceLasteApiCall && !this._sameComments(currentCommentIds, this.lastCommentIdsSent)) {
     this.commentAddedOrRemoved();
   }
 
