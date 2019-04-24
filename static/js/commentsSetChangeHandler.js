@@ -21,13 +21,13 @@ commentsSetChangeHandler.prototype.thisAuthorChangedPad = function() {
 }
 
 commentsSetChangeHandler.prototype.commentAddedOrRemoved = function() {
-  this.api.triggerCommentsSetChanged();
-
   // update current comment ids
   this.lastCommentIdsSent = this.commentDataManager.getCommentIdsStillOnText();
 
   // reset flag, so changes in the future won't be considered as mine
   this.thisAuthorChangedPadSinceLasteApiCall = false;
+
+  this.api.triggerCommentsSetChanged(this.lastCommentIdsSent);
 }
 
 // a line with a comment was edited, but we need to check if a comment was added

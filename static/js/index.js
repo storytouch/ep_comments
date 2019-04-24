@@ -238,9 +238,8 @@ ep_comments.prototype.showNewCommentForm = function(aceContext) {
 ep_comments.prototype.saveComment = function(data, preMarkedTextRepArr) {
   var self = this;
   self.socket.emit('addComment', data, function (commentId, comment){
-    commentSaveOrDelete.saveCommentOnPreMarkedText(commentId, preMarkedTextRepArr, self.ace);
     self.commentDataManager.addComment(commentId, comment);
-    self.commentsSetChangeHandler.commentAddedOrRemoved();
+    commentSaveOrDelete.saveCommentOnPreMarkedText(commentId, preMarkedTextRepArr, self.ace);
     self.collectComments();
   });
 }

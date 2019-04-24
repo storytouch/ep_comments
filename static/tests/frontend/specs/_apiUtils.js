@@ -51,8 +51,8 @@ ep_comments_page_test_helper.apiUtils = {
   getLastActivatedComment: function() {
     return (this.lastDataSent[this.COMMENT_ACTIVATED_EVENT] || {}).commentId;
   },
-  getLastRevisionSentOnNewDataEvent: function() {
-    return (this.lastDataSent[this.NEW_DATA_EVENT] || {}).revision;
+  getLastDataSentOnNewDataEvent: function() {
+    return (this.lastDataSent[this.NEW_DATA_EVENT] || {});
   },
 
   /**** messages coming from outside ****/

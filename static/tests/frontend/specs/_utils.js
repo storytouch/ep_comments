@@ -273,7 +273,14 @@ ep_comments_page_test_helper.utils = {
   },
   getCommentOrReplyIdsOfLine: function(lineNumber, regexOfIdOnText, selectorOfElementOnText) {
     var $line = this.getLine(lineNumber);
-    var $commentsOrRepliesOnLine = $line.find(selectorOfElementOnText);
+    return this.getCommentOrReplyIdsOnElements($line, regexOfIdOnText, selectorOfElementOnText);
+  },
+  getCommentIdsOnText: function(regexOfIdOnText, selectorOfElementOnText) {
+    var $lines = helper.padInner$('div');
+    return this.getCommentOrReplyIdsOnElements($lines, /(?:^| )(c-[A-Za-z0-9]*)/, '.comment');
+  },
+  getCommentOrReplyIdsOnElements: function($elements, regexOfIdOnText, selectorOfElementOnText) {
+    var $commentsOrRepliesOnLine = $elements.find(selectorOfElementOnText);
     var idsOnLine = $commentsOrRepliesOnLine.map(function() {
       return _(this.classList).filter(function(cls) {
         return regexOfIdOnText.test(cls);

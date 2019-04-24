@@ -11,10 +11,21 @@ describe('ep_comments_page - api - "new data" event', function() {
   var testThisUserSendsTheCurrentRevisionOnMessage = function() {
     it('sends the current revision', function(done) {
       helper.waitFor(function() {
-        var revisionOnMessage = apiUtils.getLastRevisionSentOnNewDataEvent();
+        var revisionOnMessage = apiUtils.getLastDataSentOnNewDataEvent().revision;
         var currentRevision = utils.getCurrentRevision();
 
         return revisionOnMessage === currentRevision;
+      }).done(done);
+    });
+  }
+
+  var testThisUserSendsTheCommentIdsOnMessage = function() {
+    it('sends the comment ids', function(done) {
+      helper.waitFor(function() {
+        var commentsOnText = utils.getCommentIdsOnText().get();
+        var commentsOnMessage = apiUtils.getLastDataSentOnNewDataEvent().commentIds;
+
+        return _.isEqual(commentsOnText, commentsOnMessage);
       }).done(done);
     });
   }
@@ -23,7 +34,7 @@ describe('ep_comments_page - api - "new data" event', function() {
     it('sends the message by only one of the users', function(done) {
       helper.waitFor(function() {
         return multipleUsersApiUtils.getNumberOfUsersThatSentEvent(EVENT) > 1;
-      }, 1500).done(function() {
+      }).done(function() {
         expect().fail(function() { return 'API event sent more than once' });
       }).fail(function() {
         // all set, API called only once. We can finish the test
@@ -31,6 +42,13 @@ describe('ep_comments_page - api - "new data" event', function() {
       });
     });
   }
+
+  var testOnlyThisUserSendsData = function() {
+    testThisUserSendsTheCurrentRevisionOnMessage();
+    testThisUserSendsTheCommentIdsOnMessage();
+    testOnlyOneUserSendsTheMessage();
+  }
+
   var resetApiEvents = function() {
     apiUtils.resetData();
     multipleUsersApiUtils.resetCounterOfEvent(EVENT);
@@ -50,8 +68,7 @@ describe('ep_comments_page - api - "new data" event', function() {
       utils.addCommentToLine(COMMENT_LINE, 'comment text', done);
     });
 
-    testThisUserSendsTheCurrentRevisionOnMessage();
-    testOnlyOneUserSendsTheMessage();
+    testOnlyThisUserSendsData();
 
     context('and this user deletes one comment', function() {
       before(function() {
@@ -61,8 +78,7 @@ describe('ep_comments_page - api - "new data" event', function() {
         apiUtils.simulateCallToDeleteComment(commentId);
       });
 
-      testThisUserSendsTheCurrentRevisionOnMessage();
-      testOnlyOneUserSendsTheMessage();
+      testOnlyThisUserSendsData();
 
       context('then reverts the deletion', function() {
         before(function(done) {
@@ -72,8 +88,7 @@ describe('ep_comments_page - api - "new data" event', function() {
           utils.waitForCommentToBeCreatedOnLine(COMMENT_LINE, done);
         });
 
-        testThisUserSendsTheCurrentRevisionOnMessage();
-        testOnlyOneUserSendsTheMessage();
+        testOnlyThisUserSendsData();
       });
     });
 
@@ -88,8 +103,7 @@ describe('ep_comments_page - api - "new data" event', function() {
         smUtils.pressBackspace();
       });
 
-      testThisUserSendsTheCurrentRevisionOnMessage();
-      testOnlyOneUserSendsTheMessage();
+      testOnlyThisUserSendsData();
 
       context('then reverts the deletion', function() {
         before(function(done) {
@@ -99,8 +113,7 @@ describe('ep_comments_page - api - "new data" event', function() {
           utils.waitForCommentToBeCreatedOnLine(COMMENT_LINE, done);
         });
 
-        testThisUserSendsTheCurrentRevisionOnMessage();
-        testOnlyOneUserSendsTheMessage();
+        testOnlyThisUserSendsData();
       });
     });
 
@@ -116,8 +129,7 @@ describe('ep_comments_page - api - "new data" event', function() {
         });
       });
 
-      testThisUserSendsTheCurrentRevisionOnMessage();
-      testOnlyOneUserSendsTheMessage();
+      testOnlyThisUserSendsData();
 
       context('then reverts the paste', function() {
         before(function() {
@@ -125,11 +137,8 @@ describe('ep_comments_page - api - "new data" event', function() {
           utils.undo();
         });
 
-        testThisUserSendsTheCurrentRevisionOnMessage();
-        testOnlyOneUserSendsTheMessage();
+        testOnlyThisUserSendsData();
       });
     });
   });
 });
-
-

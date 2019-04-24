@@ -99,9 +99,10 @@ commentApi.prototype.setHandleShowCommentInfo = function(fn) {
     revision: 17,
   }
 */
-commentApi.prototype.triggerCommentsSetChanged = function() {
+commentApi.prototype.triggerCommentsSetChanged = function(commentIds) {
   var message = {
     type: NEW_DATA_MESSAGE_TYPE,
+    commentIds: commentIds,
     revision: pad.collabClient.getCurrentRevisionNumber(),
   };
   this._triggerEvent(message);
