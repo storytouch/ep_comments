@@ -18,13 +18,19 @@ var commentDataManager = function(socket) {
 
   // listen to comment or reply changes made by other users on this pad
   var self = this;
-  this.socket.on('textCommentUpdated', function (commentId, commentText) {
+  this.socket.on('textCommentUpdated', function(commentId, commentText) {
     self._setCommentOrReplyNewText(commentId, commentText);
   });
 }
 
 commentDataManager.prototype.getComments = function() {
   return this.comments;
+}
+
+commentDataManager.prototype.getCommentIdsStillOnText = function() {
+  return this.commentsStillOnText.map(function(comment) {
+    return comment.commentId;
+  });
 }
 
 // we only return the comment data if this comment is still present on text
@@ -245,7 +251,7 @@ commentDataManager.prototype._getListOfCommentsOrdered = function() {
   return orderedComments;
 }
 
-commentDataManager.prototype._getSceneNumber = function ($scenes, nodeWithComment) {
+commentDataManager.prototype._getSceneNumber = function($scenes, nodeWithComment) {
   // fill scene number
   var $lineWithComment = $(nodeWithComment).closest('div');
   var $headingOfSceneWhereCommentIs = utils.getHeadingOfDomLine($lineWithComment);
@@ -253,7 +259,7 @@ commentDataManager.prototype._getSceneNumber = function ($scenes, nodeWithCommen
   return sceneNumberOfComment;
 }
 
-commentDataManager.prototype._getRepliesStillOnTextSortedByDate = function (commentData, nodeWithComment) {
+commentDataManager.prototype._getRepliesStillOnTextSortedByDate = function(commentData, nodeWithComment) {
   // remove replies that are not on text anymore
   var commentReplyIds = _(nodeWithComment.classList).filter(function(className) {
     var isAReplyId = shared.getReplyIdsFrom(className).length;

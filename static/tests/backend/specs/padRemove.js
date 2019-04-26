@@ -1,5 +1,5 @@
 var             supertest = require('ep_etherpad-lite/node_modules/supertest'),
-                    utils = require('../../utils'),
+                    utils = require('../utils'),
                 createPad = utils.createPad,
             createComment = utils.createComment,
        createCommentReply = utils.createCommentReply,

@@ -9,6 +9,7 @@ var commentIcons = require('./commentIcons');
 var newComment = require('./newComment');
 var preTextMarker = require('./preTextMarker');
 var commentDataManager = require('./commentDataManager');
+var commentsSetChangeHandler = require('./commentsSetChangeHandler');
 var commentL10n = require('./commentL10n');
 var copyPasteEvents = require('./copyPasteEvents');
 var lineChangeEventTriggerer = require('./lineChangeEventTriggerer');
@@ -33,11 +34,13 @@ function ep_comments(ace, socket){
   this.socket               = socket;
   this.shouldCollectComment = false;
   this.thisPlugin           = pad.plugins.ep_comments_page;
-  this.api                  = this.thisPlugin.api;
-  this.commentDataManager   = this.thisPlugin.commentDataManager;
-  this.commentInfoDialog    = this.thisPlugin.commentInfoDialog;
-  this.commentIcons         = this.thisPlugin.commentIcons;
-  this.fakeIdsMapper        = this.thisPlugin.fakeIdsMapper;
+
+  this.api                      = this.thisPlugin.api;
+  this.commentDataManager       = this.thisPlugin.commentDataManager;
+  this.commentsSetChangeHandler = this.thisPlugin.commentsSetChangeHandler;
+  this.commentInfoDialog        = this.thisPlugin.commentInfoDialog;
+  this.commentIcons             = this.thisPlugin.commentIcons;
+  this.fakeIdsMapper            = this.thisPlugin.fakeIdsMapper;
   this.init();
 }
 
@@ -57,6 +60,7 @@ ep_comments.prototype.init = function(){
 
       self.commentRepliesListen();
       self.commentListen();
+      self.commentsSetChangeHandler.initializeCommentsSet(comments);
     });
   });
 
@@ -94,6 +98,7 @@ ep_comments.prototype.init = function(){
 
     commentSaveOrDelete.deleteCommentAndItsReplies(commentId, replyIds, self.ace);
 
+    self.commentsSetChangeHandler.commentAddedOrRemoved();
     self.collectComments();
   });
   this.api.setHandleReplyDeletion(function(replyId, commentId) {
@@ -173,7 +178,9 @@ ep_comments.prototype.tryToCollectCommentsAndRetryIfNeeded = function(timeToWait
 
 // Collect Comments that are still on text
 ep_comments.prototype.collectComments = function(callback) {
-  this.commentDataManager.updateListOfCommentsStillOnText();
+  // TODO do we need to call triggerDataChanged or can we simply call
+  // updateListOfCommentsStillOnText here?
+  this.commentDataManager.triggerDataChanged();
   this.commentIcons.addIcons(this.commentDataManager.getComments());
 
   if(callback) callback();
@@ -231,8 +238,8 @@ ep_comments.prototype.showNewCommentForm = function(aceContext) {
 ep_comments.prototype.saveComment = function(data, preMarkedTextRepArr) {
   var self = this;
   self.socket.emit('addComment', data, function (commentId, comment){
-    commentSaveOrDelete.saveCommentOnPreMarkedText(commentId, preMarkedTextRepArr, self.ace);
     self.commentDataManager.addComment(commentId, comment);
+    commentSaveOrDelete.saveCommentOnPreMarkedText(commentId, preMarkedTextRepArr, self.ace);
     self.collectComments();
   });
 }
@@ -246,6 +253,7 @@ ep_comments.prototype.saveCommentsOnPaste = function(commentData) {
   self.socket.emit('bulkAddComment', padId, data, function(comments){
     self.commentDataManager.addComments(comments);
     self.shouldCollectComment = true;
+    self.commentsSetChangeHandler.commentAddedOrRemoved();
   });
 }
 
@@ -330,68 +338,60 @@ ep_comments.prototype.commentRepliesListen = function(){
 /*                           Etherpad Hooks                             */
 /************************************************************************/
 
-var hooks = {
+// Init pad comments
+exports.postAceInit = function(hook, context) {
+  var ace                             = context.ace;
+  var socket                          = utils.openSocketConnectionToRoute('/comment');
+  pad.plugins                         = pad.plugins || {};
+  pad.plugins.ep_comments_page        = pad.plugins.ep_comments_page || {};
+  var thisPlugin                      = pad.plugins.ep_comments_page;
+  thisPlugin.api                      = api.init();
+  thisPlugin.fakeIdsMapper            = fakeIdsMapper.init()
 
-  // Init pad comments
-  postAceInit: function(hook, context){
-    var ace                             = context.ace;
-    var socket                          = utils.openSocketConnectionToRoute('/comment');
-    pad.plugins                         = pad.plugins || {};
-    pad.plugins.ep_comments_page        = pad.plugins.ep_comments_page || {};
-    var thisPlugin                      = pad.plugins.ep_comments_page;
-    thisPlugin.api                      = api.init();
-    thisPlugin.fakeIdsMapper            = fakeIdsMapper.init()
+  // TODO: we should return an object in this module following the way other
+  // modules do
+  copyPasteEvents.init();
 
-    // TODO: we should return an object in this module following the way other
-    // modules do
-    copyPasteEvents.init();
+  thisPlugin.lineChangeEventTriggerer = lineChangeEventTriggerer.init(ace);
+  thisPlugin.commentDataManager       = commentDataManager.init(socket);
+  thisPlugin.commentsSetChangeHandler = commentsSetChangeHandler.init();
+  thisPlugin.commentInfoDialog        = commentInfoDialog.init(ace);
+  thisPlugin.commentIcons             = commentIcons.init(ace);
+  var comments                        = new ep_comments(ace, socket);
+  thisPlugin.commentHandler           = comments;
+}
 
-    thisPlugin.lineChangeEventTriggerer = lineChangeEventTriggerer.init(ace);
-    thisPlugin.commentDataManager       = commentDataManager.init(socket);
-    thisPlugin.commentInfoDialog        = commentInfoDialog.init(ace);
-    thisPlugin.commentIcons             = commentIcons.init(ace);
-    var comments                        = new ep_comments(ace, socket);
-    thisPlugin.commentHandler           = comments;
-  },
+exports.aceEditEvent = function(hook, context) {
+  var eventType = context.callstack.editEvent.eventType;
+  if(eventType == "setup" || eventType == "setBaseText" || eventType == "importText") return;
 
-  aceEditEvent: function(hook, context){
-    var eventType = context.callstack.editEvent.eventType;
-    if(eventType == "setup" || eventType == "setBaseText" || eventType == "importText") return;
+  // first check if some text is being marked/unmarked to add comment to it
+  preTextMarker.processAceEditEvent(context);
 
-    // first check if some text is being marked/unmarked to add comment to it
-    preTextMarker.processAceEditEvent(context);
-
-    var commentWasPasted = ((((pad || {}).plugins || {}).ep_comments_page || {}).commentHandler || {}).shouldCollectComment;
-    var domClean = context.callstack.domClean;
-    // we have to wait the DOM update from a fakeComment 'fakecomment-123' to a comment class 'c-123'
-    if(commentWasPasted && domClean){
-      pad.plugins.ep_comments_page.commentHandler.collectComments(function(){
-        pad.plugins.ep_comments_page.commentHandler.shouldCollectComment = false;
-      });
-    }
-  },
-
-  // Insert comments classes
-  aceAttribsToClasses: function(hook, context){
-    if(context.key.startsWith(COMMENT_PREFIX_KEY) && context.value !== "comment-deleted") {
-      return ['comment', context.value];
-    }
-    else if(context.key.startsWith(REPLY_PREFIX_KEY)) {
-      return ['comment-reply', context.value];
-    }
-    return preTextMarker.processAceAttribsToClasses(context);
-  },
-
-  aceKeyEvent: function(hook, context) {
-    return shortcuts.processAceKeyEvent(context);
+  var commentWasPasted = ((((pad || {}).plugins || {}).ep_comments_page || {}).commentHandler || {}).shouldCollectComment;
+  var domClean = context.callstack.domClean;
+  // we have to wait the DOM update from a fakeComment 'fakecomment-123' to a comment class 'c-123'
+  if(commentWasPasted && domClean){
+    pad.plugins.ep_comments_page.commentHandler.collectComments(function(){
+      pad.plugins.ep_comments_page.commentHandler.shouldCollectComment = false;
+    });
   }
+}
 
-};
+// Insert comments classes
+exports.aceAttribsToClasses = function(hook, context){
+  if(context.key.startsWith(COMMENT_PREFIX_KEY) && context.value !== "comment-deleted") {
+    return ['comment', context.value];
+  }
+  else if(context.key.startsWith(REPLY_PREFIX_KEY)) {
+    return ['comment-reply', context.value];
+  }
+  return preTextMarker.processAceAttribsToClasses(context);
+}
 
-exports.postAceInit           = hooks.postAceInit;
-exports.aceAttribsToClasses   = hooks.aceAttribsToClasses;
-exports.aceEditEvent          = hooks.aceEditEvent;
-exports.aceKeyEvent           = hooks.aceKeyEvent;
+exports.aceKeyEvent = function(hook, context) {
+  return shortcuts.processAceKeyEvent(context);
+}
 
 // Given a CSS selector and a target element (in this case pad inner)
 // return the rep as an array of array of tuples IE [[[0,1],[0,2]], [[1,3],[1,5]]]
@@ -509,4 +509,12 @@ exports.collectContentPre = function(hook, context){
 
 exports.acePaste = function(hook, context){
   copyPasteEvents.handlePaste(context.e);
+}
+
+// this hook is called whenever this author sends a change to be accepted by Etherpad.
+// This is how we know a changeset was created by this author or someone else that
+// has the same pad opened.
+exports.handleClientMessage_ACCEPT_COMMIT = function(hook, context) {
+  var thisPlugin = pad.plugins.ep_comments_page;
+  thisPlugin.commentHandler.commentsSetChangeHandler.thisAuthorChangedPad();
 }

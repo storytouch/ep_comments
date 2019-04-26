@@ -3,6 +3,7 @@ ep_comments_page_test_helper.apiUtils = {
   /**** messages sent to outside ****/
   DATA_CHANGED_EVENT: 'comments_data_changed',
   COMMENT_ACTIVATED_EVENT: 'comment_activated',
+  NEW_DATA_EVENT: 'comments_set_changed',
 
   lastDataSent: {},
 
@@ -49,6 +50,9 @@ ep_comments_page_test_helper.apiUtils = {
   },
   getLastActivatedComment: function() {
     return (this.lastDataSent[this.COMMENT_ACTIVATED_EVENT] || {}).commentId;
+  },
+  getLastDataSentOnNewDataEvent: function() {
+    return (this.lastDataSent[this.NEW_DATA_EVENT] || {});
   },
 
   /**** messages coming from outside ****/
