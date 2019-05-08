@@ -20,6 +20,7 @@ var commentSaveOrDelete = require('./commentSaveOrDelete');
 var sceneMarkVisibility = require('ep_script_scene_marks/static/js/sceneMarkVisibility');
 var commentInfoDialog = require('./commentInfoDialog');
 var textMarkInfoDialog = require('./textMarkInfoDialog');
+var selectLine = require('./selectLine');
 
 var COMMENT_PREFIX_KEY = 'comment-c-';
 var REPLY_PREFIX_KEY = 'comment-reply-';
@@ -80,6 +81,18 @@ ep_comments.prototype.init = function(){
 
   utils.getPadInner().find('#innerdocbody').addClass('comments');
 
+  this.api.setHandleCommentCreation(function() {
+    var rep, innerAce;
+    ace.callWithAce(function(ace) {
+      innerAce = ace;
+      rep = innerAce.ace_getRep();
+    },'thisEventWillNotBeCaptured', true);
+
+    var caretLine = rep.selStart[0];
+    selectLine.selectLineIfThereIsNoTextSelected(innerAce, rep, caretLine);
+    self.displayNewCommentForm();
+  });
+
   this.api.setHandleReplyCreation(function(commentId, text, cb) {
     var data = self.getCommentData();
     data.commentId = commentId;
@@ -101,6 +114,7 @@ ep_comments.prototype.init = function(){
     self.commentsSetChangeHandler.commentAddedOrRemoved();
     self.collectComments();
   });
+
   this.api.setHandleReplyDeletion(function(replyId, commentId) {
     commentSaveOrDelete.deleteReply(replyId, commentId, self.ace);
   });
@@ -222,6 +236,7 @@ ep_comments.prototype.hasSelectedText = function(aceContext) {
 
   return rep.selStart[0] !== rep.selEnd[0] || rep.selStart[1] !== rep.selEnd[1];
 }
+
 
 // Create form to add comment
 ep_comments.prototype.showNewCommentForm = function(aceContext) {

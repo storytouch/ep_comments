@@ -4,6 +4,7 @@ ep_comments_page_test_helper.apiUtils = {
   DATA_CHANGED_EVENT: 'comments_data_changed',
   COMMENT_ACTIVATED_EVENT: 'comment_activated',
   NEW_DATA_EVENT: 'comments_set_changed',
+  SHOW_ADD_COMMENT_DIALOG: 'show_add_comment_dialog',
 
   lastDataSent: {},
 
@@ -129,4 +130,13 @@ ep_comments_page_test_helper.apiUtils = {
     var inboundApiEventsTarget = helper.padChrome$.window;
     inboundApiEventsTarget.postMessage(message, '*');
   },
+
+  simulateCallToShowAddCommentDialog: function() {
+    var message = {
+      type: this.SHOW_ADD_COMMENT_DIALOG,
+    };
+    var inboundApiEventsTarget = helper.padChrome$.window;
+    inboundApiEventsTarget.postMessage(message, '*');
+  },
+
 }
