@@ -82,14 +82,10 @@ ep_comments.prototype.init = function(){
   utils.getPadInner().find('#innerdocbody').addClass('comments');
 
   this.api.setHandleCommentCreation(function() {
-    var rep, innerAce;
     ace.callWithAce(function(ace) {
-      innerAce = ace;
-      rep = innerAce.ace_getRep();
-    },'thisEventWillNotBeCaptured', true);
+      ace.ace_selectLineIfThereIsNoTextSelected();
+    },'selectLine', true);
 
-    var caretLine = rep.selStart[0];
-    selectLine.selectLineIfThereIsNoTextSelected(innerAce, rep, caretLine);
     self.displayNewCommentForm();
   });
 
@@ -511,6 +507,7 @@ exports.aceInitialized = function(hook, context){
   editorInfo.ace_getRepFromSelector = _(getRepFromSelector).bind(context);
   editorInfo.ace_getRepFromDOMElement = _(getRepFromDOMElement).bind(context);
   editorInfo.ace_showSceneMarksAroundLine = _.partial(sceneMarkVisibility.showSceneMarksAroundLine, _, editorInfo, attributeManager);
+  editorInfo.ace_selectLineIfThereIsNoTextSelected = _(selectLine.selectLineIfThereIsNoTextSelected).bind(context);
 }
 
 exports.aceRegisterNonScrollableEditEvents = function(){

@@ -1,10 +1,13 @@
-exports.selectLineIfThereIsNoTextSelected = function(editorInfo, rep, lineNumber) {
+exports.selectLineIfThereIsNoTextSelected = function(lineNumber) {
+  var rep = this.rep;
+  var editorInfo = this.editorInfo;
+  var lineNumber = lineNumber || rep.selStart[0]; // default to line where caret is
   var beginningOfLine = getFirstPositionOfLine(lineNumber, rep);
   var endOfLine = getLastPositionOfLine(lineNumber, rep);
   var isLineEmpty = lineIsEmpty(lineNumber, rep);
   var lineIsInsideOfSelection = lineClickedIsInsideOfSelection(lineNumber, rep);
   if (!lineIsInsideOfSelection && !isLineEmpty) {
-    editorInfo.ace_inCallStack('thisEventWillNotBeCaptured', function(){
+    editorInfo.ace_inCallStackIfNecessary('thisEventWillNotBeCaptured', function(){
       editorInfo.ace_performSelectionChange(beginningOfLine, endOfLine, true);
       editorInfo.ace_updateBrowserSelectionFromRep();
     });

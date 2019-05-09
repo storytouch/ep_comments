@@ -44,9 +44,8 @@ describe('ep_comments_page - api - show add comment dialog', function() {
   })
 
   context('when there is not text selected', function() {
-    var $firstLine;
     before(function(done) {
-      $firstLine = helper.padInner$('div').first();
+      var $firstLine = helper.padInner$('div').first();
       $firstLine.sendkeys('{selectall}{leftarrow}'); // remove any previous selection
       setTimeout(function() {
         apiUtils.simulateCallToShowAddCommentDialog();
@@ -59,6 +58,7 @@ describe('ep_comments_page - api - show add comment dialog', function() {
     it('selects the line where the caret is', function(done) {
       var epDnDUtils = ep_draganddrop_test_helper.utils;
       var textSelected  = epDnDUtils.getSelectedText();
+      var $firstLine = helper.padInner$('div').first();
       expect(textSelected).to.be($firstLine.text());
       done();
     })
