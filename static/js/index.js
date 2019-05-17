@@ -218,6 +218,11 @@ ep_comments.prototype.getCommentData = function (){
 ep_comments.prototype.displayNewCommentForm = function(aceContext) {
   // do nothing if we have nothing selected
   if (this.hasSelectedText(aceContext)) {
+    // remove focus from the editor before displaying the comment window. This
+    // avoids user start typing on the editor because the focus is not in the
+    // new comment form window yet. Fixes https://trello.com/c/27EDAtX1/1879
+    utils.getOuterWindow().focus();
+
     this.showNewCommentForm(aceContext);
   }
 }
