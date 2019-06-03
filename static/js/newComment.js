@@ -15,6 +15,7 @@ exports.createNewCommentForm = function(ace) {
     ace: ace,
     targetType: 'comment',
     onSubmit: submitNewComment,
+    forceFocusOnOpen: true,
   }
   newCommentDialog = dialog.create(configs);
 };

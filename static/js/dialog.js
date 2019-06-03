@@ -17,6 +17,8 @@ var DO_NOTHING = function(){};
      - targetType: used to mark selected text when opening & closing the dialog
      - dialogOpts: options to overwrite default options used by this component. Can be any of
                    those described on https://api.jqueryui.com/dialog
+     - forceFocusOnOpen: flag to force focus to be placed on the dialog when it is shown to the
+                         user. Default: false
      - targetAlreadyMarked: flag to avoid text to be marked/unmarked when dialog is
                             opened/closed. Useful when 2 dialogs handle the same targetType, or
                             when the reference to position the dialog is provided by
@@ -45,6 +47,7 @@ var dialog = function(config) {
   this.onSubmit = config.onSubmit || DO_NOTHING;
   this.beforeOpen = config.beforeOpen || DO_NOTHING;
   this.ace = config.ace;
+  this.forceFocusOnOpen = config.forceFocusOnOpen;
   this.shouldMarkText = !config.targetAlreadyMarked;
   this.openWithinViewport = config.openWithinViewport;
   this.scrollAfterOpeningDialog = !config.openWithinViewport;
@@ -117,6 +120,13 @@ dialog.prototype._localizeDialogContent = function() {
 dialog.prototype.open = function(aceContext, callbackOnSubmit) {
   callbackOnSubmit = callbackOnSubmit || DO_NOTHING;
   var self = this;
+
+  // remove focus from the editor before displaying the comment window. This
+  // avoids user start typing on the editor because the focus is not in the
+  // new comment form window yet. Fixes https://trello.com/c/27EDAtX1/1879
+  if (this.forceFocusOnOpen) {
+    utils.getOuterWindow().focus();
+  }
 
   // Detach current "submit" handler to be able to call the updated callbackOnSubmit
   this.$content.off("submit").submit(function() {
