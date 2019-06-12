@@ -25,6 +25,11 @@ exports.getOuterWindow = function() {
   return outerIframe && outerIframe.contentWindow;
 }
 
+exports.getInnerWindow = function() {
+  var innerIframe = this.getPadOuter().find('iframe[name="ace_inner"]').get(0);
+  return innerIframe && innerIframe.contentWindow;
+}
+
 // Some browsers trigger resize several times while resizing the window, so
 // we need to make sure resize is done to avoid calling the callback multiple
 // times.

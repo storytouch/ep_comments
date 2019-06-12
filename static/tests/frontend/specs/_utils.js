@@ -386,6 +386,10 @@ ep_comments_page_test_helper.utils = {
     return helper.padOuter$('.ui-dialog--comment:has(#text-mark-info)');
   },
 
+  getNewCommentDialog: function() {
+    return helper.padOuter$('.ui-dialog--comment:has(#newComment)');
+  },
+
   // assume dialogs are closed
   testIfCommentDialogIsClosed: function(done) {
     var self = this;

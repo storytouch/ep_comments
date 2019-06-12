@@ -272,6 +272,11 @@ dialog.prototype.isOpen = function() {
 dialog.prototype.close = function() {
   this.$content.dialog('close');
 
+  // send focus back to editor
+  if (this.forceFocusOnOpen) {
+    utils.getInnerWindow().focus();
+  }
+
   // de-select text when dialog is closed
   if (this.shouldMarkText) {
     this.textMarker.unmarkSelectedText();
