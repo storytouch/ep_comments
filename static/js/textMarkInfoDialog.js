@@ -101,12 +101,22 @@ textMarkInfoDialog.prototype._createEditDialog = function(ace) {
     targetType: this.targetType,
     // infoDialog handles the text marking
     targetAlreadyMarked: true,
+    // open editDialog on the same position of infoDialog
+    getElementOnPadOuterForDialogPosition: this._getInfoDialogWidget.bind(this),
     onSubmit: this._saveTextMark.bind(this),
     customClose: this._closeEditDialogAndShowInfoDialog.bind(this),
     doNotAnimate: true,
   };
   return dialog.create(configs);
 };
+
+textMarkInfoDialog.prototype._getInfoDialogWidget = function() {
+  return this.infoDialog.widget;
+}
+
+textMarkInfoDialog.prototype._getEditDialogWidget = function() {
+  return this.editDialog.widget;
+}
 
 textMarkInfoDialog.prototype._buildButton = function(props) {
   var self = this;
@@ -157,7 +167,7 @@ textMarkInfoDialog.prototype._closeInfoDialogAndShowEditDialog = function() {
 
 textMarkInfoDialog.prototype._placeFocusOnDescription = function() {
   var descriptionFieldId = this.editTemplate.descriptionFieldId;
-  var $descriptionField = this.editDialog.widget.find(descriptionFieldId);
+  var $descriptionField = this._getEditDialogWidget().find(descriptionFieldId);
   $descriptionField.focus();
 
   // make sure caret is at the end of the text.
@@ -274,8 +284,8 @@ textMarkInfoDialog.prototype.eventTargetIsATextMarkInfoDialog = function(e) {
 };
 
 textMarkInfoDialog.prototype._elementIsATextMarkInfoDialog = function(element) {
-  var infoDialog = this.infoDialog.widget.get(0);
-  var editDialog = this.editDialog.widget.get(0);
+  var infoDialog = this._getInfoDialogWidget().get(0);
+  var editDialog = this._getEditDialogWidget().get(0);
   var elementIsInsideInfoDialog = $(element).closest(infoDialog).length !== 0;
   var elementIsInsideEditDialog = $(element).closest(editDialog).length !== 0;
   return elementIsInsideInfoDialog || elementIsInsideEditDialog;
