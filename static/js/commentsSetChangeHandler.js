@@ -20,6 +20,20 @@ commentsSetChangeHandler.prototype.thisAuthorChangedPad = function() {
   this.thisAuthorChangedPadSinceLasteApiCall = true;
 }
 
+// make sure API is notified whenever comments are available on text
+commentsSetChangeHandler.prototype.commentsWillBeAddedToText = function(comments) {
+  var commentsToBeAdded = Object.keys(comments);
+  var commentsOnText = this.commentDataManager.getCommentIdsStillOnText();
+  var commentsAlreadyAdded = _.intersection(commentsToBeAdded, commentsOnText).length > 0;
+
+  if (commentsAlreadyAdded) {
+    this.commentAddedOrRemoved();
+  } else {
+    // comments are still being collected, so make sure the API will be notified when this is finished
+    this.thisAuthorChangedPadSinceLasteApiCall = true;
+  }
+}
+
 commentsSetChangeHandler.prototype.commentAddedOrRemoved = function() {
   // update current comment ids
   this.lastCommentIdsSent = this.commentDataManager.getCommentIdsStillOnText();

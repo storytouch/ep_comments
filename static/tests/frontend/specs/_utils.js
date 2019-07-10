@@ -201,6 +201,9 @@ ep_comments_page_test_helper.utils = {
   pasteOnLine: function(line, done) {
     ep_script_copy_cut_paste_test_helper.utils.pasteAtTheEndOfLine(line, done);
   },
+  pasteInTheMiddleOfLine: function(line, done) {
+    ep_script_copy_cut_paste_test_helper.utils.pasteInTheMiddleOfLine(line, done);
+  },
 
   // from https://stackoverflow.com/a/22480938/7884942
   isVisibleOnViewport: function(el) {

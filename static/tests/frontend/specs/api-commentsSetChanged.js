@@ -5,7 +5,6 @@ describe('ep_comments_page - api - "new data" event', function() {
   var apiUtils = ep_comments_page_test_helper.apiUtils;
 
   var EVENT = apiUtils.NEW_DATA_EVENT;
-  var LINE_WITH_PASTED_COMMENT = 0;
   var COMMENT_LINE = 1;
 
   var testThisUserSendsTheCurrentRevisionOnMessage = function() {
@@ -24,8 +23,9 @@ describe('ep_comments_page - api - "new data" event', function() {
       helper.waitFor(function() {
         var commentsOnText = utils.getCommentIdsOnText().get();
         var commentsOnMessage = apiUtils.getLastDataSentOnNewDataEvent().commentIds;
+        var commentsOnBoth = _.intersection(commentsOnText, commentsOnMessage);
 
-        return _.isEqual(commentsOnText, commentsOnMessage);
+        return commentsOnBoth.length === commentsOnMessage.length;
       }).done(done);
     });
   }
@@ -119,13 +119,18 @@ describe('ep_comments_page - api - "new data" event', function() {
 
     context('and this user pastes text with a comment', function() {
       before(function(done) {
-        var $lineWithComment = utils.getLine(COMMENT_LINE);
-        helper.selectLines($lineWithComment, $lineWithComment);
+        // selects the entire text
+        var $lines = helper.padInner$('div');
+        helper.selectLines($lines.first(), $lines.last());
         utils.copySelection();
 
         resetApiEvents();
-        utils.pasteOnLine(LINE_WITH_PASTED_COMMENT, function() {
-          utils.waitForCommentToBeCreatedOnLine(LINE_WITH_PASTED_COMMENT, done);
+        utils.pasteInTheMiddleOfLine(COMMENT_LINE, function() {
+          // there should be a new comment now
+          helper.waitFor(function() {
+            var $commentIcons = helper.padOuter$('.comment-icon');
+            return $commentIcons.length === 2;
+          }).done(done);
         });
       });
 

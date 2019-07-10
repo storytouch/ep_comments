@@ -265,7 +265,7 @@ ep_comments.prototype.saveCommentsOnPaste = function(commentData) {
   self.socket.emit('bulkAddComment', padId, data, function(comments){
     self.commentDataManager.addComments(comments);
     self.shouldCollectComment = true;
-    self.commentsSetChangeHandler.commentAddedOrRemoved();
+    self.commentsSetChangeHandler.commentsWillBeAddedToText(comments);
   });
 }
 
