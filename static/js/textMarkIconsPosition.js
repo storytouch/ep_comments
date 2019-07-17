@@ -119,9 +119,20 @@ textMarkIconsPosition.prototype._getFirstVisibleLineWithTextMark = function(text
 
 textMarkIconsPosition.prototype.getFirstVisibleLineOfSet = function($lines) {
   return _.find($lines, function(line) {
-    var isLineVisible = line.getBoundingClientRect().height;
-    return isLineVisible;
-  });
+    return this._isElementVisible(line);
+  }, this);
+}
+
+textMarkIconsPosition.prototype._isElementVisible = function(line) {
+  var isSceneMarkTitle = $(line).find('.sceneMark--title').length;
+  var isLineVisible = line.getBoundingClientRect().height;
+
+  // on scene mark title we have an additional padding that is always visible
+  // that's why we can't check just its height
+  if (isSceneMarkTitle) {
+    isLineVisible = $(line).find('span').is(':visible');
+  }
+  return isLineVisible;
 }
 
 // When we have a line without text, we return the position of the <div> [1]
