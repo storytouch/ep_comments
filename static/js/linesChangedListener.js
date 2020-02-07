@@ -2,14 +2,14 @@ var _ = require('ep_etherpad-lite/static/js/underscore');
 var utils = require('./utils');
 var scheduler = require('./scheduler');
 
-var linesChangedListener = function(selector, callback) {
+var linesChangedListener = function(selector, callback, timeout) {
   this.targetLineAlreadyChanged = false;
   this.selector = selector;
   this.callback = callback;
 
   // to avoid lagging while user is typing, we set a scheduler to postpone
   // calling callback until edition had stopped
-  this.scheduler = scheduler.setCallbackWhenUserStopsChangingPad(this.triggerCallbackIfNecessary.bind(this));
+  this.scheduler = scheduler.setCallbackWhenUserStopsChangingPad(this.triggerCallbackIfNecessary.bind(this), timeout);
 
   this.startObserving();
 }
@@ -62,6 +62,6 @@ linesChangedListener.prototype.triggerCallbackIfNecessary = function() {
   }
 }
 
-exports.onLineChanged = function(selector, callback) {
-  return new linesChangedListener(selector, callback);
+exports.onLineChanged = function(selector, callback, timeout) {
+  return new linesChangedListener(selector, callback, timeout);
 }
