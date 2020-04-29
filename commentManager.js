@@ -227,3 +227,24 @@ exports.changeCommentText = function(padId, commentId, commentText, currentUser,
     callback(true);
   }
 }
+
+exports.toggleImportantFlag = function(padId, commentId, callback){
+  var prefix = "comments:";
+
+  //get the entry
+  db.get(prefix + padId, function(err, comments){
+    if(ERR(err, callback)) return;
+    var targetComment = comments[commentId];
+    if (targetComment) {
+      //update the comment important flag
+      targetComment.important = !targetComment.important;
+
+      //save the comment updated back
+      db.set(prefix + padId, comments, callback);
+    }else{
+      var errorMessage = 'Comment does not exist';
+      console.log('Error on updating comment with id ' + commentId + '.' + errorMessage);
+      callback(true)
+    }
+  });
+}

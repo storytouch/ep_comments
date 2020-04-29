@@ -12,6 +12,7 @@ var       supertest = require('ep_etherpad-lite/node_modules/supertest'),
 commentsEndPointFor = utils.commentsEndPointFor,
       updateComment = utils.updateComment,
     expectValueToBe = utils.expectValueToBe,
+toggleImportantFlag = utils.toggleImportantFlag,
                 api = supertest(appUrl);
 
 describe('get comments API', function() {
@@ -198,8 +199,8 @@ describe('create comment API broadcast', function(){
   var timesMessageWasReceived;
 
   // NOTE: this hook will timeout if you don't run your Etherpad in
-  // loadTest mode. Be sure to adjust your settings.json when running
-  // this test suite
+  // loadTest mode by setting ALLOW_LOAD_TESTING=true in the .env file
+  // of etherpad-docker. Finally, rebuild and restart the container.
   beforeEach(function(done){
     timesMessageWasReceived = 0;
 
@@ -343,6 +344,17 @@ describe('update comments API broadcast', function(){
       })
     })
   })
+
+  it('updates the important flag of the comment', function(done){
+    var data = {
+      padId: padID,
+      commentId: commentIdToEdit,
+    }
+
+    toggleImportantFlagAndGetListOfComments(data, socket, function(res){
+      validateCommentImportantFlag(res, commentIdToEdit, true);
+    }, done);
+  });
 })
 
 describe('bulk adding comments API', function(){
@@ -433,8 +445,23 @@ var validateCommentText = function(res, commentId, expectedCommentText) {
   }
 }
 
+var validateCommentImportantFlag = function(res, commentId, expectedFlagValue) {
+  var comment_data = res.body.data.comments[commentId];
+  if(comment_data.important !== expectedFlagValue) {
+    throw new Error("Wrong value for important flag. Expected: " + expectedFlagValue + ", got: " + comment_data.important);
+  }
+}
+
 var updateCommentAndGetListOfComments = function(commentData, socket, callbackValidator, done) {
   updateComment(commentData, socket, function(){
+    api.get(listCommentsEndPointFor(commentData.padId, apiKey))
+      .expect(callbackValidator)
+      .end(done);
+  });
+}
+
+var toggleImportantFlagAndGetListOfComments = function(commentData, socket, callbackValidator, done) {
+  toggleImportantFlag(commentData, socket, function(){
     api.get(listCommentsEndPointFor(commentData.padId, apiKey))
       .expect(callbackValidator)
       .end(done);

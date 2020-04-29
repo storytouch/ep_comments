@@ -13,6 +13,7 @@ var EDIT_REPLY_MESSAGE_TYPE = 'comment_reply_edit';
 var DELETE_REPLY_MESSAGE_TYPE = 'comment_reply_delete';
 var SHOW_COMMENT_INFO_TYPE = 'show_comment_info';
 var SHOW_ADD_COMMENT_DIALOG = 'show_add_comment_dialog';
+var TOGGLE_IMPORTANT_FLAG = 'toggle_comment_important_flag';
 
 var commentApi = function() {
   this.onCommentDeletion = function() {};
@@ -22,6 +23,7 @@ var commentApi = function() {
   this.onReplyCreate = function() {};
   this.onReplyDeletion = function() {};
   this.onShowCommentInfo = function() {};
+  this.onToggleImportantFlag = function() {};
 
   var self = this;
 
@@ -67,6 +69,11 @@ commentApi.prototype._handleOutboundCalls = function(e) {
     case SHOW_ADD_COMMENT_DIALOG:
       this.onShowAddCommentDialog();
       break;
+
+    case TOGGLE_IMPORTANT_FLAG:
+      var commentId = e.data.commentId;
+      this.onToggleImportantFlag(commentId);
+      break;
   }
 };
 
@@ -101,6 +108,10 @@ commentApi.prototype.setHandleShowCommentInfo = function(fn) {
 commentApi.prototype.setHandleCommentCreation = function(fn) {
   this.onShowAddCommentDialog = fn;
 };
+
+commentApi.prototype.setToggleImportantFlag = function(fn) {
+  this.onToggleImportantFlag = fn;
+}
 
 /*
   message: {

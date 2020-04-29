@@ -15,11 +15,17 @@ var commentDataManager = function(socket) {
 
   this.thisPlugin.api.setHandleCommentEdition(this._onCommentEdition.bind(this));
   this.thisPlugin.api.setHandleReplyEdition(this._onReplyEdition.bind(this));
+  this.thisPlugin.api.setToggleImportantFlag(this._onToggleImportantFlag.bind(this));
 
   // listen to comment or reply changes made by other users on this pad
   var self = this;
   this.socket.on('textCommentUpdated', function(commentId, commentText) {
     self._setCommentOrReplyNewText(commentId, commentText);
+  });
+
+  // on collaborator toggle comment important flag
+  this.socket.on('importantCommentUpdated', function(commentId) {
+    self._setCommentImportantFlag(commentId);
   });
 }
 
@@ -57,6 +63,7 @@ commentDataManager.prototype.addComment = function(commentId, commentData) {
   commentData.date          = commentData.timestamp;
   commentData.formattedDate = new Date(commentData.timestamp).toISOString();
   commentData.replies       = {};
+  commentData.important     = commentData.important || false;
 
   this.comments[commentId] = commentData;
 }
@@ -146,6 +153,28 @@ commentDataManager.prototype._setCommentOrReplyNewText = function(commentOrReply
 
   this.triggerDataChanged();
 }
+
+commentDataManager.prototype._onToggleImportantFlag = function(commentId) {
+  var self       = this;
+  var data       = {};
+  data.padId     = clientVars.padId;
+  data.commentId = commentId;
+
+  var setCommentImportantFlagBound = this._setCommentImportantFlag.bind(this);
+
+  this.socket.emit('toggleImportantFlag', data, function(err) {
+    if (!err) {
+      setCommentImportantFlagBound(commentId);
+    }
+  });
+}
+
+commentDataManager.prototype._setCommentImportantFlag = function(commentId) {
+  var comment = this.comments[commentId];
+  comment.important = !comment.important;
+
+  this.triggerDataChanged();
+};
 
 commentDataManager.prototype.refreshAllCommentData = function(callback) {
   var req = { padId: clientVars.padId };

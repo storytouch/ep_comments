@@ -134,6 +134,10 @@ var expectValueToBe = function(fieldName, actualValue, expectedValue) {
   }
 }
 
+var toggleImportantFlag = function(commentData, socket, cb) {
+  socket.emit('toggleImportantFlag', commentData, cb);
+}
+
 /* ********** Available functions/values: ********** */
 exports.apiVersion = apiVersion;
 exports.api  = api;
@@ -150,3 +154,4 @@ exports.commentsEndPointFor = commentsEndPointFor;
 exports.commentRepliesEndPointFor = commentRepliesEndPointFor;
 exports.updateComment = updateComment;
 exports.expectValueToBe = expectValueToBe;
+exports.toggleImportantFlag = toggleImportantFlag;

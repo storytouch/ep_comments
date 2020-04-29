@@ -5,6 +5,7 @@ ep_comments_page_test_helper.apiUtils = {
   COMMENT_ACTIVATED_EVENT: 'comment_activated',
   NEW_DATA_EVENT: 'comments_set_changed',
   SHOW_ADD_COMMENT_DIALOG: 'show_add_comment_dialog',
+  TOGGLE_IMPORTANT_FLAG: 'toggle_comment_important_flag',
 
   lastDataSent: {},
 
@@ -139,4 +140,12 @@ ep_comments_page_test_helper.apiUtils = {
     inboundApiEventsTarget.postMessage(message, '*');
   },
 
+  simulateCallToToggleImportantFlag: function(commentId) {
+    var message = {
+      type: this.TOGGLE_IMPORTANT_FLAG,
+      commentId: commentId,
+    };
+    var inboundApiEventsTarget = helper.padChrome$.window;
+    inboundApiEventsTarget.postMessage(message, '*');
+  },
 }

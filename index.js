@@ -130,6 +130,17 @@ exports.socketio = function (hook_name, args, cb){
       }
     });
 
+    socket.on('toggleImportantFlag', function(data, callback) {
+      var padId = data.padId;
+      var commentId = data.commentId;
+      commentManager.toggleImportantFlag(padId, commentId, function (err){
+        if(!err){
+          socket.broadcast.to(padId).emit('importantCommentUpdated', commentId);
+        }
+        callback(err);
+      });
+    });
+
   });
 };
 
