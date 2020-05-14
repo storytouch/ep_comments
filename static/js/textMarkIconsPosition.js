@@ -5,18 +5,21 @@ var utils = require('./utils');
 var shared = require('./shared');
 
 var FIRST_LINE_OF_PAD = 0;
+var doNothing = function() {};
 /*
 Values of config:
   - hideIcons: function that hides the target icons
   - textMarkClass: class applied on the line(<div>) where it has the text mark (e.g. '.comment')
   - textkMarkPrefix: string that is the prefix of the text mark. (e.g. 'c-')
   - adjustTopOf: function that adjusts the position of the icon
+  - afterUpdateIconsPosition: function to execute after update icons position. (e.g. group icons)
 */
 var textMarkIconsPosition = function(config) {
   this.hideIcons = config.hideIcons;
   this.textMarkClass = config.textMarkClass;
   this.textkMarkPrefix = config.textkMarkPrefix;
   this.adjustTopOf = config.adjustTopOf;
+  this.afterUpdateIconsPosition = config.afterUpdateIconsPosition || doNothing;
 }
 
 // Set all text mark icons to be aligned with text where's applied
@@ -31,11 +34,14 @@ textMarkIconsPosition.prototype.updateIconsPosition = function(lineOfChange) {
 
   var self = this;
   var inlineTextMarks = this._getTextMarkIdAndItsPosition(lineOfChange);
+
   $.each(inlineTextMarks, function() {
     if(this.textMarkId && this.textMarkIconPosition) {
       self.adjustTopOf(this.textMarkId, this.textMarkIconPosition);
     }
   });
+
+  self.afterUpdateIconsPosition();
 }
 
 textMarkIconsPosition.prototype._getTextMarkIdAndItsPosition = function(lineOfChange) {
