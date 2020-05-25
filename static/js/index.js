@@ -21,7 +21,6 @@ var sceneMarkVisibility = require('ep_script_scene_marks/static/js/sceneMarkVisi
 var commentInfoDialog = require('./commentInfoDialog');
 var textMarkInfoDialog = require('./textMarkInfoDialog');
 var selectLine = require('./selectLine');
-var padType = require('ep_script_elements/static/js/padType');
 
 var COMMENT_PREFIX_KEY = 'comment-c-';
 var REPLY_PREFIX_KEY = 'comment-reply-';
@@ -360,7 +359,6 @@ exports.postAceInit = function(hook, context) {
   var thisPlugin                      = pad.plugins.ep_comments_page;
   thisPlugin.api                      = api.init();
   thisPlugin.fakeIdsMapper            = fakeIdsMapper.init()
-  thisPlugin.padType                  = padType.init();
 
   // TODO: we should return an object in this module following the way other
   // modules do
