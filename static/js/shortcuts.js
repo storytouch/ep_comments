@@ -4,6 +4,10 @@ var SHORTCUT_BASE = require('ep_script_scene_marks/static/js/constants').TEKSTO_
 var SHORTCUT_KEY = 'C';
 
 exports.processAceKeyEvent = function(context) {
+  // handles key events only in ScriptDocument pads
+  var isScriptDocumentPad = pad.plugins.ep_script_elements.padType.isScriptDocumentPad();
+  if (!isScriptDocumentPad) return false;
+
   var evt = context.evt;
   var key = String.fromCharCode(evt.which);
 

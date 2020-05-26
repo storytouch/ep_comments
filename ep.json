@@ -2,7 +2,7 @@
   "parts": [
     {
       "name":"comments_page",
-      "pre": ["ep_etherpad-lite/webaccess", "ep_page_view/page_view"],
+      "pre": ["ep_etherpad-lite/webaccess", "ep_script_elements/preLoader", "ep_page_view/page_view"],
       "post": ["ep_etherpad-lite/static"],
       "client_hooks": {
         "handleClientMessage_ACCEPT_COMMIT": "ep_comments_page/static/js/index",
