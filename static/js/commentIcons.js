@@ -7,6 +7,7 @@ var textMarkIconsPosition = require('./textMarkIconsPosition');
 var shared                = require('./shared');
 var utils                 = require('./utils');
 var textMarkSMVisibility  = require('./textMarkSMVisibility');
+var lineChangeScheduler   = require('./lineChangeScheduler');
 
 // make sure $.tmpl is loaded
 require('./lib/jquery.tmpl.min');
@@ -77,13 +78,21 @@ commentIcons.prototype._updateAllIconsPosition = function () {
   this.textMarkIconsPosition.updateAllIconsPosition();
 }
 
+commentIcons.prototype.handlePadChanged = function(lineOfChange) {
+  this.textMarkIconsPosition.updateIconsPosition(lineOfChange);
+}
+
 commentIcons.prototype._addListenersToUpdateIconsPositions = function () {
   var self = this;
+
+  self.scheduler = lineChangeScheduler.setCallbackWhenUserStopsChangingPad(
+    self.handlePadChanged.bind(this),
+    self.timeToUpdateIconPosition
+  );
+
   utils.getPadInner().on(utils.LINE_CHANGED_EVENT, function(e, data) {
     var lineOfChange = data.lineNumber;
-    setTimeout(function() {
-      self.textMarkIconsPosition.updateIconsPosition(lineOfChange);
-    }, self.timeToUpdateIconPosition);
+    self.scheduler.padChanged(lineOfChange);
   });
 }
 

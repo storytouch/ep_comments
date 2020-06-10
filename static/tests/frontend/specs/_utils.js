@@ -36,6 +36,12 @@ ep_comments_page_test_helper.utils = {
     thisPlugin.commentIcons.timeToUpdateIconPosition = 0;
   },
 
+  setTimeoutOfLineChangeScheduler: function(timeout) {
+    var thisPlugin = helper.padChrome$.window.pad.plugins.ep_comments_page;
+    thisPlugin.commentIcons.timeToUpdateIconPosition = timeout;
+    thisPlugin.commentIcons._addListenersToUpdateIconsPositions();
+  },
+
   createPad: function(test, done, scriptContent, lastLineText) {
     var self = this;
     this.padId = undefined;
