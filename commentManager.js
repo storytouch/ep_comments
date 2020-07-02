@@ -6,10 +6,10 @@ var randomString = require('ep_etherpad-lite/static/js/pad_utils').randomString;
 var shared = require('./static/js/shared');
 var utils = require('./utils');
 
-exports.getComments = function (padId, callback)
+exports.getComments = async function(padId, callback)
 {
   // We need to change readOnly PadIds to Normal PadIds
-  padId = utils.getReadWritePadId(padId);
+  padId = await utils.getReadWritePadId(padId);
 
   // Not sure if we will encouter race conditions here..  Be careful.
 
@@ -23,7 +23,7 @@ exports.getComments = function (padId, callback)
   });
 };
 
-exports.deleteComments = function (padId, callback)
+exports.deleteComments = function(padId, callback)
 {
   db.remove('comments:' + padId, function(err)
   {
@@ -43,10 +43,10 @@ exports.addComment = function(padId, data, callback)
   });
 };
 
-exports.bulkAddComments = function(padId, data, callback)
+exports.bulkAddComments = async function(padId, data, callback)
 {
    // We need to change readOnly PadIds to Normal PadIds
-   padId = utils.getReadWritePadId(padId);
+   padId = await utils.getReadWritePadId(padId);
 
   //get the entry
   db.get("comments:" + padId, function(err, comments) {
@@ -104,9 +104,9 @@ exports.copyComments = function(originalPadId, newPadID, callback)
   });
 };
 
-exports.getCommentReplies = function (padId, callback){
+exports.getCommentReplies = async function(padId, callback){
  // We need to change readOnly PadIds to Normal PadIds
- padId = utils.getReadWritePadId(padId);
+ padId = await utils.getReadWritePadId(padId);
 
   //get the globalComments replies
   db.get("comment-replies:" + padId, function(err, replies)
@@ -118,7 +118,7 @@ exports.getCommentReplies = function (padId, callback){
   });
 };
 
-exports.deleteCommentReplies = function (padId, callback){
+exports.deleteCommentReplies = function(padId, callback){
   db.remove('comment-replies:' + padId, function(err)
   {
     if(ERR(err, callback)) return;
@@ -136,9 +136,9 @@ exports.addCommentReply = function(padId, data, callback){
   });
 };
 
-exports.bulkAddCommentReplies = function(padId, data, callback){
+exports.bulkAddCommentReplies = async function(padId, data, callback){
   // We need to change readOnly PadIds to Normal PadIds
-  padId = utils.getReadWritePadId(padId);
+  padId = await utils.getReadWritePadId(padId);
 
   //get the entry
   db.get("comment-replies:" + padId, function(err, replies){
@@ -192,12 +192,12 @@ exports.copyCommentReplies = function(originalPadId, newPadID, callback){
   });
 };
 
-exports.changeCommentText = function(padId, commentId, commentText, currentUser, callback){
+exports.changeCommentText = async function(padId, commentId, commentText, currentUser, callback){
   var commentTextIsNotEmpty = (commentText || '').length > 0;
   if(commentTextIsNotEmpty && commentId && currentUser){
     // Given a comment we update the comment text
     // We need to change readOnly PadIds to Normal PadIds
-    padId = utils.getReadWritePadId(padId);
+    padId = await utils.getReadWritePadId(padId);
 
     // If we're dealing with comment replies we need to a different query
     var prefix = "comments:";

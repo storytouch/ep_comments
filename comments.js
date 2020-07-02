@@ -1,6 +1,4 @@
-
 var commentManager = require('./commentManager');
-var padManager = require("ep_etherpad-lite/node/db/PadManager");
 var ERR = require("ep_etherpad-lite/node_modules/async-stacktrace");
 
 exports.getPadComments = function(padID, callback)

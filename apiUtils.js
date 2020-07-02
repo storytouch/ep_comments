@@ -45,13 +45,10 @@ var validateRequiredFields = function(originalFields, requiredFields, res) {
 }
 
 // Sanitizes pad id and returns it:
-var sanitizePadId = function(req) {
+var sanitizePadId = async function(req) {
   var padIdReceived = req.params.pad;
-  padManager.sanitizePadId(padIdReceived, function(padId) {
-    padIdReceived = padId;
-  });
-
-  return padIdReceived;
+  var thisPadId = await padManager.sanitizePadId(padIdReceived);
+  return thisPadId;
 }
 
 // Builds url for message broadcasting, based on settings.json and on the

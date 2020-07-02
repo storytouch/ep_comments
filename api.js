@@ -5,13 +5,13 @@ var apiUtils = require('./apiUtils');
 var comments = require('./comments');
 
 exports.expressCreateServer = function (hook_name, args, callback) {
-  args.app.get('/p/:pad/:rev?/comments', function(req, res) {
+  args.app.get('/p/:pad/:rev?/comments', async function(req, res) {
     var fields = req.query;
     // check the api key
     if(!apiUtils.validateApiKey(fields, res)) return;
 
     // sanitize pad id before continuing
-    var padIdReceived = apiUtils.sanitizePadId(req);
+    var padIdReceived = await apiUtils.sanitizePadId(req);
 
     comments.getPadComments(padIdReceived, function(err, data) {
       if(err) {
@@ -23,7 +23,7 @@ exports.expressCreateServer = function (hook_name, args, callback) {
   });
 
   args.app.post('/p/:pad/:rev?/comments', function(req, res) {
-    new formidable.IncomingForm().parse(req, function (err, fields, files) {
+    new formidable.IncomingForm().parse(req, async function(err, fields, files) {
       // check the api key
       if(!apiUtils.validateApiKey(fields, res)) return;
 
@@ -31,7 +31,7 @@ exports.expressCreateServer = function (hook_name, args, callback) {
       if(!apiUtils.validateRequiredFields(fields, ['data'], res)) return;
 
       // sanitize pad id before continuing
-      var padIdReceived = apiUtils.sanitizePadId(req);
+      var padIdReceived = async apiUtils.sanitizePadId(req);
 
       // create data to hold comment information:
       try {
@@ -51,14 +51,14 @@ exports.expressCreateServer = function (hook_name, args, callback) {
     });
   });
 
-  args.app.get('/p/:pad/:rev?/commentReplies', function(req, res){
+  args.app.get('/p/:pad/:rev?/commentReplies', async function(req, res){
     //it's the same thing as the formidable's fields
     var fields = req.query;
     // check the api key
     if(!apiUtils.validateApiKey(fields, res)) return;
 
     //sanitize pad id before continuing
-    var padIdReceived = apiUtils.sanitizePadId(req);
+    var padIdReceived = await apiUtils.sanitizePadId(req);
 
     // call the route with the pad id sanitized
     comments.getPadCommentReplies(padIdReceived, function(err, data) {
@@ -71,7 +71,7 @@ exports.expressCreateServer = function (hook_name, args, callback) {
   });
 
   args.app.post('/p/:pad/:rev?/commentReplies', function(req, res) {
-    new formidable.IncomingForm().parse(req, function (err, fields, files) {
+    new formidable.IncomingForm().parse(req, async function(err, fields, files) {
       // check the api key
       if(!apiUtils.validateApiKey(fields, res)) return;
 
@@ -79,7 +79,7 @@ exports.expressCreateServer = function (hook_name, args, callback) {
       if(!apiUtils.validateRequiredFields(fields, ['data'], res)) return;
 
       // sanitize pad id before continuing
-      var padIdReceived = apiUtils.sanitizePadId(req);
+      var padIdReceived = await apiUtils.sanitizePadId(req);
 
       // create data to hold comment reply information:
       try {
