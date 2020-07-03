@@ -1,8 +1,9 @@
 #commentIcons {
   display: block;
   z-index: 1;
-  margin-left: 760px;
-  padding-left: 55px;
+  position: relative;
+  width: 50px;
+  margin-left: 15px;
 }
 
 /* when line numbers are not visible, we need to move icons to the left */
