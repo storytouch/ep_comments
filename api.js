@@ -4,7 +4,7 @@ var clientIO = require('socket.io-client');
 var apiUtils = require('./apiUtils');
 var comments = require('./comments');
 
-exports.expressCreateServer = function (hook_name, args, callback) {
+exports.expressCreateServer = function(hook_name, args, callback) {
   args.app.get('/p/:pad/:rev?/comments', async function(req, res) {
     var fields = req.query;
     // check the api key
