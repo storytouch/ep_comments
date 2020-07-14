@@ -35,9 +35,10 @@ describe('ep_comments_page - api - activate comment', function() {
     });
 
     it('activates comment icon', function(done) {
-      var $commentIcon = helper.padOuter$('#commentIcons #icon-' + commentId).first();
-      expect($commentIcon.is('.active')).to.be(true);
-      done();
+      helper.waitFor(function() {
+        var $commentIcon = helper.padOuter$('#commentIcons #icon-' + commentId).first();
+        return $commentIcon.is('.active') === true;
+      }).done(done);
     });
 
     it('sends the comment id on the API', function(done) {
@@ -98,9 +99,11 @@ describe('ep_comments_page - api - activate comment', function() {
       });
 
       it('deactivates all comment icons', function(done) {
-        var $activeCommentIcons = helper.padOuter$('#commentIcons .active');
-        expect($activeCommentIcons.length).to.be(0);
-        done();
+        helper.waitFor(function() {
+          var $activeCommentIcons = helper.padOuter$('#commentIcons .active');
+          var activeCommentIconsLength = $activeCommentIcons.length;
+          return activeCommentIconsLength === 0;
+        }).done(done);
       });
 
       it('sends an undefined comment id on the API', function(done) {

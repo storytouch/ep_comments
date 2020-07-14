@@ -160,10 +160,11 @@ describe('ep_comments_page - Comment copy and paste', function() {
       });
 
       it('does not remove the comment pasted', function(done) {
-        var inner$ = helper.padInner$;
-        var commentsLength = inner$('.comment').length;
-        expect(commentsLength).to.be(1);
-        done();
+        helper.waitFor(function() {
+          var inner$ = helper.padInner$;
+          var commentsLength = inner$('.comment').length;
+          return commentsLength === 1;
+        }).done(done);
       });
     });
   });

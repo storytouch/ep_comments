@@ -48,4 +48,6 @@
 .comment-icon.withReply #withReply,
 .comment-icon #single {
   display: inline-block;
+  width: 11px;
+  height: 16px;
 }

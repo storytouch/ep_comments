@@ -1,9 +1,10 @@
+// XXX: this test might fail depending the way the timezone is displayed in your machine
 describe('ep_comments_page - show comment info', function() {
   var utils = ep_comments_page_test_helper.utils;
   var apiUtils = ep_comments_page_test_helper.apiUtils;
 
-  // this regex tests the format of something like '12/3/2018, 2:48 PM'
-  var DATE_TIME_REGEX = /(([1-9]|1[0-2])\/([1-9]|[12]\d|3[01])\/([12]\d{3})(, ([0-9]|1[0-2]):[0-9][0-9] (A|P)M))/;
+  // this regex tests the format of something like '12/3/2018, 02:48 PM'
+  var DATE_TIME_REGEX = /(([1-9]|1[0-2])\/([1-9]|[12]\d|3[01])\/([12]\d{3})(, (0[1-9]|1[0-2]):[0-9][0-9] (A|P)M))/;
   var COMMENT_LINE = 0;
   var COMMENT_AND_REPLIES_LINE = 1;
   var LENGTH_OF_COMMENT_ON_SECOND_LINE = 2;
@@ -65,10 +66,11 @@ describe('ep_comments_page - show comment info', function() {
     });
 
     it('does not show replies button', function(done) {
-      var $replyButton = helper.padOuter$('.button--show_replies');
-      var isReplyButtonVisible = $replyButton.is(':visible');
-      expect(isReplyButtonVisible).to.be(false);
-      done();
+      helper.waitFor(function() {
+        var $replyButton = helper.padOuter$('.button--show_replies');
+        var isReplyButtonVisible = $replyButton.is(':visible');
+        return isReplyButtonVisible === false;
+      }).done(done);
     });
   });
 

@@ -25,7 +25,7 @@ describe('ep_comments_page - icon position on hidden elements', function() {
   }
 
   var isVisible = function($target){
-    return $target.is(':visible');
+    return $target.length && $target[0].getBoundingClientRect().height > 0;
   }
 
   var isCommentIconsVisible = function(lines) {
@@ -38,7 +38,7 @@ describe('ep_comments_page - icon position on hidden elements', function() {
 
   var getCommentsIdOfTargetElements = function(lines) {
     var $lines = helper.padInner$('div');
-    return $.map(lines, function(line){
+    return _.map(lines, function(line){
       var elementClasses = $lines.eq(line).find('span.comment').attr('class');
       return getCommentId(elementClasses);
     });
@@ -69,19 +69,22 @@ describe('ep_comments_page - icon position on hidden elements', function() {
     });
   }
 
-  var checkIfHasCommentIconsOnLine = function(linesWhereCommentIsApplied, lineWhereCommentShouldBe) {
+  var checkIfHasCommentIconsOnLine = function(linesWhereCommentIsApplied, lineWhereCommentShouldBe, cb) {
     var $lineWhereCommentShouldBe = helper.padInner$('div').eq(lineWhereCommentShouldBe);
     var $lineOfCommentIcon = $lineWhereCommentShouldBe.find('.sceneMark--title > span, heading > span').first();
     var expectedTop = $lineOfCommentIcon.offset().top + 2; // all icons are +2px down to adjust position
 
-    _.each(linesWhereCommentIsApplied, function(lineWhereCommentIsApplied){
-      var commentId = utils.getCommentIdOfLine(lineWhereCommentIsApplied);
-      var $commentIcon = helper.padOuter$('#commentIcons #icon-' + commentId);
 
-      // check if icon exists
-      expect($commentIcon.length).to.be(1);
-      expect($commentIcon.offset().top).to.be(expectedTop);
-    });
+    helper.waitFor(function() {
+      return _.every(linesWhereCommentIsApplied, function(lineWhereCommentIsApplied){
+        var commentId = utils.getCommentIdOfLine(lineWhereCommentIsApplied);
+        var $commentIcon = helper.padOuter$('#commentIcons #icon-' + commentId);
+
+        // check if icon exists
+        return $commentIcon.length === 1;
+        return $commentIcon.offset().top === expectedTop;
+      });
+    }).done(cb)
   }
 
   before(function(done) {
@@ -99,9 +102,10 @@ describe('ep_comments_page - icon position on hidden elements', function() {
       });
 
       it('does not show its comment icon', function (done) {
-        var targetCommentsIsVisible = isCommentIconsVisible([HEADING]);
-        expect(targetCommentsIsVisible).to.be(false);
-        done();
+        helper.waitFor(function() {
+          var targetCommentsIsVisible = isCommentIconsVisible([HEADING]);
+          return targetCommentsIsVisible === false;
+        }).done(done);
       });
 
       context('and user enables SCRIPT', function() {
@@ -110,9 +114,10 @@ describe('ep_comments_page - icon position on hidden elements', function() {
         });
 
         it('shows its comment icon', function (done) {
-          var targetCommentsIsVisible = isCommentIconsVisible([HEADING]);
-          expect(targetCommentsIsVisible).to.be(true);
-          done();
+          helper.waitFor(function() {
+            var targetCommentsIsVisible = isCommentIconsVisible([HEADING]);
+            return targetCommentsIsVisible === true;
+          }).done(done);
         });
       });
     });
@@ -124,21 +129,21 @@ describe('ep_comments_page - icon position on hidden elements', function() {
     });
 
     it('does not show any comment icon', function (done) {
-      var targetCommentsIsNotVisible = isCommentIconsNotVisible(COMMENT_LINES);
-      expect(targetCommentsIsNotVisible).to.be(true);
-      done();
+      helper.waitFor(function() {
+        var targetCommentsIsNotVisible = isCommentIconsNotVisible(COMMENT_LINES);
+        return targetCommentsIsNotVisible === true;
+      }).done(done);
     });
   });
 
   context('when has comment on a hidden scene mark', function() {
     context('and next visible element is a heading', function() {
-      before(function () {
-        ep_script_toggle_view_test_helper.utils.setEascMode(['script']);
+      before(function(done) {
+        ep_script_toggle_view_test_helper.utils.setEascModeAndWaitOneSecond(['script'], done);
       });
 
       it('shows the SM comment icons on the heading', function (done) {
-        checkIfHasCommentIconsOnLine(COMMENT_LINES, HEADING);
-        done();
+        checkIfHasCommentIconsOnLine(COMMENT_LINES, HEADING, done);
       });
     });
 
@@ -150,8 +155,7 @@ describe('ep_comments_page - icon position on hidden elements', function() {
       it('shows the SM comment icons on the scene mark', function (done) {
         // send the comment of episode to the act_name line (two comment icons)
         var commentLines = [EPI_NAME, ACT_NAME];
-        checkIfHasCommentIconsOnLine(commentLines, ACT_NAME);
-        done();
+        checkIfHasCommentIconsOnLine(commentLines, ACT_NAME, done);
       });
     });
   });
@@ -170,20 +174,20 @@ describe('ep_comments_page - icon position on hidden elements', function() {
         context('and SM is visible', function(){
           it('shows the icon on the first SM visible', function (done) {
             var commentLines = [ACTION];
-            checkIfHasCommentIconsOnLine(commentLines, SECOND_ACT_NAME);
-            done();
+            checkIfHasCommentIconsOnLine(commentLines, SECOND_ACT_NAME, done);
           });
         })
 
         context('and SM is not visible', function(){
-          before(function () {
+          before(function() {
             ep_script_toggle_view_test_helper.utils.setEascMode(['scene']);
           });
 
           it('does not show the icon', function (done) {
-            var targetCommentsIsNotVisible = isCommentIconsNotVisible(ACTION);
-            expect(targetCommentsIsNotVisible).to.be(true);
-            done();
+            helper.waitFor(function() {
+              var targetCommentsIsNotVisible = isCommentIconsNotVisible(ACTION);
+              return targetCommentsIsNotVisible === true;
+            }).done(done);
           });
         });
       });

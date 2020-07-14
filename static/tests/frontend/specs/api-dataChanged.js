@@ -80,20 +80,26 @@ describe('ep_comments_page - api - "data changed" event', function() {
 
     context('and user creates another comment before the first one', function() {
       before(function(done) {
-        utils.addCommentToLine(0, textOfLastCreatedComment, done);
+        this.timeout(5000);
+        setTimeout(function() {
+          utils.addCommentToLine(0, textOfLastCreatedComment, done);
+        }, 1000)
       });
+
       after(function() {
         utils.undo();
       });
 
       it('sends the comments on the order they appear on the pad text', function(done) {
-        var comments = apiUtils.getLastDataSent();
-
-        expect(comments.length).to.be(2);
-        expect(comments[0].text).to.be(textOfLastCreatedComment);
-        expect(comments[1].text).to.be(textOfFirstCreatedComment);
-
-        done();
+        var comments;
+        helper.waitFor(function() {
+          comments = apiUtils.getLastDataSent();
+          return comments.length === 2;
+        }).done(function() {
+          expect(comments[0].text).to.be(textOfLastCreatedComment);
+          expect(comments[1].text).to.be(textOfFirstCreatedComment);
+          done();
+        })
       });
     });
 
@@ -120,9 +126,10 @@ describe('ep_comments_page - api - "data changed" event', function() {
         helper.waitFor(function() {
           return utils.getCommentIdsOfLine(COMMENT_LINE).length > 1;
         }).done(function() {
-          var comments = apiUtils.getLastDataSent();
-          expect(comments.length).to.be(2);
-          done();
+          helper.waitFor(function() {
+            var comments = apiUtils.getLastDataSent();
+            return comments.length === 2;
+          }).done(done)
         });
       });
 

@@ -253,9 +253,10 @@ describe('ep_comments_page - Comment icons', function() {
       });
 
       it('sends an undefined comment id on the API', function(done) {
-        var activatedComment = apiUtils.getLastActivatedComment();
-        expect(activatedComment).to.be(undefined);
-        done();
+        helper.waitFor(function() {
+          var activatedComment = apiUtils.getLastActivatedComment();
+          return activatedComment === undefined;
+        }).done(done);
       });
 
       it('removes the highlight of the comment on editor', function(done) {
@@ -288,9 +289,14 @@ describe('ep_comments_page - Comment icons', function() {
     });
 
     context('and user clicks on another comment icon', function() {
-      before(function() {
+      before(function(done) {
         utils.clickOnCommentIcon(secondCommentId);
+        helper.waitFor(function() {
+          var activatedComment = apiUtils.getLastActivatedComment();
+          return activatedComment !== undefined;
+        }).done(done);
       });
+
       after(function() {
         // activate original comment again, as on before() we've deactivated it
         utils.clickOnCommentIcon(firstCommentId);
@@ -358,6 +364,10 @@ describe('ep_comments_page - Comment icons', function() {
           utils.addCommentToLine(COMMENT_LINE_OF_OTHER_USER, COMMENT_TEXT, cb);
         }, done);
       });
+
+      after(function() {
+        multipleUsers.closePadForOtherUser();
+      })
     });
 
     it('creates a comment icon for both users', function(done) {
