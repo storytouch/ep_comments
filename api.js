@@ -31,7 +31,7 @@ exports.expressCreateServer = function(hook_name, args, callback) {
       if(!apiUtils.validateRequiredFields(fields, ['data'], res)) return;
 
       // sanitize pad id before continuing
-      var padIdReceived = async apiUtils.sanitizePadId(req);
+      var padIdReceived = await apiUtils.sanitizePadId(req);
 
       // create data to hold comment information:
       try {
