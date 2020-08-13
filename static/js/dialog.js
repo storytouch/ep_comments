@@ -70,6 +70,7 @@ dialog.prototype._buildWidget = function(config) {
   this.$content.appendTo($container);
 
   var defaultDialogOpts = {
+    width: 400,
     autoOpen: false,
     resizable: false,
     close: closeDialog,
