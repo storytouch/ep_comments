@@ -18,6 +18,7 @@
   padding: 0;
   font-family: 'Roboto', sans-serif;
   font-weight: 400; /* Roboto Regular */
+  font-size: 12px;
 }
 
 /* remove external border of the dialog */
@@ -38,10 +39,14 @@
 
 .ui-dialog .ui-dialog-titlebar {
   border: none;
-
+  padding: 0 10px;
   text-transform: uppercase;
   font-weight: 400; /* Roboto Regular */
-  font-size: 10px;
+}
+
+.ui-dialog .ui-dialog-title {
+  margin: 0;
+  line-height: 2rem;
 }
 
 /* close button */
@@ -60,3 +65,4 @@
 .ui-dialog *:focus {
   outline: 0;
 }
+
