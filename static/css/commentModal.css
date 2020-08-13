@@ -1,9 +1,8 @@
 .comment-author {
   display: flex;
 
-  padding: 10px 0 3px 0;
-  line-height: 20px;
-
+  padding: 10px 0 5px 0;
+  font-size: 1.1em;
   text-transform: uppercase;
 }
 
@@ -13,7 +12,7 @@ authoricon {
   text-align: center;
   border: 1px solid;
 
-  font-size: 9px;
+  font-size: 0.8em;
   height: 20px;
   width: 20px;
 }
