@@ -9,10 +9,12 @@ exports.aceEditorCSS = function() {
     'ep_comments_page/static/css/dialog-dark.css',
     'ep_comments_page/static/css/comment.css',
     'ep_comments_page/static/css/commentIcon.css',
-    'ep_comments_page/static/css/commentModal.css',
+    'ep_comments_page/static/css/comment-dialog.css',
     'ep_comments_page/static/css/jquery-ui-custom.css',
     'ep_comments_page/static/css/jquery-ui-custom-light.css',
     'ep_comments_page/static/css/jquery-ui-custom-dark.css',
-    'ep_comments_page/static/css/commentDialog.css',
+    'ep_comments_page/static/css/reply-comments-dialog.css',
+    'ep_comments_page/static/css/reply-comments-dialog-light.css',
+    'ep_comments_page/static/css/reply-comments-dialog-dark.css',
   ];
 }

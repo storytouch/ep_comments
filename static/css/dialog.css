@@ -74,37 +74,3 @@
 .ui-dialog input.button:disabled {
   cursor: not-allowed;
 }
-
-.ui-dialog .comment-author {
-  display: flex;
-
-  padding: 10px 0 5px 0;
-  font-size: 1.1em;
-  text-transform: uppercase;
-}
-
-.ui-dialog authoricon {
-  display: inline-block;
-  border-radius: 100%;
-  text-align: center;
-  border: 1px solid;
-
-  font-size: 0.8em;
-  height: 20px;
-  width: 20px;
-}
-
-.ui-dialog authorname {
-  margin-left: 8px;
-  flex: 1;
-
-  /* hide longer names */
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.ui-dialog .comment-text {
-  margin-bottom: 5px;
-}
-
