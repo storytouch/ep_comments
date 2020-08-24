@@ -1,6 +1,12 @@
 var _ = require('ep_etherpad-lite/static/js/underscore');
 var randomString = require('ep_etherpad-lite/static/js/pad_utils').randomString;
 
+var COMMENT_PREFIX_KEY = 'comment-c-';
+exports.COMMENT_PREFIX_KEY = COMMENT_PREFIX_KEY;
+
+var REPLY_PREFIX_KEY = 'comment-reply-';
+exports.REPLY_PREFIX_KEY = REPLY_PREFIX_KEY;
+
 var COMMENT_PREFIX = 'c-';
 exports.COMMENT_PREFIX = COMMENT_PREFIX;
 

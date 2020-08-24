@@ -22,9 +22,6 @@ var commentInfoDialog = require('./commentInfoDialog');
 var textMarkInfoDialog = require('./textMarkInfoDialog');
 var selectLine = require('./selectLine');
 
-var COMMENT_PREFIX_KEY = 'comment-c-';
-var REPLY_PREFIX_KEY = 'comment-reply-';
-
 /************************************************************************/
 /*                         ep_comments Plugin                           */
 /************************************************************************/
@@ -392,10 +389,10 @@ exports.aceEditEvent = function(hook, context) {
 
 // Insert comments classes
 exports.aceAttribsToClasses = function(hook, context){
-  if(context.key.startsWith(COMMENT_PREFIX_KEY) && context.value !== "comment-deleted") {
+  if(context.key.startsWith(shared.COMMENT_PREFIX_KEY) && context.value !== "comment-deleted") {
     return ['comment', context.value];
   }
-  else if(context.key.startsWith(REPLY_PREFIX_KEY)) {
+  else if(context.key.startsWith(shared.REPLY_PREFIX_KEY)) {
     return ['comment-reply', context.value];
   }
   return preTextMarker.processAceAttribsToClasses(context);

@@ -1,9 +1,11 @@
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var _ = require('ep_etherpad-lite/static/js/underscore');
 
+var epSEDShared = require('ep_script_dimensions/static/js/shared');
+
 var linesChangedListener  = require('./linesChangedListener');
 var textHighlighter       = require('./textHighlighter');
-var textMarkIconsPosition = require('./textMarkIconsPosition');
+var textMarkIconsPosition = require('./textMarkIconsPositionImproved');
 var shared                = require('./shared');
 var utils                 = require('./utils');
 var textMarkSMVisibility  = require('./textMarkSMVisibility');
@@ -28,9 +30,9 @@ var commentIcons = function(ace) {
   this.textMarkIconsPosition = textMarkIconsPosition.init({
     hideIcons: this.hideIcons.bind(this),
     textMarkClass: utils.COMMENT_CLASS,
-    textkMarkPrefix: shared.COMMENT_PREFIX,
+    textMarkPrefix: shared.COMMENT_PREFIX_KEY,
     adjustTopOf: this.adjustTopOf.bind(this),
-  });
+  }, ace);
 
   this._addListenersToUpdateIconStyle();
   this._addListenersToCommentIcons();
@@ -43,8 +45,9 @@ var commentIcons = function(ace) {
 // Adjust position of the comment icon on the container, to be on the same
 // height of the pad text associated to the comment, and return the affected icon
 commentIcons.prototype.adjustTopOf = function(commentId, baseTop) {
-  var icon = utils.getPadOuter().find('#icon-' + commentId);
-  var targetTop = baseTop + 2;
+  var iconId = commentId.replace(shared.COMMENT_PREFIX_KEY, shared.COMMENT_PREFIX);
+  var icon = utils.getPadOuter().find('#icon-' + iconId);
+  var targetTop = baseTop + 3;
   var iconsAtLine = this._getOrCreateIconsContainerAt(targetTop);
 
   // move icon from one line to the other
@@ -83,16 +86,12 @@ commentIcons.prototype.handlePadChanged = function(lineOfChange) {
 }
 
 commentIcons.prototype._addListenersToUpdateIconsPositions = function () {
+  var $innerDoc = utils.getPadInner().find('#innerdocbody');
   var self = this;
-
-  self.scheduler = lineChangeScheduler.setCallbackWhenUserStopsChangingPad(
-    self.handlePadChanged.bind(this),
-    self.timeToUpdateIconPosition
-  );
-
-  utils.getPadInner().on(utils.LINE_CHANGED_EVENT, function(e, data) {
-    var lineOfChange = data.lineNumber;
-    self.scheduler.padChanged(lineOfChange);
+  $innerDoc.on(epSEDShared.USERS_LINES_CHANGED, function(event, data) {
+    var firstUserLineChanged = data.firstUserLineChanged;
+    var lineOfChange = firstUserLineChanged ? firstUserLineChanged.parentIndex : 0;
+    self.handlePadChanged(lineOfChange);
   });
 }
 

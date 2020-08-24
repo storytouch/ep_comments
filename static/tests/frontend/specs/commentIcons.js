@@ -6,6 +6,7 @@ describe('ep_comments_page - Comment icons', function() {
   var SECOND_COMMENT_LINE = 1;
   var MULTILINE_COMMENT = [2, 5];
   var COMMENT_LINE_OF_OTHER_USER = 10;
+  var ICON_POSITION_TOLERANCE = 2; // 2px of tolerance
   var firstCommentId, secondCommentId, multLineCommentId;
 
   var createScript = function(test, cb) {
@@ -79,6 +80,10 @@ describe('ep_comments_page - Comment icons', function() {
     }).done(done);
   }
 
+  var isIconPositionWithinTolerance = function(expectedValue, currentValue) {
+    return Math.abs(currentValue - expectedValue) <= ICON_POSITION_TOLERANCE;
+  }
+
   function testIfSendCommentIdOnAPI (commentId) {
     it('sends the comment id on the API', function(done) {
       var activatedComment = apiUtils.getLastActivatedComment();
@@ -108,12 +113,14 @@ describe('ep_comments_page - Comment icons', function() {
     // check icon exists
     expect($commentIcon.length).to.be(1);
 
-    // check height is the same
-    var $commentedText = helper.padInner$('.' + firstCommentId);
-    var expectedTop = $commentedText.offset().top + 2; // all icons are +2px down to adjust position
-    expect($commentIcon.offset().top).to.be(expectedTop);
+    helper.waitFor(function() {
+      // check height is the same
+      var $commentedText = helper.padInner$('.' + firstCommentId);
+      var expectedTop = $commentedText.offset().top;
+      var currentTop = $commentIcon.offset().top;
+      return isIconPositionWithinTolerance(expectedTop, currentTop);
+    }, 2000).done(done);
 
-    done();
   });
 
   context('when comment has a reply and pad is reloaded', function() {
@@ -194,8 +201,10 @@ describe('ep_comments_page - Comment icons', function() {
         helper.waitFor(function() {
           var $commentIcons = helper.padOuter$('#commentIcons .comment-icon:visible');
           return $commentIcons.length !== 0;
-        }).done(done);
+        }, 4000).done(done);
       });
+
+      this.timeout(6000);
     });
 
     after(function() {
@@ -209,8 +218,9 @@ describe('ep_comments_page - Comment icons', function() {
         // check height is the same
         var $commentIcon = helper.padOuter$('#commentIcons #icon-' + firstCommentId);
         var $commentedText = helper.padInner$('.' + firstCommentId);
-        var expectedTop = $commentedText.offset().top + 2; // all icons are +2px down to adjust position
-        return $commentIcon.offset().top === expectedTop;
+        var expectedTop = $commentedText.offset().top;
+        var currentTop = $commentIcon.offset().top;
+        return isIconPositionWithinTolerance(expectedTop, currentTop);
       }, 4000).done(done);
     });
   });
@@ -339,11 +349,12 @@ describe('ep_comments_page - Comment icons', function() {
 
         var $commentIcon = helper.padOuter$('#commentIcons #icon-' + multLineCommentId);
         var $firstLineCommented = helper.padInner$('.' + multLineCommentId).first();
-        var expectedTop = $firstLineCommented.offset().top + 2; // all icons are +2px down to adjust position
+        var expectedTop = $firstLineCommented.offset().top;
 
         // icon might take some time to go to the correct position
         helper.waitFor(function() {
-          return $commentIcon.offset().top === expectedTop;
+          var currentTop = $commentIcon.offset().top;
+          return isIconPositionWithinTolerance(expectedTop, currentTop);
         }, 4000).done(done);
       });
     });
@@ -403,10 +414,12 @@ describe('ep_comments_page - Comment icons', function() {
       helper.waitFor(function(){
         var $commentIcon = helper.padOuter$('#commentIcons #icon-' + firstCommentId);
         var $commentedText = helper.padInner$('.' + firstCommentId);
-        var expectedTop = $commentedText.offset().top + 2; // all icons are +2px down to adjust position
+        var expectedTop = $commentedText.offset().top;
+        var currentTop = $commentIcon.offset().top;
+        return isIconPositionWithinTolerance(expectedTop, currentTop);
+      }, 4000).done(done)
 
-        return $commentIcon.offset().top === expectedTop;
-      }).done(done)
+      this.timeout(6000);
     });
   })
 });

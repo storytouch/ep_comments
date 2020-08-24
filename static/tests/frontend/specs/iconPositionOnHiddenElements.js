@@ -11,6 +11,7 @@ describe('ep_comments_page - icon position on hidden elements', function() {
   var SECOND_ACT_NAME = 12;
   var SECOND_SEQ_SUMMARY = 15;
   var COMMENT_LINES = [EPI_NAME, ACT_NAME, SEQ_NAME, SCE_NAME, HEADING];
+  var ICON_POSITION_TOLERANCE = 2; // 2px of tolerance
 
   var checkVisibilityOfComments = function(lines, checkVisibility) {
     var commentIdsOfLines = getCommentsIdOfTargetElements(lines);
@@ -72,19 +73,23 @@ describe('ep_comments_page - icon position on hidden elements', function() {
   var checkIfHasCommentIconsOnLine = function(linesWhereCommentIsApplied, lineWhereCommentShouldBe, cb) {
     var $lineWhereCommentShouldBe = helper.padInner$('div').eq(lineWhereCommentShouldBe);
     var $lineOfCommentIcon = $lineWhereCommentShouldBe.find('.sceneMark--title > span, heading > span').first();
-    var expectedTop = $lineOfCommentIcon.offset().top + 2; // all icons are +2px down to adjust position
+    var expectedTop = $lineOfCommentIcon.offset().top;
 
+    // check if icon exists
+    expect($commentIcon.length === 1);
 
     helper.waitFor(function() {
       return _.every(linesWhereCommentIsApplied, function(lineWhereCommentIsApplied){
         var commentId = utils.getCommentIdOfLine(lineWhereCommentIsApplied);
         var $commentIcon = helper.padOuter$('#commentIcons #icon-' + commentId);
-
-        // check if icon exists
-        return $commentIcon.length === 1;
-        return $commentIcon.offset().top === expectedTop;
+        var currentTop = $commentIcon.offset().top;
+        return isIconPositionWithinTolerance(expectedTop, currentTop);
       });
-    }).done(cb)
+    }, 4000).done(cb)
+  }
+
+  var isIconPositionWithinTolerance = function(expectedValue, currentValue) {
+    return Math.abs(currentValue - expectedValue) <= ICON_POSITION_TOLERANCE;
   }
 
   before(function(done) {
@@ -144,6 +149,7 @@ describe('ep_comments_page - icon position on hidden elements', function() {
 
       it('shows the SM comment icons on the heading', function (done) {
         checkIfHasCommentIconsOnLine(COMMENT_LINES, HEADING, done);
+        this.timeout(6000);
       });
     });
 
@@ -156,6 +162,7 @@ describe('ep_comments_page - icon position on hidden elements', function() {
         // send the comment of episode to the act_name line (two comment icons)
         var commentLines = [EPI_NAME, ACT_NAME];
         checkIfHasCommentIconsOnLine(commentLines, ACT_NAME, done);
+        this.timeout(6000);
       });
     });
   });
@@ -175,6 +182,7 @@ describe('ep_comments_page - icon position on hidden elements', function() {
           it('shows the icon on the first SM visible', function (done) {
             var commentLines = [ACTION];
             checkIfHasCommentIconsOnLine(commentLines, SECOND_ACT_NAME, done);
+            this.timeout(6000);
           });
         })
 

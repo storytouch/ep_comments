@@ -9,13 +9,13 @@ var FIRST_LINE_OF_PAD = 0;
 Values of config:
   - hideIcons: function that hides the target icons
   - textMarkClass: class applied on the line(<div>) where it has the text mark (e.g. '.comment')
-  - textkMarkPrefix: string that is the prefix of the text mark. (e.g. 'c-')
+  - textMarkPrefix: string that is the prefix of the text mark. (e.g. 'c-')
   - adjustTopOf: function that adjusts the position of the icon
 */
 var textMarkIconsPosition = function(config) {
   this.hideIcons = config.hideIcons;
   this.textMarkClass = config.textMarkClass;
-  this.textkMarkPrefix = config.textkMarkPrefix;
+  this.textMarkPrefix = config.textMarkPrefix;
   this.adjustTopOf = config.adjustTopOf;
 }
 
@@ -25,6 +25,7 @@ var textMarkIconsPosition = function(config) {
 textMarkIconsPosition.prototype.updateAllIconsPosition = function() {
   this.updateIconsPosition(FIRST_LINE_OF_PAD);
 }
+
 textMarkIconsPosition.prototype.updateIconsPosition = function(lineOfChange) {
   var updateAllIcons = lineOfChange === FIRST_LINE_OF_PAD;
   this.hideIcons(updateAllIcons);
@@ -54,7 +55,7 @@ textMarkIconsPosition.prototype._getTextMarkIdAndItsPosition = function(lineOfCh
   return _(inlineTextMarks)
     .chain()
     .map(function(inlineTextMark) {
-      return shared.getIdsFrom(inlineTextMark.className, this.textkMarkPrefix);
+      return shared.getIdsFrom(inlineTextMark.className, this.textMarkPrefix);
     }, this)
     .flatten()
     .uniq()
