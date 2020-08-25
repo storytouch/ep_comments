@@ -161,7 +161,8 @@ describe('ep_comments_page - Comment icons', function() {
         // check icon is not visible
         var $commentIcons = helper.padOuter$('#commentIcons #icon-' + firstCommentId + ':visible');
         return $commentIcons.length === 0;
-      }, 2000).done(done);
+      }, 4000).done(done);
+      this.timeout(6000);
     });
   });
 
