@@ -218,20 +218,26 @@ commentDataManager.prototype.updateListOfCommentsStillOnText = function() {
   // the processing for the data we had already built?
   // I guess we should run this method only on the lines changed
 
-  var $scenes = utils.getPadInner().find('div.withHeading');
-
-  var commentsToSend = _(this._getListOfCommentsOrdered())
+  var textMarkOccurrences = this._getTextMarkOccurrencesOnText();
+  var commentsToSend = _(textMarkOccurrences)
     .chain()
-    .map(function(commentInfo) {
-      var commentId = commentInfo.commentId;
+    .map(function(textMarkOccurrence) {
+      var textMarkOccurenceId = textMarkOccurrence.key;
+      var commentId = textMarkOccurenceId .replace(shared.COMMENT_PREFIX_KEY, shared.COMMENT_PREFIX);
       var targetComment = this.comments[commentId];
+
       if (targetComment !== undefined) {
         // create a copy of each comment, so we can change it without messing up
         // with self.comments
         var commentData = Object.assign({}, targetComment);
 
-        var nodeWithComment = commentInfo.nodeWithComment;
-        commentData.scene = this._getSceneNumber($scenes, nodeWithComment);
+        // get scene number
+        var userLineOfOccurrence = textMarkOccurrence.position.userLineOfOccurrence;
+        if (userLineOfOccurrence) {
+          commentData.scene = this._getSceneNumber(userLineOfOccurrence);
+        }
+
+        var nodeWithComment = this._getNodeWithComment(commentId);
         commentData.replies = this._getRepliesStillOnTextSortedByDate(commentData, nodeWithComment);
 
         return commentData;
@@ -248,44 +254,17 @@ commentDataManager.prototype.updateListOfCommentsStillOnText = function() {
   this.thisPlugin.api.triggerDataChanged(commentsToSend);
 }
 
-commentDataManager.prototype._getListOfCommentsOrdered = function() {
-  var $commentsOnText = utils.getPadInner().find('.comment');
-
-  // get the order of comments to send on API + grab data from script to be used
-  // to fill comment & reply data later
-  var orderedComments = $commentsOnText.map(function() {
-    var nodeWithComment = this;
-    var nodeWithCommentClass = $(nodeWithComment).attr('class');
-    var commentIds = shared.getCommentIdsFrom(nodeWithCommentClass);
-
-    var commentIdsData = _(commentIds).map(function(commentId){
-      return {
-        commentId: commentId,
-        nodeWithComment: nodeWithComment,
-      }
-    });
-
-    return commentIdsData;
-  });
-
-  // remove null and duplicate ids (this happens when comment is split
-  // into 2 parts -- by an overlapping comment, for example)
-  orderedComments = _(orderedComments)
-    .chain()
-    .flatten()
-    .compact()
-    .unique('commentId')
-    .value();
-
-  return orderedComments;
+commentDataManager.prototype._getTextMarkOccurrencesOnText = function(tagOccurrenceId) {
+  var textMarksObserver = pad.plugins.ep_comments_page.textMarksObserver;
+  return textMarksObserver.getAttributeOccurrences(shared.COMMENT_PREFIX_KEY);
 }
 
-commentDataManager.prototype._getSceneNumber = function($scenes, nodeWithComment) {
-  // fill scene number
-  var $lineWithComment = $(nodeWithComment).closest('div');
-  var $headingOfSceneWhereCommentIs = utils.getHeadingOfDomLine($lineWithComment);
-  var sceneNumberOfComment = 1 + $scenes.index($headingOfSceneWhereCommentIs);
-  return sceneNumberOfComment;
+commentDataManager.prototype._getNodeWithComment = function(commentId) {
+  return utils.getPadInner().find('.comment.' + commentId)[0];
+}
+
+commentDataManager.prototype._getSceneNumber = function(userLineOfComment) {
+  return userLineOfComment.eascLevel.scene;
 }
 
 commentDataManager.prototype._getRepliesStillOnTextSortedByDate = function(commentData, nodeWithComment) {
