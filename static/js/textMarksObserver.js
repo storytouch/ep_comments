@@ -12,7 +12,7 @@ var textMarksObserver = function(ace) {
     self.rep = ace.ace_getRep();
     self.attribPrefixesToObserve = [];
     self.listenersMap = {};
-    self.userLines = [];
+    self.userLines = pad.plugins.ep_script_dimensions.calculateUserLines.getUserLines();
 
     // background worker
     self.worker = new TextMarkObserverWorker();
