@@ -15,7 +15,6 @@ var lineChangeScheduler  = require('./lineChangeScheduler');
 require('./lib/jquery.tmpl.min');
 
 var COMMENT_HIGHLIGHT_COLOR = '#FFFACD';
-var TIME_TO_UPDATE_ICON_POSITION = 1000;
 var FIRST_LINE_OF_PAD = 0;
 
 var commentIcons = function(ace) {
@@ -198,28 +197,28 @@ commentIcons.prototype._addIcon = function(commentId) {
 
 // Update which comments have reply
 commentIcons.prototype._updateCommentIconsStyle = function() {
-  //var commentDataManager = this.thisPlugin.commentDataManager;
-  //var $iconsContainer = utils.getPadOuter().find('#commentIcons');
-  //var $commentsOnText = utils.getPadInner().find('.comment');
+  var commentDataManager = this.thisPlugin.commentDataManager;
+  var $iconsContainer = utils.getPadOuter().find('#commentIcons');
+  var $commentsOnText = utils.getPadInner().find('.comment');
 
-  //$commentsOnText.each(function() {
-    //var commentIds = shared.getCommentIdsFrom($(this).attr('class'));
-    //var $comment = $(this);
-    //commentIds.forEach(function(commentId) {
-      //var replies = commentDataManager.getRepliesOfComment(commentId);
+  $commentsOnText.each(function() {
+    var commentIds = shared.getCommentIdsFrom($(this).attr('class'));
+    var $comment = $(this);
+    commentIds.forEach(function(commentId) {
+      var replies = commentDataManager.getRepliesOfComment(commentId);
 
-      //// comment can have reply data, but the reply might have been
-      //// removed from text (by UNDO, for example)
-      //var selectorOfAllReplyIds = _(replies).map(function(reply) {
-        //return '.' + reply.replyId;
-      //}).join(',');
-      //var commentHasReplyOnText = $comment.is(selectorOfAllReplyIds);
+      // comment can have reply data, but the reply might have been
+      // removed from text (by UNDO, for example)
+      var selectorOfAllReplyIds = _(replies).map(function(reply) {
+        return '.' + reply.replyId;
+      }).join(',');
+      var commentHasReplyOnText = $comment.is(selectorOfAllReplyIds);
 
-      //// change comment icon
-      //var $commentIcon = $iconsContainer.find('#icon-' + commentId);
-      //$commentIcon.toggleClass('withReply', commentHasReplyOnText);
-    //})
-  //});
+      // change comment icon
+      var $commentIcon = $iconsContainer.find('#icon-' + commentId);
+      $commentIcon.toggleClass('withReply', commentHasReplyOnText);
+    })
+  });
 }
 
 commentIcons.prototype._targetCommentIdOf = function(e) {
