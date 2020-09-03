@@ -43,22 +43,31 @@ var commentIcons = function(ace) {
 commentIcons.prototype.adjustTopOf = function(commentOccurrence) {
   var commentId = commentOccurrence.key;
   var iconId = commentId.replace(shared.COMMENT_PREFIX_KEY, shared.COMMENT_PREFIX);
-  var icon = utils.getPadOuter().find('#icon-' + iconId);
+  var $icon = utils.getPadOuter().find('#icon-' + iconId);
 
+  // If there is no a visible user line suitable to place the icon,
+  // then we need to hide it.
+  // It cover cases where icons are on a script element and a user
+  // changes the EASC visibility, which may hide the line where the
+  // icon was.
+  // When the icon is on a SceneMark and ScriptElements are visible,
+  // `nextVisibleUserLine` already points to the next Heading.
   var nextVisibleUserLine = commentOccurrence.position.nextVisibleUserLine;
-  var baseTop = 0;
+  if (!nextVisibleUserLine) {
+    $icon.hide();
+    return;
+  }
 
-  // TODO newxtVisibleLine may be null if SCRIPT EASC level is disabled
-  if (nextVisibleUserLine) baseTop = this.editorPaddingTop + nextVisibleUserLine.y0 + nextVisibleUserLine.marginTop;
+  var baseTop = this.editorPaddingTop + nextVisibleUserLine.y0 + nextVisibleUserLine.marginTop;
   var targetTop = baseTop + 3;
 
   // move icon from one line to the other
   var iconsAtLine = this._getOrCreateIconsContainerAt(targetTop);
-  if (iconsAtLine != icon.parent()) icon.appendTo(iconsAtLine);
+  if (iconsAtLine != $icon.parent()) $icon.appendTo(iconsAtLine);
 
-  icon.show();
+  $icon.show();
 
-  return icon;
+  return $icon;
 }
 
 // Hide comment icons from container

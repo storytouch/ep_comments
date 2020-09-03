@@ -116,7 +116,7 @@ textMarksFinder.prototype._getMatchedPrefix = function(attribKey) {
 
 textMarksFinder.prototype._getTextMarkPosition = function(textMarkOccurrence) {
   var userLineOfOccurrence = this._getUserLineOfOccurrence(textMarkOccurrence);
-  var nextVisibleUserLine = this._getNextVisibleUserLine(userLineOfOccurrence);
+  var nextVisibleUserLine = this._getNextVisibleUserLineOfSameScene(userLineOfOccurrence);
   return {
     userLineOfOccurrence,
     nextVisibleUserLine,
@@ -156,12 +156,38 @@ textMarksFinder.prototype._getUserLineOfOccurrence = function(textMarkOccurrence
   return userLinesOfLineNumber[userLineAtOffsetIndex];
 };
 
-textMarksFinder.prototype._getNextVisibleUserLine = function(userLine) {
+// Given a target user line, it gets the next visible
+// user line, which can be:
+//
+//   [1] If the target user line is visible, then it is
+//   already the line we want.
+//
+//   [2] If the target line is not visible (eg: hidden SM),
+//   then we search for the next visible user line within
+//   the same SCENE number of the target user line.
+//
+//   [3] If no candidate is found, it returns null.
+textMarksFinder.prototype._getNextVisibleUserLineOfSameScene = function(userLine) {
+  // [1]
   if (!userLine || userLine.visible) return userLine;
+
+  // for loop is more efficient than (filter + find)
+  var targetSceneNumber = userLine.eascLevel.scene;
   for (var i = userLine.index + 1; i < this.userLines.length; i++) {
     var it = this.userLines[i];
+
+    // [3]
+    // if we are not in the target scene anymore, then
+    // there is not a visible user line
+    if (it.eascLevel.scene !== targetSceneNumber) break;
+
+    // [2]
+    // if we are in the same scene and the line is visible,
+    // this is the one we want
     if (it.visible) return it;
   }
+
+  // [3]
   return null;
 };
 
