@@ -39,10 +39,9 @@ var commentIcons = function(ace) {
 
 // Adjust position of the comment icon on the container, to be on the same
 // height of the pad text associated to the comment, and return the affected icon
-commentIcons.prototype.adjustTopOf = function(commentOccurrence) {
-  var commentId = commentOccurrence.key;
-  var iconId = commentId.replace(shared.COMMENT_PREFIX_KEY, shared.COMMENT_PREFIX);
-  var $icon = utils.getPadOuter().find('#icon-' + iconId);
+commentIcons.prototype.adjustTopOf = function(textMarkOccurrence) {
+  var commentId = this._getCommentIdFromTextMarkOccurrence(textMarkOccurrence);
+  var $icon = utils.getPadOuter().find('#icon-' + commentId);
 
   // If there is no a visible user line suitable to place the icon,
   // then we need to hide it.
@@ -51,17 +50,15 @@ commentIcons.prototype.adjustTopOf = function(commentOccurrence) {
   // icon was.
   // When the icon is on a SceneMark and ScriptElements are visible,
   // `nextVisibleUserLine` already points to the next Heading.
-  var nextVisibleUserLine = commentOccurrence.position.nextVisibleUserLine;
+  var nextVisibleUserLine = textMarkOccurrence.position.nextVisibleUserLine;
   if (!nextVisibleUserLine) {
     $icon.hide();
     return;
   }
 
-  var baseTop = this.editorPaddingTop + nextVisibleUserLine.y0 + nextVisibleUserLine.marginTop;
-  var targetTop = baseTop + 3;
-
   // move icon from one line to the other
-  var iconsAtLine = this._getOrCreateIconsContainerAt(targetTop);
+  var top = this._getCommentTopPositionFromTextMarkOccurrence(textMarkOccurrence);
+  var iconsAtLine = this._getOrCreateIconsContainerAt(top);
   if (iconsAtLine != $icon.parent()) $icon.appendTo(iconsAtLine);
 
   $icon.show();
@@ -77,19 +74,21 @@ commentIcons.prototype.hideIcons = function(textMarkOccurrences, hideAllIcons) {
     // get icons are not present on text
     $commentIcons = $commentIcons.filter(function() {
       var $icon = $(this);
-      self._iconDoesNotExistOnText(textMarkOccurrences, $icon);
+      return self._iconDoesNotExistOnText(textMarkOccurrences, $icon);
     });
   }
   $commentIcons.hide();
 }
 
 // Create new comment icons, if they don't exist yet
-commentIcons.prototype.addIcons = function(comments) {
-  for(var commentId in comments) {
-    this._addIcon(commentId);
-  }
+commentIcons.prototype.addIcons = function(textMarkOccurrences) {
+  var self = this;
 
-  this._updateCommentIconsStyle();
+  Object.keys(textMarkOccurrences).forEach(function(key) {
+    self._addIcon(textMarkOccurrences[key]);
+  });
+
+  self._updateCommentIconsStyle();
 }
 
 commentIcons.prototype._addListenersToUpdateIconsPositions = function () {
@@ -160,7 +159,6 @@ commentIcons.prototype._addListenersToCommentIcons = function() {
   });
 }
 
-
 commentIcons.prototype._getOrCreateIconsContainerAt = function(top) {
   var iconContainer = utils.getPadOuter().find('#commentIcons');
   var iconClass = "icon-at-" + top;
@@ -179,7 +177,9 @@ commentIcons.prototype._getOrCreateIconsContainerAt = function(top) {
   return iconsAtLine;
 }
 
-commentIcons.prototype._addIcon = function(commentId) {
+commentIcons.prototype._addIcon = function(textMarkOccurrence) {
+  var commentId = this._getCommentIdFromTextMarkOccurrence(textMarkOccurrence);
+
   // only create icon if it was not created before
   var $icon = utils.getPadOuter().find('#icon-' + commentId);
   if ($icon.length > 0) return;
@@ -188,7 +188,7 @@ commentIcons.prototype._addIcon = function(commentId) {
   var $inlineComment = utils.getPadInner().find('.comment.' + commentId);
   if ($inlineComment.length === 0) return;
 
-  var top = $inlineComment.get(0).offsetTop + 2;
+  var top = this._getCommentTopPositionFromTextMarkOccurrence(textMarkOccurrence);
   var iconsAtLine = this._getOrCreateIconsContainerAt(top);
   var icon = $('#commentIconTemplate').tmpl({ commentId: commentId });
 
@@ -354,6 +354,17 @@ commentIcons.prototype._iconDoesNotExistOnText = function(textMarkOccurrences, $
   var commentId = $icon.data('commentid');
   var matchedOccurrence = textMarkOccurrences[commentId];
   return !matchedOccurrence;
+}
+
+commentIcons.prototype._getCommentIdFromTextMarkOccurrence = function(textMarkOccurrence) {
+  var commentKey = textMarkOccurrence.key;
+  return commentKey.replace(shared.COMMENT_PREFIX_KEY, shared.COMMENT_PREFIX);
+}
+
+commentIcons.prototype._getCommentTopPositionFromTextMarkOccurrence = function(textMarkOccurrence) {
+  var nextVisibleUserLine = textMarkOccurrence.position.nextVisibleUserLine;
+  var baseTop = this.editorPaddingTop + nextVisibleUserLine.y0 + nextVisibleUserLine.marginTop;
+  return baseTop + 3;
 }
 
 exports.init = function(ace) {

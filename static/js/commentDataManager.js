@@ -9,6 +9,7 @@ var commentDataManager = function(socket) {
   this.thisPlugin = pad.plugins.ep_comments_page;
   this.socket = socket;
   this.comments = {};
+  this.textMarkOccurrences = {};
   this.commentsStillOnText = [];
 
   linesChangedListener.onLineChanged('.comment, heading', this.triggerDataChanged.bind(this));
@@ -31,6 +32,10 @@ var commentDataManager = function(socket) {
 
 commentDataManager.prototype.getComments = function() {
   return this.comments;
+}
+
+commentDataManager.prototype.getTextMarkOccurrencesOnText = function() {
+  return this.textMarkOccurrences;
 }
 
 commentDataManager.prototype.getCommentIdsStillOnText = function() {
@@ -58,6 +63,7 @@ commentDataManager.prototype.addComments = function(comments) {
     this.addComment(commentId, comments[commentId]);
   }
 }
+
 commentDataManager.prototype.addComment = function(commentId, commentData) {
   commentData.commentId     = commentId;
   commentData.date          = commentData.timestamp;
@@ -218,8 +224,8 @@ commentDataManager.prototype.updateListOfCommentsStillOnText = function() {
   // the processing for the data we had already built?
   // I guess we should run this method only on the lines changed
 
-  var textMarkOccurrences = this._getTextMarkOccurrencesOnText();
-  var commentsToSend = _(textMarkOccurrences)
+  this.textMarkOccurrences = this._reloadTextMarkOccurrencesOnText();
+  var commentsToSend = _(this.textMarkOccurrences)
     .chain()
     .map(function(textMarkOccurrence) {
       var textMarkOccurenceId = textMarkOccurrence.key;
@@ -254,7 +260,7 @@ commentDataManager.prototype.updateListOfCommentsStillOnText = function() {
   this.thisPlugin.api.triggerDataChanged(commentsToSend);
 }
 
-commentDataManager.prototype._getTextMarkOccurrencesOnText = function(tagOccurrenceId) {
+commentDataManager.prototype._reloadTextMarkOccurrencesOnText = function(tagOccurrenceId) {
   var textMarksObserver = pad.plugins.ep_comments_page.textMarksObserver;
   return textMarksObserver.getAttributeOccurrences(shared.COMMENT_PREFIX_KEY);
 }

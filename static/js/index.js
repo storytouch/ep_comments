@@ -188,7 +188,7 @@ ep_comments.prototype.collectComments = function(callback) {
   // TODO do we need to call triggerDataChanged or can we simply call
   // updateListOfCommentsStillOnText here?
   this.commentDataManager.triggerDataChanged();
-  this.commentIcons.addIcons(this.commentDataManager.getComments());
+  this.commentIcons.addIcons(this.commentDataManager.getTextMarkOccurrencesOnText());
 
   if(callback) callback();
 };
