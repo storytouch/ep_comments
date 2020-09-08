@@ -14,8 +14,12 @@ require('./lib/jquery.tmpl.min');
 
 var COMMENT_HIGHLIGHT_COLOR = '#FFFACD';
 var FIRST_LINE_OF_PAD = 0;
+var TIME_TO_UPDATE_ICON_POSITION = 100; // milliseconds
 
 var commentIcons = function(ace) {
+  // allow to controll this timeout in test
+  this.timeToUpdateIconPosition = TIME_TO_UPDATE_ICON_POSITION;
+
   this.thisPlugin = pad.plugins.ep_comments_page;
   this.editorPaddingTop = simplePageViewUtils.getEditorPaddingTop();
   this.thisPlugin.textMarksObserver = textMarksObserver.init(ace);
@@ -62,7 +66,7 @@ commentIcons.prototype._processNewTextMarkOccurrences = function(textMarkOccurre
 
   // to avoid processing overhead, perform this task in blocks
   var chunkSize = 10;
-  var interval = 100; // milliseconds
+  var interval = this.timeToUpdateIconPosition;
 
   let i, j, k = 0;
   for (i = 0, j = comments.length; i < j; i += chunkSize) {

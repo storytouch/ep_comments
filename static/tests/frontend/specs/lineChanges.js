@@ -1,4 +1,4 @@
-describe('ep_comments_page - Line change scheduler', function() {
+describe('ep_comments_page - Line changes', function() {
   var utils = ep_comments_page_test_helper.utils;
 
   var FIRST_LINE = 0;
@@ -24,7 +24,7 @@ describe('ep_comments_page - Line change scheduler', function() {
   before(function(done) {
     this.timeout(60000);
     createScript(this, function(){
-      utils.setTimeoutOfLineChangeScheduler(TIME_TO_UPDATE_ICON_POSITION);
+      utils.setTimeoutToUpdateIconPosition(TIME_TO_UPDATE_ICON_POSITION);
       done();
     });
   });
