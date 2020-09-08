@@ -151,7 +151,7 @@ ep_comments_page_test_helper.utils = {
     self.pressShortcutToAddCommentToLines(lines, function() {
       self.fillCommentForm(textOfComment, function() {
         // wait until comment is created and comment id is set
-        self.waitForCommentToBeCreatedOnLines(lines, done);
+        self.waitForCommentIconToBeCreatedOnLines(lines, done);
       });
     });
   },
@@ -255,6 +255,18 @@ ep_comments_page_test_helper.utils = {
       });
       return idOfCreatedComment !== null && commentIdsSentOnAPI.includes(idOfCreatedComment);
     }).done(done);
+  },
+
+  waitForCommentIconToBeCreatedOnLines: function(lines, done) {
+    var self = this;
+
+    // when it has multiple lines selected check if the comment was created in the last line
+    var commentLine = lines[1];
+
+    helper.waitFor(function() {
+      var commentId = self.getCommentIdOfLine(commentLine);
+      return helper.padOuter$('#commentIcons #icon-' + commentId).length;
+    }, 4000).done(done);
   },
 
   getCommentDataOfLine: function(lineNumber) {
@@ -446,6 +458,6 @@ ep_comments_page_test_helper.utils = {
           self.toggleShowHideReplyButton();
           cb();
         });
-    }, 500);
+    }, 1000);
   }
 }

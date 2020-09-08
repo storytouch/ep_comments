@@ -54,7 +54,7 @@ describe('ep_comments_page - Comment icons', function() {
     helper.waitFor(function(){
       var numberOfLines = helper.padInner$('div').length;
       return numberOfLines === originalNumberOfLines + 2;
-    }).done(cb);
+    }, 4000).done(cb);
   }
 
   var createTwoLinesOnTopOfScriptOnOtherUserBrowser = function(done) {
@@ -125,6 +125,8 @@ describe('ep_comments_page - Comment icons', function() {
 
   context('when comment has a reply and pad is reloaded', function() {
     before(function(done) {
+      this.timeout(5000);
+
       apiUtils.simulateCallToCreateReply(firstCommentId, 'anything');
 
       // wait for reply to be saved
@@ -132,7 +134,7 @@ describe('ep_comments_page - Comment icons', function() {
       helper.waitFor(function() {
         var $commentIcon = helper.padOuter$('#commentIcons #icon-' + firstCommentId);
         return $commentIcon.hasClass('withReply');
-      }).done(function() {
+      }, 4000).done(function() {
         utils.reloadPad(test, done);
       });
     });

@@ -15,6 +15,7 @@ describe('ep_comments_page - api - "data changed" event', function() {
 
   context('when user creates a comment', function() {
     before(function(done) {
+      this.timeout(5000);
       utils.addCommentToLine(COMMENT_LINE, textOfFirstCreatedComment, done);
     });
 
