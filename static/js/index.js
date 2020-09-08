@@ -21,6 +21,7 @@ var sceneMarkVisibility = require('ep_script_scene_marks/static/js/sceneMarkVisi
 var commentInfoDialog = require('./commentInfoDialog');
 var textMarkInfoDialog = require('./textMarkInfoDialog');
 var selectLine = require('./selectLine');
+var commentObserverOnText = require('./commentObserverOnText');
 
 /************************************************************************/
 /*                         ep_comments Plugin                           */
@@ -185,10 +186,12 @@ ep_comments.prototype.tryToCollectCommentsAndRetryIfNeeded = function(timeToWait
 
 // Collect Comments that are still on text
 ep_comments.prototype.collectComments = function(callback) {
+  var textMarkOccurrences = this.commentDataManager.getTextMarkOccurrencesOnText();
+
   // TODO do we need to call triggerDataChanged or can we simply call
   // updateListOfCommentsStillOnText here?
-  this.commentDataManager.triggerDataChanged();
-  this.commentIcons.addIcons(this.commentDataManager.getTextMarkOccurrencesOnText());
+  this.commentDataManager.triggerDataChanged(textMarkOccurrences);
+  this.commentIcons.updateIconPositions(textMarkOccurrences);
 
   if(callback) callback();
 };
@@ -366,6 +369,7 @@ exports.postAceInit = function(hook, context) {
   thisPlugin.commentsSetChangeHandler = commentsSetChangeHandler.init();
   thisPlugin.commentInfoDialog        = commentInfoDialog.init(ace);
   thisPlugin.commentIcons             = commentIcons.init(ace);
+  thisPlugin.commentObserverOnText    = commentObserverOnText.init();
   var comments                        = new ep_comments(ace, socket);
   thisPlugin.commentHandler           = comments;
 }

@@ -3,13 +3,11 @@ var _ = require('ep_etherpad-lite/static/js/underscore');
 
 var simplePageViewUtils = require('ep_script_simple_page_view/static/js/utils');
 
-var linesChangedListener = require('./linesChangedListener');
 var textHighlighter      = require('./textHighlighter');
 var textMarksObserver    = require('./textMarksObserver');
 var shared               = require('./shared');
 var utils                = require('./utils');
 var textMarkSMVisibility = require('./textMarkSMVisibility');
-var lineChangeScheduler  = require('./lineChangeScheduler');
 
 // make sure $.tmpl is loaded
 require('./lib/jquery.tmpl.min');
@@ -19,29 +17,138 @@ var FIRST_LINE_OF_PAD = 0;
 
 var commentIcons = function(ace) {
   this.thisPlugin = pad.plugins.ep_comments_page;
-
   this.editorPaddingTop = simplePageViewUtils.getEditorPaddingTop();
   this.thisPlugin.textMarksObserver = textMarksObserver.init(ace);
-
   this.commentInfoDialog = this.thisPlugin.commentInfoDialog;
-  this._insertContainer(); // create the container
-
+  this.$iconsContainer = this._createIconsContainer();
   this.textHighlighter = textHighlighter.init('active_comment');
   this.textMarkSMVisibility = textMarkSMVisibility.init(ace);
 
-  this._addListenersToUpdateIconStyle();
   this._addListenersToCommentIcons();
   this._addListenersToDeactivateComment();
-  this._addListenersToUpdateIconsPositions();
   this._loadHelperLibs();
+  this._initializeIcons();
   this.thisPlugin.api.setHandleCommentActivation(this._handleCommentActivation.bind(this));
+}
+
+commentIcons.prototype.updateIconPositions = function(textMarkOccurrences, lineOfChange) {
+  var updateAllIcons = lineOfChange === FIRST_LINE_OF_PAD;
+  this._hideIcons(textMarkOccurrences, updateAllIcons);
+  this._processNewTextMarkOccurrences(textMarkOccurrences);
+  this._updateCommentIconsStyle();
+}
+
+commentIcons.prototype._initializeIcons = function() {
+  // build initial set of icons
+  var textMarkOccurrences = this.thisPlugin.commentDataManager.getTextMarkOccurrencesOnText();
+  this._processNewTextMarkOccurrences(textMarkOccurrences);
+  this._updateCommentIconsStyle();
+}
+
+commentIcons.prototype._processNewTextMarkOccurrences = function(textMarkOccurrences) {
+  var self = this;
+
+  var comments = _(textMarkOccurrences)
+    .chain()
+    .values()
+    .filter(function(textMarkOccurrence) {
+      // does not process deleted comments and comments
+      // whose user line was not calculated yet
+      var isCommentDeleted = textMarkOccurrence.value === 'comment-deleted';
+      var isCommentUserLineExisting = !!textMarkOccurrence.position.userLineOfOccurrence;
+      return !isCommentDeleted && isCommentUserLineExisting;
+    })
+    .value();
+
+  // to avoid processing overhead, perform this task in blocks
+  var chunkSize = 10;
+  var interval = 100; // milliseconds
+
+  let i, j, k = 0;
+  for (i = 0, j = comments.length; i < j; i += chunkSize) {
+    let chunk = comments.slice(i, i + chunkSize);
+    setTimeout(function() {
+      chunk.forEach(function(commentOccurrence) {
+        self._placeIconOnPosition(commentOccurrence);
+      });
+    }, interval * k);
+  }
+};
+
+// Create container to hold comment icons
+commentIcons.prototype._createIconsContainer = function() {
+  var $iconsContainer = $('<div id="commentIcons"></div>');
+  utils.getPadOuter().find("#sidediv").after($iconsContainer);
+  return $iconsContainer;
+}
+
+commentIcons.prototype._addListenersToCommentIcons = function() {
+  var self = this;
+
+  this.$iconsContainer.on("mouseover", ".comment-icon.inactive", function(e){
+    var commentId = self._targetCommentIdOf(e);
+    self._highlightTargetTextOf(commentId);
+  }).on("mouseout", ".comment-icon.inactive", function(e){
+    var commentId = self._targetCommentIdOf(e);
+    self._removeHighlightOfTargetTextOf(commentId);
+  }).on("click", ".comment-icon.active", function(e){
+    self._toggleActiveCommentIcon($(this));
+    var commentId = self._targetCommentIdOf(e);
+    self._removeHighlightOfTargetTextOf(commentId);
+    self.thisPlugin.api.triggerCommentDeactivation();
+  }).on("click", ".comment-icon.inactive", function(e){
+    // deactivate/hide other comment boxes that are opened, so we have only
+    // one comment box opened at a time
+    var allActiveIcons = self.$iconsContainer.find(".comment-icon.active");
+    self._toggleActiveCommentIcon(allActiveIcons);
+    self._removeHighlightOfAllComments();
+
+    // activate/show only target comment
+    self._toggleActiveCommentIcon($(this));
+    var commentId = self._targetCommentIdOf(e);
+
+    // if a comment is on a scene mark hidden, show the scene mark first
+    self.textMarkSMVisibility.showSMHiddenIfTextMarkIsOnIt(commentId);
+
+    self._highlightTargetTextOf(commentId);
+    self._placeCaretAtBeginningOfTextOf(commentId);
+    self.thisPlugin.api.triggerCommentActivation(commentId);
+  });
+}
+
+commentIcons.prototype._getOrCreateIconsContainerAt = function(top) {
+  var iconClass = "icon-at-" + top;
+
+  // is this the 1st comment on that line?
+  var iconsAtLine = this.$iconsContainer.find("." + iconClass);
+  var isFirstIconAtLine = iconsAtLine.length === 0;
+
+  // create container for icons at target line, if it does not exist yet
+  if (isFirstIconAtLine) {
+    this.$iconsContainer.append('<div class="comment-icon-line ' + iconClass + '"></div>');
+    iconsAtLine = this.$iconsContainer.find("." + iconClass);
+    iconsAtLine.css("top", top + "px");
+  }
+
+  return iconsAtLine;
+}
+
+commentIcons.prototype._getOrCreateIcon = function(commentId) {
+  var $icon = this.$iconsContainer.find('#icon-' + commentId);
+
+  var iconDoesNotExistYet = $icon.length === 0;
+  if (iconDoesNotExistYet) {
+    $icon = $('#commentIconTemplate').tmpl({ commentId: commentId });
+  }
+
+  return $icon;
 }
 
 // Adjust position of the comment icon on the container, to be on the same
 // height of the pad text associated to the comment, and return the affected icon
-commentIcons.prototype.adjustTopOf = function(textMarkOccurrence) {
+commentIcons.prototype._placeIconOnPosition = function(textMarkOccurrence) {
   var commentId = this._getCommentIdFromTextMarkOccurrence(textMarkOccurrence);
-  var $icon = utils.getPadOuter().find('#icon-' + commentId);
+  var $icon = this._getOrCreateIcon(commentId);
 
   // If there is no a visible user line suitable to place the icon,
   // then we need to hide it.
@@ -67,9 +174,9 @@ commentIcons.prototype.adjustTopOf = function(textMarkOccurrence) {
 }
 
 // Hide comment icons from container
-commentIcons.prototype.hideIcons = function(textMarkOccurrences, hideAllIcons) {
+commentIcons.prototype._hideIcons = function(textMarkOccurrences, hideAllIcons) {
   var self = this;
-  var $commentIcons = utils.getPadOuter().find('#commentIcons').children().children();
+  var $commentIcons = this.$iconsContainer.children().children();
   if (!hideAllIcons) {
     // get icons are not present on text
     $commentIcons = $commentIcons.filter(function() {
@@ -80,125 +187,11 @@ commentIcons.prototype.hideIcons = function(textMarkOccurrences, hideAllIcons) {
   $commentIcons.hide();
 }
 
-// Create new comment icons, if they don't exist yet
-commentIcons.prototype.addIcons = function(textMarkOccurrences) {
-  var self = this;
-
-  Object.keys(textMarkOccurrences).forEach(function(key) {
-    self._addIcon(textMarkOccurrences[key]);
-  });
-
-  self._updateCommentIconsStyle();
-}
-
-commentIcons.prototype._addListenersToUpdateIconsPositions = function () {
-  var self = this;
-  self.thisPlugin.textMarksObserver.observeAttribute(shared.COMMENT_PREFIX_KEY, function(textMarkOccurrences, lineOfChange) {
-    var updateAllIcons = lineOfChange === FIRST_LINE_OF_PAD;
-    self.hideIcons(textMarkOccurrences, updateAllIcons);
-
-    self._processNewTextMarkOccurrences(textMarkOccurrences);
-  });
-}
-
-commentIcons.prototype._processNewTextMarkOccurrences = function(textMarkOccurrences) {
-  var self = this;
-  var comments = _.values(textMarkOccurrences);
-
-  // to avoid processing overhead, perform this task in blocks
-  var chunkSize = 10;
-  var interval = 1000; // milliseconds
-
-  let i, j, k = 0;
-  for (i = 0, j = comments.length; i < j; i += chunkSize) {
-    let chunk = comments.slice(i, i + chunkSize);
-    setTimeout(function() {
-      chunk.forEach(function(commentOccurrence) {
-        self.adjustTopOf(commentOccurrence);
-      });
-    }, interval * k);
-  }
-};
-
-// Create container to hold comment icons
-commentIcons.prototype._insertContainer = function() {
-  utils.getPadOuter().find("#sidediv").after('<div id="commentIcons"></div>');
-}
-
-commentIcons.prototype._addListenersToCommentIcons = function() {
-  var self = this;
-
-  utils.getPadOuter().find('#commentIcons').on("mouseover", ".comment-icon.inactive", function(e){
-    var commentId = self._targetCommentIdOf(e);
-    self._highlightTargetTextOf(commentId);
-  }).on("mouseout", ".comment-icon.inactive", function(e){
-    var commentId = self._targetCommentIdOf(e);
-    self._removeHighlightOfTargetTextOf(commentId);
-  }).on("click", ".comment-icon.active", function(e){
-    self._toggleActiveCommentIcon($(this));
-    var commentId = self._targetCommentIdOf(e);
-    self._removeHighlightOfTargetTextOf(commentId);
-    self.thisPlugin.api.triggerCommentDeactivation();
-  }).on("click", ".comment-icon.inactive", function(e){
-    // deactivate/hide other comment boxes that are opened, so we have only
-    // one comment box opened at a time
-    var allActiveIcons = utils.getPadOuter().find('#commentIcons').find(".comment-icon.active");
-    self._toggleActiveCommentIcon(allActiveIcons);
-    self._removeHighlightOfAllComments();
-
-    // activate/show only target comment
-    self._toggleActiveCommentIcon($(this));
-    var commentId = self._targetCommentIdOf(e);
-
-    // if a comment is on a scene mark hidden, show the scene mark first
-    self.textMarkSMVisibility.showSMHiddenIfTextMarkIsOnIt(commentId);
-
-    self._highlightTargetTextOf(commentId);
-    self._placeCaretAtBeginningOfTextOf(commentId);
-    self.thisPlugin.api.triggerCommentActivation(commentId);
-  });
-}
-
-commentIcons.prototype._getOrCreateIconsContainerAt = function(top) {
-  var iconContainer = utils.getPadOuter().find('#commentIcons');
-  var iconClass = "icon-at-" + top;
-
-  // is this the 1st comment on that line?
-  var iconsAtLine = iconContainer.find("." + iconClass);
-  var isFirstIconAtLine = iconsAtLine.length === 0;
-
-  // create container for icons at target line, if it does not exist yet
-  if (isFirstIconAtLine) {
-    iconContainer.append('<div class="comment-icon-line ' + iconClass + '"></div>');
-    iconsAtLine = iconContainer.find("." + iconClass);
-    iconsAtLine.css("top", top + "px");
-  }
-
-  return iconsAtLine;
-}
-
-commentIcons.prototype._addIcon = function(textMarkOccurrence) {
-  var commentId = this._getCommentIdFromTextMarkOccurrence(textMarkOccurrence);
-
-  // only create icon if it was not created before
-  var $icon = utils.getPadOuter().find('#icon-' + commentId);
-  if ($icon.length > 0) return;
-
-  // only create icon if commented text was not removed from pad
-  var $inlineComment = utils.getPadInner().find('.comment.' + commentId);
-  if ($inlineComment.length === 0) return;
-
-  var top = this._getCommentTopPositionFromTextMarkOccurrence(textMarkOccurrence);
-  var iconsAtLine = this._getOrCreateIconsContainerAt(top);
-  var icon = $('#commentIconTemplate').tmpl({ commentId: commentId });
-
-  icon.appendTo(iconsAtLine);
-}
 
 // Update which comments have reply
 commentIcons.prototype._updateCommentIconsStyle = function() {
+  var self = this;
   var commentDataManager = this.thisPlugin.commentDataManager;
-  var $iconsContainer = utils.getPadOuter().find('#commentIcons');
   var $commentsOnText = utils.getPadInner().find('.comment');
 
   $commentsOnText.each(function() {
@@ -215,7 +208,7 @@ commentIcons.prototype._updateCommentIconsStyle = function() {
       var commentHasReplyOnText = $comment.is(selectorOfAllReplyIds);
 
       // change comment icon
-      var $commentIcon = $iconsContainer.find('#icon-' + commentId);
+      var $commentIcon = self.$iconsContainer.find('#icon-' + commentId);
       $commentIcon.toggleClass('withReply', commentHasReplyOnText);
     })
   });
@@ -259,10 +252,6 @@ commentIcons.prototype._placeCaretAtBeginningOfTextOf = function(commentId) {
 
 commentIcons.prototype._makeSureEditorHasTheFocus = function() {
   utils.getPadOuter().find('iframe[name="ace_inner"]').get(0).contentWindow.focus();
-}
-
-commentIcons.prototype._addListenersToUpdateIconStyle = function() {
-  linesChangedListener.onLineChanged('.comment-reply', this._updateCommentIconsStyle.bind(this));
 }
 
 // Listen to clicks on the page to be able to close comment when clicking
@@ -312,7 +301,7 @@ commentIcons.prototype._shouldNotCloseComment = function(e) {
 
 // Search on the page for an opened comment
 commentIcons.prototype._findOpenedComment = function() {
-  return utils.getPadOuter().find('#commentIcons .comment-icon.active').get(0);
+  return this.$iconsContainer.find('.comment-icon.active').get(0);
 }
 
 commentIcons.prototype._loadHelperLibs = function() {
@@ -336,11 +325,11 @@ commentIcons.prototype._handleCommentActivation = function(commentId) {
 }
 
 commentIcons.prototype._triggerCommentDeactivation = function() {
-  utils.getPadOuter().find('#commentIcons .active').click();
+  this.$iconsContainer.find('.active').click();
 }
 // Click on comment icon, so the whole cycle of events is performed
 commentIcons.prototype._triggerCommentActivation = function(commentId) {
-  var $commentIcon = utils.getPadOuter().find('#commentIcons #icon-' + commentId);
+  var $commentIcon = this.$iconsContainer.find('#icon-' + commentId);
 
   // make sure icon is visible on viewport
   var outerIframe = $('iframe[name="ace_outer"]').get(0);
@@ -363,6 +352,8 @@ commentIcons.prototype._getCommentIdFromTextMarkOccurrence = function(textMarkOc
 
 commentIcons.prototype._getCommentTopPositionFromTextMarkOccurrence = function(textMarkOccurrence) {
   var nextVisibleUserLine = textMarkOccurrence.position.nextVisibleUserLine;
+  if (!nextVisibleUserLine) return 0;
+
   var baseTop = this.editorPaddingTop + nextVisibleUserLine.y0 + nextVisibleUserLine.marginTop;
   return baseTop + 3;
 }

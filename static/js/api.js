@@ -24,6 +24,7 @@ var commentApi = function() {
   this.onReplyDeletion = function() {};
   this.onShowCommentInfo = function() {};
   this.onToggleImportantFlag = function() {};
+  this.lastCommentsDataSent = null;
 
   var self = this;
 
@@ -177,6 +178,15 @@ commentApi.prototype.triggerCommentDeactivation = function() {
 */
 commentApi.prototype.triggerDataChanged = function(commentsData) {
   this._injectModelNameOn(commentsData);
+
+  // do not trigger the event if the data has not changed
+  var dataHasNotChanged = _.isEqual(commentsData, this.lastCommentsDataSent);
+  if (dataHasNotChanged) {
+    return;
+  }
+
+  this.lastCommentsDataSent = commentsData;
+
   var message = {
     type: DATA_CHANGED_MESSAGE_TYPE,
     values: commentsData,

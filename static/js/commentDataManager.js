@@ -1,7 +1,6 @@
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var _ = require('ep_etherpad-lite/static/js/underscore');
 
-var linesChangedListener = require('./linesChangedListener');
 var utils = require('./utils');
 var shared = require('./shared');
 
@@ -9,10 +8,7 @@ var commentDataManager = function(socket) {
   this.thisPlugin = pad.plugins.ep_comments_page;
   this.socket = socket;
   this.comments = {};
-  this.textMarkOccurrences = {};
   this.commentsStillOnText = [];
-
-  linesChangedListener.onLineChanged('.comment, heading', this.triggerDataChanged.bind(this));
 
   this.thisPlugin.api.setHandleCommentEdition(this._onCommentEdition.bind(this));
   this.thisPlugin.api.setHandleReplyEdition(this._onReplyEdition.bind(this));
@@ -35,7 +31,8 @@ commentDataManager.prototype.getComments = function() {
 }
 
 commentDataManager.prototype.getTextMarkOccurrencesOnText = function() {
-  return this.textMarkOccurrences;
+  var textMarksObserver = pad.plugins.ep_comments_page.textMarksObserver;
+  return textMarksObserver.getAttributeOccurrences(shared.COMMENT_PREFIX_KEY);
 }
 
 commentDataManager.prototype.getCommentIdsStillOnText = function() {
@@ -212,21 +209,28 @@ commentDataManager.prototype._resetRepliesOnComments = function() {
   });
 }
 
-commentDataManager.prototype.triggerDataChanged = function() {
+commentDataManager.prototype.triggerDataChanged = function(textMarkOccurrences) {
   // TODO this method is doing too much. On this case we only need to send the list
   // of comments on the api, don't need to collect all comments from text
-  this.updateListOfCommentsStillOnText();
+  var commentsOnText = textMarkOccurrences ? textMarkOccurrences : this.getTextMarkOccurrencesOnText();
+  this._updateListOfCommentsStillOnText(commentsOnText);
 }
 
 // some comments might had been removed from text, so update the list
-commentDataManager.prototype.updateListOfCommentsStillOnText = function() {
+commentDataManager.prototype._updateListOfCommentsStillOnText = function(textMarkOccurrences) {
   // TODO can we store the data that we're processing here, so we don't need to redo
   // the processing for the data we had already built?
   // I guess we should run this method only on the lines changed
 
-  this.textMarkOccurrences = this._reloadTextMarkOccurrencesOnText();
-  var commentsToSend = _(this.textMarkOccurrences)
+  var commentsToSend = _(textMarkOccurrences)
     .chain()
+    .filter(function(textMarkOccurrence) {
+      // does not process deleted comments and comments
+      // whose user line was not calculated yet
+      var isCommentDeleted = textMarkOccurrence.value === 'comment-deleted';
+      var isCommentUserLineExisting = !!textMarkOccurrence.position.userLineOfOccurrence;
+      return !isCommentDeleted && isCommentUserLineExisting;
+    })
     .map(function(textMarkOccurrence) {
       var textMarkOccurenceId = textMarkOccurrence.key;
       var commentId = textMarkOccurenceId .replace(shared.COMMENT_PREFIX_KEY, shared.COMMENT_PREFIX);
@@ -244,7 +248,9 @@ commentDataManager.prototype.updateListOfCommentsStillOnText = function() {
         }
 
         var nodeWithComment = this._getNodeWithComment(commentId);
-        commentData.replies = this._getRepliesStillOnTextSortedByDate(commentData, nodeWithComment);
+        if (nodeWithComment) {
+          commentData.replies = this._getRepliesStillOnTextSortedByDate(commentData, nodeWithComment);
+        }
 
         return commentData;
       }
@@ -258,11 +264,6 @@ commentDataManager.prototype.updateListOfCommentsStillOnText = function() {
   this.commentsStillOnText = commentsToSend;
 
   this.thisPlugin.api.triggerDataChanged(commentsToSend);
-}
-
-commentDataManager.prototype._reloadTextMarkOccurrencesOnText = function(tagOccurrenceId) {
-  var textMarksObserver = pad.plugins.ep_comments_page.textMarksObserver;
-  return textMarksObserver.getAttributeOccurrences(shared.COMMENT_PREFIX_KEY);
 }
 
 commentDataManager.prototype._getNodeWithComment = function(commentId) {
