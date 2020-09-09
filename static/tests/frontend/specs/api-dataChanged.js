@@ -15,7 +15,6 @@ describe('ep_comments_page - api - "data changed" event', function() {
 
   context('when user creates a comment', function() {
     before(function(done) {
-      this.timeout(5000);
       utils.addCommentToLine(COMMENT_LINE, textOfFirstCreatedComment, done);
     });
 
@@ -312,13 +311,13 @@ describe('ep_comments_page - api - "data changed" event', function() {
     }
 
     before(function(done) {
-      // we have two comments, a valid and the ghost one
+      // we have three comments, a valid, the ghost one, and one more valid comment
       utils.createPad(this, function(){
         utils.addCommentToLine(COMMENT_LINE, textOfFirstCreatedComment, function(){
           apiUtils.waitForDataToBeSent(function() {
-            apiUtils.resetData();
             addGhostCommentOnLine(FIRST_LINE);
-            done();
+            apiUtils.resetData();
+            utils.addCommentToLine(COMMENT_LINE, textOfLastCreatedComment, done);
           });
         });
       })
@@ -327,8 +326,9 @@ describe('ep_comments_page - api - "data changed" event', function() {
     it('only sends the valid comments via API', function(done){ // valid === any comment that's not a ghost one
       apiUtils.waitForDataToBeSent(function() {
         var comments = apiUtils.getLastDataSent();
-        expect(comments.length).to.be(1);
+        expect(comments.length).to.be(2);
         expect(comments[0].text).to.be(textOfFirstCreatedComment);
+        expect(comments[1].text).to.be(textOfLastCreatedComment);
         done();
       });
     })

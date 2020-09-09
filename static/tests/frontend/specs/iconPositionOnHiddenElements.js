@@ -149,7 +149,6 @@ describe('ep_comments_page - icon position on hidden elements', function() {
 
       it('shows the SM comment icons on the heading', function (done) {
         checkIfHasCommentIconsOnLine(COMMENT_LINES, HEADING, done);
-        this.timeout(6000);
       });
     });
 
@@ -162,7 +161,6 @@ describe('ep_comments_page - icon position on hidden elements', function() {
         // send the comment of episode to the act_name line (two comment icons)
         var commentLines = [EPI_NAME, ACT_NAME];
         checkIfHasCommentIconsOnLine(commentLines, ACT_NAME, done);
-        this.timeout(6000);
       });
     });
   });
@@ -182,7 +180,6 @@ describe('ep_comments_page - icon position on hidden elements', function() {
           it('shows the icon on the first SM visible', function (done) {
             var commentLines = [ACTION];
             checkIfHasCommentIconsOnLine(commentLines, SECOND_ACT_NAME, done);
-            this.timeout(6000);
           });
         })
 

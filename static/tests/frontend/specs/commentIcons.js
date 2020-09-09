@@ -54,7 +54,7 @@ describe('ep_comments_page - Comment icons', function() {
     helper.waitFor(function(){
       var numberOfLines = helper.padInner$('div').length;
       return numberOfLines === originalNumberOfLines + 2;
-    }, 4000).done(cb);
+    }).done(cb);
   }
 
   var createTwoLinesOnTopOfScriptOnOtherUserBrowser = function(done) {
@@ -119,14 +119,12 @@ describe('ep_comments_page - Comment icons', function() {
       var expectedTop = $commentedText.offset().top;
       var currentTop = $commentIcon.offset().top;
       return isIconPositionWithinTolerance(expectedTop, currentTop);
-    }, 2000).done(done);
+    }).done(done);
 
   });
 
   context('when comment has a reply and pad is reloaded', function() {
     before(function(done) {
-      this.timeout(5000);
-
       apiUtils.simulateCallToCreateReply(firstCommentId, 'anything');
 
       // wait for reply to be saved
@@ -134,7 +132,7 @@ describe('ep_comments_page - Comment icons', function() {
       helper.waitFor(function() {
         var $commentIcon = helper.padOuter$('#commentIcons #icon-' + firstCommentId);
         return $commentIcon.hasClass('withReply');
-      }, 4000).done(function() {
+      }).done(function() {
         utils.reloadPad(test, done);
       });
     });
@@ -163,8 +161,7 @@ describe('ep_comments_page - Comment icons', function() {
         // check icon is not visible
         var $commentIcons = helper.padOuter$('#commentIcons #icon-' + firstCommentId + ':visible');
         return $commentIcons.length === 0;
-      }, 4000).done(done);
-      this.timeout(6000);
+      }).done(done);
     });
   });
 
@@ -204,10 +201,8 @@ describe('ep_comments_page - Comment icons', function() {
         helper.waitFor(function() {
           var $commentIcons = helper.padOuter$('#commentIcons .comment-icon:visible');
           return $commentIcons.length !== 0;
-        }, 4000).done(done);
+        }).done(done);
       });
-
-      this.timeout(6000);
     });
 
     after(function() {
@@ -420,9 +415,7 @@ describe('ep_comments_page - Comment icons', function() {
         var expectedTop = $commentedText.offset().top;
         var currentTop = $commentIcon.offset().top;
         return isIconPositionWithinTolerance(expectedTop, currentTop);
-      }, 4000).done(done)
-
-      this.timeout(6000);
+      }).done(done)
     });
   })
 });

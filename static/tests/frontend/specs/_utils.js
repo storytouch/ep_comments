@@ -31,6 +31,11 @@ ep_comments_page_test_helper.utils = {
   },
 
   speedUpIconCreation: function() {
+    // speed up user lines calculation
+    var dimensionsUtils = ep_script_dimensions_test_helper.utils;
+    dimensionsUtils.speedUpTests();
+
+    // speed up user icons creation
     var thisPlugin = helper.padChrome$.window.pad.plugins.ep_comments_page;
     thisPlugin.commentIcons.timeToUpdateIconPosition = 0;
   },
