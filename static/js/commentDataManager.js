@@ -216,7 +216,10 @@ commentDataManager.prototype.triggerDataChanged = function(textMarkOccurrences) 
   this._updateListOfCommentsStillOnText(commentsOnText);
 }
 
-// some comments might had been removed from text, so update the list
+// In this function we receive the updated textMarkOccurrences list
+// that contains all comments attributes on text. As deleted comments
+// are also tagged with attributes on text, some comments might had been
+// removed from text, so we need update the list.
 commentDataManager.prototype._updateListOfCommentsStillOnText = function(textMarkOccurrences) {
   // TODO can we store the data that we're processing here, so we don't need to redo
   // the processing for the data we had already built?
@@ -233,7 +236,7 @@ commentDataManager.prototype._updateListOfCommentsStillOnText = function(textMar
     })
     .map(function(textMarkOccurrence) {
       var textMarkOccurenceId = textMarkOccurrence.key;
-      var commentId = textMarkOccurenceId .replace(shared.COMMENT_PREFIX_KEY, shared.COMMENT_PREFIX);
+      var commentId = textMarkOccurenceId.replace(shared.COMMENT_PREFIX_KEY, shared.COMMENT_PREFIX);
       var targetComment = this.comments[commentId];
 
       if (targetComment !== undefined) {

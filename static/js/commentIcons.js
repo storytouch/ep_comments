@@ -17,7 +17,7 @@ var FIRST_LINE_OF_PAD = 0;
 var TIME_TO_UPDATE_ICON_POSITION = 100; // milliseconds
 
 var commentIcons = function(ace) {
-  // allow to controll this timeout in test
+  // allow to control this timeout in test
   this.timeToUpdateIconPosition = TIME_TO_UPDATE_ICON_POSITION;
 
   this.thisPlugin = pad.plugins.ep_comments_page;
