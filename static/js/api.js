@@ -185,7 +185,19 @@ commentApi.prototype.triggerDataChanged = function(commentsData) {
     return;
   }
 
-  this.lastCommentsDataSent = commentsData;
+  /*
+   * pointing lastCommentsDataSent to commentsData leads to problems with
+   * references. It means that if we change commentsData, lastCommentsDataSent
+   * will be automatically changed as well, and the dataHasNotChanged
+   * comparison will always return false.  For example: if we change a
+   * reply text, lastCommentsDataSent will have the new value, as it points
+   * to the same object that commentDataManager is working with. Thus,
+   * dataHasNotChanged will return false and the "data changed message"
+   * won't be triggered.
+   * For that reason, we use the "stringify and parse" approach to create
+   * new objects.
+   */
+  this.lastCommentsDataSent = JSON.parse(JSON.stringify(commentsData));
 
   var message = {
     type: DATA_CHANGED_MESSAGE_TYPE,

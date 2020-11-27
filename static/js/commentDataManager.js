@@ -100,6 +100,11 @@ commentDataManager.prototype.addReply = function(replyId, replyData, doNotTrigge
 
 commentDataManager.prototype._onCommentEdition = function(commentId, commentText, cb) {
   var self = this;
+
+  if (this.comments[commentId].text === commentText) {
+    return;
+  }
+
   var data = {
     padId: clientVars.padId,
     commentId: commentId,
@@ -112,10 +117,8 @@ commentDataManager.prototype._onCommentEdition = function(commentId, commentText
       // although the comment was saved on the data base successfully, we need
       // to update our local data with the new text saved
       var comment = self.comments[commentId];
-      if (comment.text !== commentText) {
-        comment.text = commentText;
-        self.triggerDataChanged();
-      }
+      comment.text = commentText;
+      self.triggerDataChanged();
       if (cb) cb();
     }
   });
@@ -123,6 +126,11 @@ commentDataManager.prototype._onCommentEdition = function(commentId, commentText
 
 commentDataManager.prototype._onReplyEdition = function(commentId, replyId, replyText) {
   var self = this;
+
+  if (this.comments[commentId].replies[replyId].text === replyText) {
+    return;
+  }
+
   var data = {
     padId: clientVars.padId,
     commentId: replyId,
@@ -135,10 +143,8 @@ commentDataManager.prototype._onReplyEdition = function(commentId, replyId, repl
       // although the reply was saved on the data base successfully, we need
       // to update our local data with the new text saved
       var reply = self.comments[commentId].replies[replyId];
-      if (reply.text !== replyText) {
-        reply.text = replyText;
-        self.triggerDataChanged();
-      }
+      reply.text = replyText;
+      self.triggerDataChanged();
     }
   });
 }
@@ -295,13 +301,7 @@ commentDataManager.prototype._getRepliesStillOnTextSortedByDate = function(comme
     return commentData.replies[replyId].timestamp;
   });
 
-  // create new objects for each reply. This way we don't keep the objects
-  // references and the api can know if the object changed before send data
-  // to manager.
-  return sortedReplyIds.reduce(function(replies, replyId) {
-    replies[replyId] = Object.assign({}, commentData.replies[replyId]);
-    return replies;
-  }, {});
+  return _(commentData.replies).pick(sortedReplyIds);
 }
 
 exports.init = function(socket) {
