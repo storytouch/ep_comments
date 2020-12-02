@@ -1,6 +1,5 @@
 var _ = require('ep_etherpad-lite/static/js/underscore');
 var Changeset = require('ep_etherpad-lite/static/js/Changeset');
-var epDShared = require('ep_script_dimensions/static/js/shared');
 
 var textMarksFinder = function(args) {
   this.attribPrefixesToObserve = args.attribPrefixesToObserve;
@@ -135,10 +134,6 @@ textMarksFinder.prototype._getUserLineOfOccurrence = function(textMarkOccurrence
 
   var lineOffset = userLinesOfLineNumber[0].offset;
   var attribOffsetOnText = lineOffset + textMarkOccurrence.offset;
-
-  // if the line is not a General, the first char is a "*"
-  var isLineTypeAGeneral = userLinesOfLineNumber[0].type === epDShared.GENERAL_TYPE;
-  if (!isLineTypeAGeneral) attribOffsetOnText -= 1;
 
   var userLineAtOffsetIndex = userLinesOfLineNumber.findIndex(function(x) {
     return x.offset > attribOffsetOnText;
