@@ -52,6 +52,11 @@
   cursor: pointer;
 }
 
+.ui-dialog .ui-dialog-content input.button:hover {
+  color: #FFFFFF; /* color 255 */
+  background-color: #64666A; /* color 100 */
+}
+
 /* buttons Save and Cancel*/
 .ui-dialog input.button--save,
 .ui-dialog input.button--cancel {
