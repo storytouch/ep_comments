@@ -3,9 +3,6 @@
   box-shadow: 0.5px 0.5px 0.5px 0.5px #141419; /* color 20 */
   background-color: #323237; /* color 50 */
 }
-.theme-dark .ui-dialog input.button:hover {
-  color: #A0A2A6; /* color 160 */
-}
 .theme-dark .ui-dialog input.button:focus {
   color: #FFFFFF; /* color 255 */
 }
