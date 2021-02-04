@@ -3,11 +3,10 @@ var _ = require('ep_etherpad-lite/static/js/underscore');
 
 
 // Add the props to be supported in export
-exports.exportHtmlAdditionalTagsWithData = function(hook, pad, cb){
-  var comments_used = findAllCommentUsedOn(pad);
-  var tags = transformCommentsIntoTags(comments_used);
-
-  cb(tags);
+exports.exportHtmlAdditionalTagsWithData = async function(hook, pad) {
+  var commentsUsed = findAllCommentUsedOn(pad);
+  var tags = transformCommentsIntoTags(commentsUsed);
+  return tags;
 };
 
 // Iterate over pad attributes to find only the comment ones
@@ -15,7 +14,7 @@ function findAllCommentUsedOn(pad) {
   var comments_used = [];
 
   pad.pool.eachAttrib(function(key, value){
-    if (key === "comment") {
+    if (key.startsWith("comment")) {
       comments_used.push(value);
     }
   });
@@ -23,10 +22,10 @@ function findAllCommentUsedOn(pad) {
   return comments_used;
 }
 
-// Transforms an array of comment names into comment tags like ["comment", "c-1234"]
+// Transforms an array of comment names into comment tags like ["comment-c-1234", "c-1234"]
 function transformCommentsIntoTags(comment_names) {
   return _.map(comment_names, function(comment_name) {
-    return ["comment", comment_name];
+    return ["comment-" + comment_name, comment_name];
   });
 }
 
@@ -49,5 +48,5 @@ function rewriteLine(context){
  }
 
 function replaceDataByClass(text) {
-  return text.replace(/data-comment=["|'](c-[0-9a-zA-Z]+)["|']/gi, "class='comment $1'");
+  return text.replace(/data-comment-.*?=["|'](c-[0-9a-zA-Z]+)["|']/gi, "class='comment $1'");
  }
