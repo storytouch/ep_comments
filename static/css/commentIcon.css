@@ -3,7 +3,6 @@
   z-index: 1;
   position: relative;
   width: 50px;
-  margin-left: 15px;
 }
 
 /* when line numbers are not visible, we need to move icons to the left */
