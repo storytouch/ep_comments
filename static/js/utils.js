@@ -1,6 +1,7 @@
 var _ = require('ep_etherpad-lite/static/js/underscore');
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var smUtils = require('ep_script_scene_marks/static/js/utils');
+var seShared = require('ep_script_elements/static/js/shared');
 
 exports.LINE_CHANGED_EVENT = 'LINE_CHANGED_EVENT';
 exports.OPEN_NEW_COMMENT_MODAL_EVENT = 'OPEN_NEW_COMMENT_MODAL_EVENT';
@@ -135,4 +136,9 @@ exports.replaceDialogContentWith = function($template, dialog, selector) {
   var $currentContent = dialog.$content.find(selectorId);
   var $newContent = $template.find(selectorId);
   $currentContent.replaceWith($newContent);
+}
+
+exports.isCommentsEnabledOnThisPadType = function() {
+  var padType = pad.plugins.ep_script_elements.padType.getPadTypeParam();
+  return padType !== seShared.TITLE_PAGE_DOCUMENT_TYPE;
 }

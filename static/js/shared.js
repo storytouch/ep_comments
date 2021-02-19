@@ -1,6 +1,5 @@
 var _ = require('ep_etherpad-lite/static/js/underscore');
 var randomString = require('ep_etherpad-lite/static/js/pad_utils').randomString;
-var epSEShared = require('ep_script_elements/static/js/shared');
 
 var COMMENT_PREFIX_KEY = 'comment-c-';
 exports.COMMENT_PREFIX_KEY = COMMENT_PREFIX_KEY;
@@ -77,9 +76,4 @@ exports.generateCommentId = function(){
 
 exports.generateReplyId = function(){
   return REPLY_PREFIX + randomString(16);
-}
-
-exports.isCommentsEnabledOnThisPadType = function() {
-  var padType = pad.plugins.ep_script_elements.padType.getPadTypeParam();
-  return padType !== epSEShared.TITLE_PAGE_DOCUMENT_TYPE;
 }
