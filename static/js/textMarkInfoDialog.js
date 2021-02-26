@@ -163,7 +163,16 @@ textMarkInfoDialog.prototype._closeInfoDialogAndShowEditDialog = function() {
   this.editDialog.open();
   this.infoDialog.close();
   this._placeFocusOnDescription();
+  this._setCancelEditingHandler();
 };
+
+textMarkInfoDialog.prototype._setCancelEditingHandler = function() {
+  var padOuter = utils.getPadOuter();
+  var $cancelButton = padOuter.find(this.editTemplate.cancelEditingButtonSelector);
+  if ($cancelButton.length) {
+    $cancelButton.on('click', this._closeEditDialogAndShowInfoDialog.bind(this));
+  }
+}
 
 textMarkInfoDialog.prototype._placeFocusOnDescription = function() {
   var descriptionFieldId = this.editTemplate.descriptionFieldId;

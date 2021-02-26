@@ -47,12 +47,20 @@ describe('ep_comments_page - workflow to edit a comment', function() {
           .click();
       });
 
+      after(function() {
+        var commentId = originalCommentData.commentId;
+        apiUtils.simulateCallToShowCommentInfo(commentId);
+        utils.getCommentInfoDialog()
+          .find('.button--edit')
+          .click();
+      })
+
       it('closes the dialog to edit Comment', function(done) {
         closeCommentEditDialog(done);
       });
 
       it('opens the Comment info dialog with the updated description', function(done) {
-        utils.testIfCommentDialogIsClosed(function() {
+        utils.testIfCommentInfoDialogIsOpen(function() {
           var newDescription = utils.getCommentInfoDialog()
             .find('.comment-description-body')
             .text();
@@ -73,6 +81,22 @@ describe('ep_comments_page - workflow to edit a comment', function() {
         });
       });
     });
+
+    context('when the user presses the cancel button', function() {
+      before(function() {
+        getCommentEditDialog()
+          .find('.comment-button--cancel')
+          .click();
+      });
+
+      it('closes the dialog to edit Comment', function(done) {
+        closeCommentEditDialog(done);
+      });
+
+      it('opens the Comment info dialog', function(done) {
+        utils.testIfCommentInfoDialogIsOpen(done);
+      });
+    })
   });
 
   context('when other user opens the comment dialog', function() {

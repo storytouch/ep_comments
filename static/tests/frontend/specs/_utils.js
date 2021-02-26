@@ -415,7 +415,7 @@ ep_comments_page_test_helper.utils = {
   },
 
   // assume dialogs are closed
-  testIfCommentDialogIsClosed: function(done) {
+  testIfCommentInfoDialogIsOpen: function(done) {
     var self = this;
     helper
       .waitFor(function() {
